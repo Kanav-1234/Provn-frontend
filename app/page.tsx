@@ -67,7 +67,7 @@ function MainIconSvg({ type }: { type: MainIcon }) {
 
   if (type === 'profile') {
     return (
-      <svg viewBox="0 0 24 24" className="h-8 w-8" {...common}>
+      <svg viewBox="0 0 24 24" className="h-7 w-7 lg:h-8 lg:w-8" {...common}>
         <circle cx="12" cy="8" r="4" />
         <path d="M4.5 21c.7-5.2 3-7.5 7.5-7.5s6.8 2.3 7.5 7.5" />
       </svg>
@@ -91,7 +91,7 @@ function MainIconSvg({ type }: { type: MainIcon }) {
 
   if (type === 'discover') {
     return (
-      <svg viewBox="0 0 24 24" className="h-8 w-8" {...common}>
+      <svg viewBox="0 0 24 24" className="h-7 w-7 lg:h-8 lg:w-8" {...common}>
         <path d="M7.5 9.5h-2A3.5 3.5 0 0 0 2 13v2a3 3 0 0 0 5.4 1.8L9 15h6l1.6 1.8A3 3 0 0 0 22 15v-2a3.5 3.5 0 0 0-3.5-3.5h-2" />
         <path d="M8 12h4" />
         <path d="M10 10v4" />
@@ -103,10 +103,11 @@ function MainIconSvg({ type }: { type: MainIcon }) {
 
   if (type === 'connect') {
     return (
-      <svg viewBox="0 0 24 24" className="h-8 w-8" {...common}>
+      <svg viewBox="0 0 24 24" className="h-7 w-7 lg:h-8 lg:w-8" {...common}>
         <circle cx="12" cy="7" r="3" />
         <circle cx="5.5" cy="9.5" r="2.2" />
         <circle cx="18.5" cy="9.5" r="2.2" />
+
         <path d="M7 20c.5-4 2.2-6 5-6s4.5 2 5 6" />
         <path d="M2 19c.4-2.8 1.7-4.2 4-4.2" />
         <path d="M22 19c-.4-2.8-1.7-4.2-4-4.2" />
@@ -116,7 +117,7 @@ function MainIconSvg({ type }: { type: MainIcon }) {
 
   if (type === 'learn') {
     return (
-      <svg viewBox="0 0 24 24" className="h-8 w-8" {...common}>
+      <svg viewBox="0 0 24 24" className="h-7 w-7 lg:h-8 lg:w-8" {...common}>
         <path d="m3 9 9-5 9 5-9 5-9-5Z" />
         <path d="M7 12.5V17c3 2 7 2 10 0v-4.5" />
         <path d="M21 9v5" />
@@ -126,7 +127,7 @@ function MainIconSvg({ type }: { type: MainIcon }) {
 
   if (type === 'earn') {
     return (
-      <svg viewBox="0 0 24 24" className="h-8 w-8" {...common}>
+      <svg viewBox="0 0 24 24" className="h-7 w-7 lg:h-8 lg:w-8" {...common}>
         <ellipse cx="12" cy="6" rx="6.5" ry="3" />
         <path d="M5.5 6v5c0 1.7 2.9 3 6.5 3s6.5-1.3 6.5-3V6" />
         <path d="M5.5 11v5c0 1.7 2.9 3 6.5 3s6.5-1.3 6.5-3v-5" />
@@ -135,7 +136,7 @@ function MainIconSvg({ type }: { type: MainIcon }) {
   }
 
   return (
-    <svg viewBox="0 0 24 24" className="h-8 w-8" {...common}>
+    <svg viewBox="0 0 24 24" className="h-7 w-7 lg:h-8 lg:w-8" {...common}>
       <path d="M8 4h8v5c0 3-1.7 5-4 5S8 12 8 9V4Z" />
       <path d="M8 6H4c0 4 1.5 6 4.5 6" />
       <path d="M16 6h4c0 4-1.5 6-4.5 6" />
@@ -146,7 +147,7 @@ function MainIconSvg({ type }: { type: MainIcon }) {
 }
 
 /* =========================================================
-   CURSOR WATER EFFECT
+   CURSOR EFFECT
 ========================================================= */
 
 function CursorWave() {
@@ -154,6 +155,7 @@ function CursorWave() {
 
   useEffect(() => {
     const canvas = canvasRef.current;
+
     if (!canvas) return;
 
     const rawCtx = canvas.getContext('2d', {
@@ -177,7 +179,10 @@ function CursorWave() {
     let width = window.innerWidth;
     let height = window.innerHeight;
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 1.1);
+    const dpr = Math.min(
+      window.devicePixelRatio || 1,
+      1.1
+    );
 
     let lastX = -1000;
     let lastY = -1000;
@@ -191,43 +196,99 @@ function CursorWave() {
     sprite.width = 360;
     sprite.height = 280;
 
-    const rawSpriteContext = sprite.getContext('2d');
+    const rawSpriteContext =
+      sprite.getContext('2d');
 
     if (!rawSpriteContext) return;
 
-    const sctx: CanvasRenderingContext2D = rawSpriteContext;
+    const sctx: CanvasRenderingContext2D =
+      rawSpriteContext;
 
     const cx = 180;
     const cy = 140;
 
-    const body = sctx.createRadialGradient(cx, cy, 0, cx, cy, 170);
-
-    body.addColorStop(0, 'rgba(105,0,23,.56)');
-    body.addColorStop(0.2, 'rgba(72,0,17,.46)');
-    body.addColorStop(0.46, 'rgba(40,0,10,.33)');
-    body.addColorStop(0.72, 'rgba(19,0,5,.17)');
-    body.addColorStop(1, 'rgba(0,0,0,0)');
-
-    sctx.fillStyle = body;
-    sctx.fillRect(0, 0, sprite.width, sprite.height);
-
-    const centerGlow = sctx.createRadialGradient(
-      cx - 18,
-      cy - 16,
+    const body = sctx.createRadialGradient(
+      cx,
+      cy,
       0,
       cx,
       cy,
-      92
+      170
     );
 
-    centerGlow.addColorStop(0, 'rgba(255,25,55,.16)');
-    centerGlow.addColorStop(0.42, 'rgba(145,0,31,.07)');
-    centerGlow.addColorStop(1, 'rgba(0,0,0,0)');
+    body.addColorStop(
+      0,
+      'rgba(105,0,23,.56)'
+    );
+
+    body.addColorStop(
+      0.2,
+      'rgba(72,0,17,.46)'
+    );
+
+    body.addColorStop(
+      0.46,
+      'rgba(40,0,10,.33)'
+    );
+
+    body.addColorStop(
+      0.72,
+      'rgba(19,0,5,.17)'
+    );
+
+    body.addColorStop(
+      1,
+      'rgba(0,0,0,0)'
+    );
+
+    sctx.fillStyle = body;
+
+    sctx.fillRect(
+      0,
+      0,
+      sprite.width,
+      sprite.height
+    );
+
+    const centerGlow =
+      sctx.createRadialGradient(
+        cx - 18,
+        cy - 16,
+        0,
+        cx,
+        cy,
+        92
+      );
+
+    centerGlow.addColorStop(
+      0,
+      'rgba(255,25,55,.16)'
+    );
+
+    centerGlow.addColorStop(
+      0.42,
+      'rgba(145,0,31,.07)'
+    );
+
+    centerGlow.addColorStop(
+      1,
+      'rgba(0,0,0,0)'
+    );
 
     sctx.fillStyle = centerGlow;
-    sctx.fillRect(0, 0, sprite.width, sprite.height);
 
-    for (let i = 0; i < 3; i += 1) {
+    sctx.fillRect(
+      0,
+      0,
+      sprite.width,
+      sprite.height
+    );
+
+    for (
+      let i = 0;
+      i < 3;
+      i += 1
+    ) {
       sctx.beginPath();
 
       sctx.ellipse(
@@ -242,9 +303,12 @@ function CursorWave() {
 
       sctx.lineWidth = 1.2;
 
-      sctx.strokeStyle = `rgba(255,25,55,${
-        0.075 - i * 0.017
-      })`;
+      sctx.strokeStyle = `rgba(
+        255,
+        25,
+        55,
+        ${0.075 - i * 0.017}
+      )`;
 
       sctx.stroke();
     }
@@ -253,25 +317,65 @@ function CursorWave() {
       width = window.innerWidth;
       height = window.innerHeight;
 
-      canvas.width = Math.floor(width * dpr);
-      canvas.height = Math.floor(height * dpr);
+      canvas.width =
+        Math.floor(
+          width * dpr
+        );
 
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
+      canvas.height =
+        Math.floor(
+          height * dpr
+        );
 
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      canvas.style.width =
+        `${width}px`;
+
+      canvas.style.height =
+        `${height}px`;
+
+      ctx.setTransform(
+        dpr,
+        0,
+        0,
+        dpr,
+        0,
+        0
+      );
     };
 
-    function animate(now: number) {
-      ctx.clearRect(0, 0, width, height);
+    function animate(
+      now: number
+    ) {
+      ctx.clearRect(
+        0,
+        0,
+        width,
+        height
+      );
 
-      for (let i = ripples.length - 1; i >= 0; i -= 1) {
-        const ripple = ripples[i];
+      for (
+        let i =
+          ripples.length - 1;
+        i >= 0;
+        i -= 1
+      ) {
+        const ripple =
+          ripples[i];
 
-        const progress = (now - ripple.start) / 1050;
+        const progress =
+          (
+            now -
+            ripple.start
+          ) / 1050;
 
-        if (progress >= 1) {
-          ripples.splice(i, 1);
+        if (
+          progress >= 1
+        ) {
+          ripples.splice(
+            i,
+            1
+          );
+
           continue;
         }
 
@@ -297,7 +401,8 @@ function CursorWave() {
 
         ctx.save();
 
-        ctx.globalAlpha = alpha * 0.68;
+        ctx.globalAlpha =
+          alpha * 0.68;
 
         ctx.translate(
           ripple.x,
@@ -319,7 +424,10 @@ function CursorWave() {
         ctx.restore();
       }
 
-      if (ripples.length > 0) {
+      if (
+        ripples.length >
+        0
+      ) {
         frame =
           requestAnimationFrame(
             animate
@@ -329,50 +437,67 @@ function CursorWave() {
       }
     }
 
-    const startAnimation = () => {
-      if (running) return;
+    const startAnimation =
+      () => {
+        if (running) return;
 
-      running = true;
+        running = true;
 
-      frame =
-        requestAnimationFrame(
-          animate
-        );
-    };
+        frame =
+          requestAnimationFrame(
+            animate
+          );
+      };
 
     const pointerMove = (
       event: PointerEvent
     ) => {
-      const target = event.target;
+      const target =
+        event.target;
 
-      if (!(target instanceof Element)) return;
+      if (
+        !(
+          target instanceof
+          Element
+        )
+      ) {
+        return;
+      }
 
-      const x = event.clientX;
-      const y = event.clientY;
+      const x =
+        event.clientX;
 
-      const blocked = target.closest(`
-        a,
-        button,
-        img,
-        svg,
-        video,
-        input,
-        textarea,
-        select,
-        header,
-        nav,
-        footer,
-        [data-cursor-block]
-      `);
+      const y =
+        event.clientY;
+
+      const blocked =
+        target.closest(`
+          a,
+          button,
+          img,
+          svg,
+          video,
+          input,
+          textarea,
+          select,
+          header,
+          nav,
+          footer,
+          [data-cursor-block]
+        `);
 
       if (blocked) {
         lastX = x;
         lastY = y;
+
         return;
       }
 
-      const dx = x - lastX;
-      const dy = y - lastY;
+      const dx =
+        x - lastX;
+
+      const dy =
+        y - lastY;
 
       const distance =
         Math.sqrt(
@@ -385,7 +510,9 @@ function CursorWave() {
 
       if (
         distance < 46 ||
-        now - lastSpawn < 76
+        now -
+          lastSpawn <
+          76
       ) {
         return;
       }
@@ -397,7 +524,8 @@ function CursorWave() {
 
         size:
           155 +
-          Math.random() * 22,
+          Math.random() *
+            22,
 
         rotation:
           (
@@ -406,12 +534,16 @@ function CursorWave() {
           ) * 0.07,
       });
 
-      if (ripples.length > 4) {
+      if (
+        ripples.length >
+        4
+      ) {
         ripples.shift();
       }
 
       lastX = x;
       lastY = y;
+
       lastSpawn = now;
 
       startAnimation();
@@ -422,7 +554,9 @@ function CursorWave() {
     window.addEventListener(
       'pointermove',
       pointerMove,
-      { passive: true }
+      {
+        passive: true,
+      }
     );
 
     window.addEventListener(
@@ -431,7 +565,9 @@ function CursorWave() {
     );
 
     return () => {
-      cancelAnimationFrame(frame);
+      cancelAnimationFrame(
+        frame
+      );
 
       window.removeEventListener(
         'pointermove',
@@ -462,25 +598,28 @@ function CursorWave() {
 }
 
 /* =========================================================
-   SECTION DIVIDER
+   SECTION TRANSITION
 ========================================================= */
 
 function SectionTransition({
-  height = 66,
+  large = false,
 }: {
-  height?: number;
+  large?: boolean;
 }) {
   return (
     <div
       aria-hidden="true"
-      className="
+      className={`
         pointer-events-none
         relative
         bg-[#050506]
-      "
-      style={{
-        height: `${height}px`,
-      }}
+
+        ${
+          large
+            ? 'h-[44px] lg:h-[125px]'
+            : 'h-[24px] sm:h-[32px] lg:h-[66px]'
+        }
+      `}
     >
       <div
         className="
@@ -501,7 +640,7 @@ function SectionTransition({
 }
 
 /* =========================================================
-   SECTION HEADING
+   HEADING
 ========================================================= */
 
 function SectionHeading({
@@ -516,13 +655,56 @@ function SectionHeading({
   description: string;
 }) {
   return (
-    <div data-cursor-block className="relative z-20">
-      <div className="mb-5 flex items-center gap-4 text-[11px] uppercase tracking-[0.35em] text-zinc-500">
-        <span className="h-px w-9 bg-red-600" />
+    <div
+      data-cursor-block
+      className="
+        relative
+        z-20
+      "
+    >
+      <div
+        className="
+          mb-4
+          flex
+          items-center
+          gap-3
+          text-[9px]
+          uppercase
+          tracking-[0.32em]
+          text-zinc-500
+
+          sm:text-[10px]
+
+          lg:mb-5
+          lg:gap-4
+          lg:text-[11px]
+          lg:tracking-[0.35em]
+        "
+      >
+        <span
+          className="
+            h-px
+            w-7
+            bg-red-600
+
+            lg:w-9
+          "
+        />
+
         {eyebrow}
       </div>
 
-      <h2 className="text-5xl font-black tracking-[-0.045em] lg:text-6xl">
+      <h2
+        className="
+          text-[42px]
+          font-black
+          leading-[0.98]
+          tracking-[-0.045em]
+
+          sm:text-5xl
+          lg:text-6xl
+        "
+      >
         {normal}{' '}
 
         <span className="text-red-600">
@@ -530,7 +712,17 @@ function SectionHeading({
         </span>
       </h2>
 
-      <p className="mt-5 max-w-2xl text-base leading-7 text-zinc-400">
+      <p
+        className="
+          mt-5
+          max-w-2xl
+          text-[15px]
+          leading-7
+          text-zinc-400
+
+          sm:text-base
+        "
+      >
         {description}
       </p>
     </div>
@@ -538,7 +730,7 @@ function SectionHeading({
 }
 
 /* =========================================================
-   SECTION 2 CARD
+   ECOSYSTEM CARD
 ========================================================= */
 
 function EcosystemCard({
@@ -559,24 +751,36 @@ function EcosystemCard({
       className="
         group
         relative
-        min-h-[322px]
+        flex
+        min-h-[205px]
         cursor-pointer
         overflow-hidden
-        rounded-[25px]
+        rounded-[20px]
         border
-        border-red-500/55
-        p-7
+        border-red-500/45
+        p-5
 
         transition-all
         duration-300
         ease-out
 
         hover:z-20
-        hover:scale-[1.035]
+        hover:scale-[1.02]
         hover:border-red-400/90
-        hover:shadow-[0_22px_60px_rgba(200,0,35,.20)]
+        hover:shadow-[0_18px_48px_rgba(200,0,35,.18)]
 
-        active:scale-[1.01]
+        active:scale-[.99]
+
+        sm:min-h-[220px]
+        sm:p-6
+
+        lg:min-h-[322px]
+        lg:rounded-[25px]
+        lg:border-red-500/55
+        lg:p-7
+
+        lg:hover:scale-[1.035]
+        lg:hover:shadow-[0_22px_60px_rgba(200,0,35,.20)]
       "
       style={{
         background:
@@ -616,15 +820,24 @@ function EcosystemCard({
         }}
       />
 
-      <div className="relative z-10 flex h-full flex-col">
+      <div
+        className="
+          relative
+          z-10
+          flex
+          h-full
+          w-full
+          flex-col
+        "
+      >
         <div
           className="
             flex
-            h-[60px]
-            w-[60px]
+            h-[52px]
+            w-[52px]
             items-center
             justify-center
-            rounded-[15px]
+            rounded-[13px]
             text-white
 
             transition-all
@@ -632,6 +845,10 @@ function EcosystemCard({
 
             group-hover:scale-110
             group-hover:shadow-[0_0_30px_rgba(235,15,48,.34)]
+
+            lg:h-[60px]
+            lg:w-[60px]
+            lg:rounded-[15px]
           "
           style={{
             border:
@@ -647,14 +864,38 @@ function EcosystemCard({
               `,
           }}
         >
-          <MainIconSvg type={icon} />
+          <MainIconSvg
+            type={icon}
+          />
         </div>
 
-        <h3 className="mt-8 text-[16px] font-bold uppercase tracking-[0.08em]">
+        <h3
+          className="
+            mt-5
+            text-[15px]
+            font-bold
+            uppercase
+            tracking-[0.08em]
+
+            lg:mt-8
+            lg:text-[16px]
+          "
+        >
           {title}
         </h3>
 
-        <p className="mt-4 max-w-[185px] text-sm leading-6 text-zinc-400">
+        <p
+          className="
+            mt-3
+            max-w-[240px]
+            text-[14px]
+            leading-6
+            text-zinc-400
+
+            lg:mt-4
+            lg:max-w-[185px]
+          "
+        >
           {text}
         </p>
 
@@ -662,14 +903,14 @@ function EcosystemCard({
           className="
             mt-auto
             flex
-            h-[42px]
-            w-[42px]
+            h-[38px]
+            w-[38px]
             items-center
             justify-center
             rounded-full
             border
             border-red-500/65
-            text-xl
+            text-lg
 
             transition-all
             duration-300
@@ -678,6 +919,10 @@ function EcosystemCard({
             group-hover:scale-110
             group-hover:border-red-400
             group-hover:bg-red-600
+
+            lg:h-[42px]
+            lg:w-[42px]
+            lg:text-xl
           "
         >
           →
@@ -688,7 +933,7 @@ function EcosystemCard({
 }
 
 /* =========================================================
-   SECTION 4 STEP
+   HOW STEP
 ========================================================= */
 
 function HowStep({
@@ -715,30 +960,33 @@ function HowStep({
         relative
         block
         cursor-pointer
-
         transition-all
         duration-300
 
-        hover:translate-x-[5px]
+        lg:hover:translate-x-[5px]
 
-        ${last ? '' : 'mb-4'}
+        ${
+          last
+            ? ''
+            : 'mb-3 lg:mb-4'
+        }
       `}
     >
       <div
         className="
           absolute
-          left-[-56px]
-          top-[27px]
+          left-[-46px]
+          top-[25px]
           flex
-          h-[38px]
-          w-[38px]
+          h-[34px]
+          w-[34px]
           items-center
           justify-center
           rounded-full
           border
           border-red-500/75
           bg-[#100b0d]
-          text-sm
+          text-[12px]
           font-bold
 
           transition-all
@@ -746,7 +994,12 @@ function HowStep({
 
           group-hover:scale-110
           group-hover:bg-red-950/70
-          group-hover:shadow-[0_0_20px_rgba(235,0,40,.25)]
+
+          lg:left-[-56px]
+          lg:top-[27px]
+          lg:h-[38px]
+          lg:w-[38px]
+          lg:text-sm
         "
       >
         {number}
@@ -757,32 +1010,36 @@ function HowStep({
           flex
           min-h-[92px]
           items-center
-          gap-5
-          rounded-[17px]
+          gap-4
+          rounded-[15px]
           border
           border-red-500/45
           bg-[#130d0f]/90
           px-4
-          py-3
+          py-4
 
           transition-all
           duration-300
 
-          group-hover:scale-[1.015]
           group-hover:border-red-400/80
           group-hover:bg-[#1b0d11]
-          group-hover:shadow-[0_14px_38px_rgba(150,0,25,.16)]
+
+          lg:gap-5
+          lg:rounded-[17px]
+          lg:py-3
+
+          lg:group-hover:scale-[1.015]
         "
       >
         <div
           className="
             flex
-            h-[60px]
-            w-[60px]
+            h-[54px]
+            w-[54px]
             shrink-0
             items-center
             justify-center
-            rounded-[13px]
+            rounded-[12px]
             border
             border-red-500/40
             bg-red-950/35
@@ -790,20 +1047,44 @@ function HowStep({
             transition-all
             duration-300
 
-            group-hover:scale-110
+            group-hover:scale-105
             group-hover:border-red-400
-            group-hover:bg-red-950/60
+
+            lg:h-[60px]
+            lg:w-[60px]
+            lg:rounded-[13px]
+
+            lg:group-hover:scale-110
           "
         >
-          <MainIconSvg type={icon} />
+          <MainIconSvg
+            type={icon}
+          />
         </div>
 
         <div>
-          <h3 className="font-bold">
+          <h3
+            className="
+              text-[15px]
+              font-bold
+
+              sm:text-base
+            "
+          >
             {title}
           </h3>
 
-          <p className="mt-2 text-[13px] leading-5 text-zinc-400">
+          <p
+            className="
+              mt-1.5
+              text-[12px]
+              leading-5
+              text-zinc-400
+
+              sm:text-[13px]
+              lg:mt-2
+            "
+          >
             {text}
           </p>
         </div>
@@ -830,8 +1111,10 @@ function ProofFeature({
         group
         block
         cursor-pointer
+
         transition-all
         duration-300
+
         hover:-translate-y-[3px]
       "
     >
@@ -840,8 +1123,8 @@ function ProofFeature({
         alt=""
         draggable={false}
         className="
-          h-[44px]
-          w-[44px]
+          h-[40px]
+          w-[40px]
           select-none
           object-contain
 
@@ -850,11 +1133,28 @@ function ProofFeature({
 
           group-hover:scale-110
           group-hover:brightness-125
-          group-hover:drop-shadow-[0_0_11px_rgba(255,22,53,.6)]
+
+          lg:h-[44px]
+          lg:w-[44px]
         "
       />
 
-      <p className="mt-2 text-[12px] leading-[1.12rem] text-[#e7e3e4] transition-colors duration-300 group-hover:text-white">
+      <p
+        className="
+          mt-2
+          text-[11px]
+          leading-[1.05rem]
+          text-[#e7e3e4]
+
+          transition-colors
+          duration-300
+
+          group-hover:text-white
+
+          sm:text-[12px]
+          sm:leading-[1.12rem]
+        "
+      >
         {line1}
 
         {line2 && (
@@ -891,18 +1191,23 @@ function ProofCard({
       className="
         group/proof
         relative
-        h-[405px]
+        min-h-[455px]
         overflow-hidden
-        rounded-[25px]
+        rounded-[20px]
         border
         border-[rgba(255,76,91,.55)]
 
         transition-all
         duration-300
 
-        hover:-translate-y-[4px]
         hover:border-red-400/75
-        hover:shadow-[0_20px_55px_rgba(140,0,25,.17)]
+
+        lg:h-[405px]
+        lg:min-h-0
+        lg:rounded-[25px]
+
+        lg:hover:-translate-y-[4px]
+        lg:hover:shadow-[0_20px_55px_rgba(140,0,25,.17)]
       "
       style={{
         background:
@@ -916,8 +1221,28 @@ function ProofCard({
           `,
       }}
     >
-      <div className="relative h-[282px] overflow-hidden">
-        <div className="pointer-events-none absolute bottom-0 right-0 top-0 w-[53%] overflow-hidden">
+      <div
+        className="
+          relative
+          h-[330px]
+          overflow-hidden
+
+          lg:h-[282px]
+        "
+      >
+        <div
+          className="
+            pointer-events-none
+            absolute
+            bottom-0
+            right-0
+            top-0
+            w-[58%]
+            overflow-hidden
+
+            lg:w-[53%]
+          "
+        >
           <img
             src={art}
             alt=""
@@ -925,8 +1250,8 @@ function ProofCard({
             className="
               absolute
               bottom-0
-              right-[-2%]
-              h-[97%]
+              right-[-10%]
+              h-[88%]
               w-auto
               max-w-none
               select-none
@@ -934,46 +1259,134 @@ function ProofCard({
               transition-all
               duration-500
 
-              group-hover/proof:scale-[1.025]
               group-hover/proof:brightness-110
+
+              lg:right-[-2%]
+              lg:h-[97%]
+
+              lg:group-hover/proof:scale-[1.025]
             "
           />
         </div>
 
         <div
-          className="pointer-events-none absolute inset-y-0 left-0 w-[56%]"
+          className="
+            pointer-events-none
+            absolute
+            inset-y-0
+            left-0
+            w-[66%]
+
+            lg:w-[56%]
+          "
           style={{
             background:
               `
                 linear-gradient(
                   to right,
                   rgba(17,17,20,1),
-                  rgba(17,17,20,.99) 74%,
-                  rgba(17,17,20,.91) 87%,
+                  rgba(17,17,20,.99) 70%,
+                  rgba(17,17,20,.82) 88%,
                   transparent
                 )
               `,
           }}
         />
 
-        <div className="relative z-20 w-[54%] p-7">
-          <div className="flex items-center gap-2 text-[12px] text-zinc-400">
+        <div
+          className="
+            relative
+            z-20
+            w-[59%]
+            p-6
+
+            lg:w-[54%]
+            lg:p-7
+          "
+        >
+          <div
+            className="
+              flex
+              items-center
+              gap-2
+              text-[11px]
+              text-zinc-400
+
+              lg:text-[12px]
+            "
+          >
             {number}
-            <span className="h-px w-5 bg-zinc-600" />
+
+            <span
+              className="
+                h-px
+                w-5
+                bg-zinc-600
+              "
+            />
           </div>
 
-          <h3 className="mt-6 text-[27px] font-bold leading-[1.03]">
+          <h3
+            className="
+              mt-5
+              text-[26px]
+              font-bold
+              leading-[1.03]
+
+              lg:mt-6
+              lg:text-[27px]
+            "
+          >
             {title}
           </h3>
 
-          <p className="mt-4 max-w-[195px] text-[13px] leading-[1.35rem] text-[#c1bcc0]">
+          <p
+            className="
+              mt-4
+              max-w-[185px]
+              text-[12px]
+              leading-[1.25rem]
+              text-[#c1bcc0]
+
+              lg:max-w-[195px]
+              lg:text-[13px]
+              lg:leading-[1.35rem]
+            "
+          >
             {description}
           </p>
         </div>
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 h-[123px] border-t border-white/[0.035] bg-[rgba(13,13,16,.99)] px-7 py-[18px]">
-        <div className="grid grid-cols-3 gap-5">
+      <div
+        className="
+          absolute
+          bottom-0
+          left-0
+          right-0
+          h-[125px]
+          border-t
+          border-white/[0.035]
+          bg-[rgba(13,13,16,.99)]
+          px-5
+          py-[17px]
+
+          sm:px-6
+
+          lg:h-[123px]
+          lg:px-7
+          lg:py-[18px]
+        "
+      >
+        <div
+          className="
+            grid
+            grid-cols-3
+            gap-3
+
+            sm:gap-5
+          "
+        >
           {features.map(
             (
               feature,
@@ -981,10 +1394,18 @@ function ProofCard({
             ) => (
               <ProofFeature
                 key={`${feature.line1}-${index}`}
-                image={feature.image}
-                line1={feature.line1}
-                line2={feature.line2}
-                href={feature.href}
+                image={
+                  feature.image
+                }
+                line1={
+                  feature.line1
+                }
+                line2={
+                  feature.line2
+                }
+                href={
+                  feature.href
+                }
               />
             )
           )}
@@ -995,7 +1416,7 @@ function ProofCard({
 }
 
 /* =========================================================
-   NEW PREMIUM ROLE CTA
+   ROLE CTA
 ========================================================= */
 
 function RoleCTA({
@@ -1004,7 +1425,10 @@ function RoleCTA({
   title,
   href,
 }: {
-  icon: 'learn' | 'recruiter';
+  icon:
+    | 'learn'
+    | 'recruiter';
+
   eyebrow: string;
   title: string;
   href: string;
@@ -1017,29 +1441,35 @@ function RoleCTA({
         group
         relative
         flex
-        min-h-[78px]
+        min-h-[82px]
         flex-1
         items-center
         gap-4
         overflow-hidden
-        rounded-[16px]
+        rounded-[15px]
         border
         border-red-500/35
         bg-[#0b0809]
-        px-5
+        px-4
         py-4
 
         transition-all
         duration-300
         ease-out
 
-        hover:-translate-y-[3px]
-        hover:scale-[1.015]
         hover:border-red-400/70
         hover:bg-[#15090d]
-        hover:shadow-[0_15px_38px_rgba(170,0,30,.15)]
 
         active:scale-[.99]
+
+        sm:px-5
+
+        lg:min-h-[78px]
+        lg:rounded-[16px]
+
+        lg:hover:-translate-y-[3px]
+        lg:hover:scale-[1.015]
+        lg:hover:shadow-[0_15px_38px_rgba(170,0,30,.15)]
       "
     >
       <div
@@ -1083,23 +1513,34 @@ function RoleCTA({
           transition-all
           duration-300
 
-          group-hover:scale-110
+          group-hover:scale-105
           group-hover:border-red-400
           group-hover:bg-red-950/55
-          group-hover:text-white
-          group-hover:shadow-[0_0_25px_rgba(230,0,40,.25)]
+
+          lg:group-hover:scale-110
         "
       >
-        <MainIconSvg type={icon} />
+        <MainIconSvg
+          type={icon}
+        />
       </div>
 
-      <div className="relative z-10 min-w-0">
+      <div
+        className="
+          relative
+          z-10
+          min-w-0
+        "
+      >
         <p
           className="
-            text-[9px]
+            text-[8px]
             uppercase
-            tracking-[0.25em]
+            tracking-[0.22em]
             text-zinc-500
+
+            sm:text-[9px]
+            sm:tracking-[0.25em]
           "
         >
           {eyebrow}
@@ -1108,7 +1549,7 @@ function RoleCTA({
         <p
           className="
             mt-1
-            text-[14px]
+            text-[13px]
             font-semibold
             text-zinc-200
 
@@ -1116,6 +1557,8 @@ function RoleCTA({
             duration-300
 
             group-hover:text-white
+
+            sm:text-[14px]
           "
         >
           {title}
@@ -1133,7 +1576,6 @@ function RoleCTA({
           duration-300
 
           group-hover:translate-x-1
-          group-hover:text-red-300
         "
       >
         →
@@ -1143,13 +1585,14 @@ function RoleCTA({
 }
 
 /* =========================================================
-   SECTION 6 ICON
+   TOURNAMENT ICON
 ========================================================= */
 
 function TournamentIcon({
   type,
 }: {
-  type: TournamentIconType;
+  type:
+    TournamentIconType;
 }) {
   const imageMap: Record<
     TournamentIconType,
@@ -1167,14 +1610,16 @@ function TournamentIcon({
 
   return (
     <img
-      src={imageMap[type]}
+      src={
+        imageMap[type]
+      }
       alt=""
       draggable={false}
       width={74}
       height={74}
       className="
-        h-[74px]
-        w-[74px]
+        h-[62px]
+        w-[62px]
         shrink-0
         select-none
         object-contain
@@ -1182,16 +1627,19 @@ function TournamentIcon({
         transition-all
         duration-300
 
-        group-hover/tcard:scale-110
         group-hover/tcard:brightness-125
-        group-hover/tcard:drop-shadow-[0_0_12px_rgba(255,20,50,.55)]
+
+        lg:h-[74px]
+        lg:w-[74px]
+
+        lg:group-hover/tcard:scale-110
       "
     />
   );
 }
 
 /* =========================================================
-   SECTION 6 FEATURE CARD
+   TOURNAMENT FEATURE CARD
 ========================================================= */
 
 function TournamentFeatureCard({
@@ -1201,7 +1649,9 @@ function TournamentFeatureCard({
   text,
   href,
 }: {
-  type: TournamentIconType;
+  type:
+    TournamentIconType;
+
   number: string;
   title: string;
   text: string;
@@ -1214,24 +1664,28 @@ function TournamentFeatureCard({
       className="
         group/tcard
         relative
-        min-h-[150px]
+        min-h-[132px]
         cursor-pointer
         overflow-hidden
         rounded-[14px]
         border
         border-red-500/55
-        px-6
+        px-5
         py-5
 
         transition-all
         duration-300
 
-        hover:-translate-y-[4px]
-        hover:scale-[1.015]
         hover:border-red-400/80
-        hover:shadow-[0_18px_45px_rgba(170,0,30,.18)]
 
         active:scale-[.99]
+
+        lg:min-h-[150px]
+        lg:px-6
+
+        lg:hover:-translate-y-[4px]
+        lg:hover:scale-[1.015]
+        lg:hover:shadow-[0_18px_45px_rgba(170,0,30,.18)]
       "
       style={{
         background:
@@ -1272,23 +1726,91 @@ function TournamentFeatureCard({
         }}
       />
 
-      <div className="relative z-10 flex items-center gap-6">
-        <TournamentIcon type={type} />
+      <div
+        className="
+          relative
+          z-10
+          flex
+          items-center
+          gap-4
 
-        <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-4">
-            <h3 className="text-[17px] font-semibold transition-colors duration-300 group-hover/tcard:text-red-100">
+          lg:gap-6
+        "
+      >
+        <TournamentIcon
+          type={type}
+        />
+
+        <div
+          className="
+            min-w-0
+            flex-1
+          "
+        >
+          <div
+            className="
+              flex
+              items-start
+              justify-between
+              gap-3
+            "
+          >
+            <h3
+              className="
+                text-[15px]
+                font-semibold
+                leading-5
+
+                transition-colors
+                duration-300
+
+                group-hover/tcard:text-red-100
+
+                sm:text-[16px]
+                lg:text-[17px]
+              "
+            >
               {title}
             </h3>
 
-            <div className="flex shrink-0 items-center gap-2 text-[12px] text-zinc-400">
+            <div
+              className="
+                flex
+                shrink-0
+                items-center
+                gap-2
+                text-[11px]
+                text-zinc-400
+
+                lg:text-[12px]
+              "
+            >
               {number}
 
-              <span className="h-px w-6 bg-zinc-500" />
+              <span
+                className="
+                  h-px
+                  w-5
+                  bg-zinc-500
+
+                  lg:w-6
+                "
+              />
             </div>
           </div>
 
-          <p className="mt-3 max-w-[300px] text-[13px] leading-[1.5] text-zinc-400">
+          <p
+            className="
+              mt-2
+              max-w-[300px]
+              text-[12px]
+              leading-[1.45]
+              text-zinc-400
+
+              sm:text-[13px]
+              lg:mt-3
+            "
+          >
             {text}
           </p>
         </div>
@@ -1303,7 +1825,14 @@ function TournamentFeatureCard({
 
 export default function Home() {
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[#050506] text-white">
+    <main
+      className="
+        min-h-screen
+        overflow-x-hidden
+        bg-[#050506]
+        text-white
+      "
+    >
       <CursorWave />
 
       {/* ===================================================
@@ -1320,59 +1849,125 @@ export default function Home() {
           w-full
           border-b
           border-white/[0.04]
-          bg-black/90
+          bg-black/95
           backdrop-blur-xl
         "
       >
-        <div className="mx-auto flex h-[82px] max-w-[1450px] items-center justify-between px-6 lg:px-10">
+        <div
+          className="
+            mx-auto
+            flex
+            h-[72px]
+            max-w-[1450px]
+            items-center
+            justify-between
+            px-5
+
+            sm:h-[76px]
+            sm:px-6
+
+            lg:h-[82px]
+            lg:px-10
+          "
+        >
           <a
             href="#home"
-            className="text-[28px] font-black transition-transform duration-300 hover:scale-105"
+            className="
+              text-[24px]
+              font-black
+
+              transition-transform
+              duration-300
+
+              hover:scale-105
+
+              sm:text-[26px]
+              lg:text-[28px]
+            "
           >
             Pro
-            <span className="text-red-600">
+
+            <span
+              className="
+                text-red-600
+              "
+            >
               VN
             </span>
           </a>
 
-          <nav className="hidden gap-10 text-[15px] text-zinc-300 md:flex">
+          <nav
+            className="
+              hidden
+              gap-10
+              text-[15px]
+              text-zinc-300
+              md:flex
+            "
+          >
             {[
-              ['Home', '#home'],
-              ['Games', '#games'],
-              ['Community', '#proof'],
-              ['About', '#how'],
-            ].map(([label, href]) => (
-              <a
-                key={label}
-                href={href}
-                className="
-                  group/nav
-                  relative
-                  py-2
-                  transition-all
-                  duration-300
-                  hover:scale-105
-                  hover:text-white
-                "
-              >
-                {label}
+              [
+                'Home',
+                '#home',
+              ],
 
-                <span
+              [
+                'Games',
+                '#games',
+              ],
+
+              [
+                'Community',
+                '#proof',
+              ],
+
+              [
+                'About',
+                '#how',
+              ],
+            ].map(
+              (
+                [
+                  label,
+                  href,
+                ]
+              ) => (
+                <a
+                  key={label}
+                  href={href}
                   className="
-                    absolute
-                    bottom-0
-                    left-1/2
-                    h-[2px]
-                    w-0
-                    -translate-x-1/2
-                    bg-red-500
+                    group/nav
+                    relative
+                    py-2
+
                     transition-all
                     duration-300
-                    group-hover/nav:w-full
+
+                    hover:scale-105
+                    hover:text-white
                   "
-                />
-              </a>
-            ))}
+                >
+                  {label}
+
+                  <span
+                    className="
+                      absolute
+                      bottom-0
+                      left-1/2
+                      h-[2px]
+                      w-0
+                      -translate-x-1/2
+                      bg-red-500
+
+                      transition-all
+                      duration-300
+
+                      group-hover/nav:w-full
+                    "
+                  />
+                </a>
+              )
+            )}
           </nav>
 
           <a
@@ -1381,15 +1976,25 @@ export default function Home() {
               rounded-full
               border
               border-red-600/75
-              px-7
-              py-3
+              px-5
+              py-2.5
+              text-[14px]
+
               transition-all
               duration-300
-              hover:scale-[1.06]
+
               hover:border-red-400
               hover:bg-red-950/40
-              hover:shadow-[0_0_32px_rgba(255,0,45,.24)]
+
               active:scale-[.98]
+
+              sm:px-6
+              sm:py-3
+              sm:text-[15px]
+
+              lg:px-7
+              lg:hover:scale-[1.06]
+              lg:hover:shadow-[0_0_32px_rgba(255,0,45,.24)]
             "
           >
             ♛ Level Up
@@ -1398,17 +2003,21 @@ export default function Home() {
       </header>
 
       {/* ===================================================
-          SECTION 1
+          HERO
       ==================================================== */}
 
       <section
         id="home"
         className="
           relative
-          min-h-[850px]
           overflow-hidden
           bg-[#050506]
-          pt-[82px]
+          pt-[72px]
+
+          sm:pt-[76px]
+
+          lg:min-h-[850px]
+          lg:pt-[82px]
         "
       >
         <div
@@ -1477,7 +2086,13 @@ export default function Home() {
           />
 
           <div
-            className="pointer-events-none absolute inset-y-0 left-0 w-[34%]"
+            className="
+              pointer-events-none
+              absolute
+              inset-y-0
+              left-0
+              w-[34%]
+            "
             style={{
               background: `
                 linear-gradient(
@@ -1519,7 +2134,13 @@ export default function Home() {
           />
 
           <div
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-[22px]"
+            className="
+              pointer-events-none
+              absolute
+              inset-x-0
+              bottom-0
+              h-[22px]
+            "
             style={{
               background: `
                 linear-gradient(
@@ -1533,18 +2154,72 @@ export default function Home() {
           />
         </div>
 
-        <div className="relative z-20 mx-auto grid min-h-[768px] max-w-[1450px] items-center px-6 lg:grid-cols-[46%_54%] lg:px-10">
-          <div data-cursor-block className="max-w-[650px]">
-            <p className="mb-6 text-xs uppercase tracking-[0.42em] text-zinc-400">
+        <div
+          className="
+            relative
+            z-20
+            mx-auto
+            grid
+            max-w-[1450px]
+            items-center
+            px-5
+            pb-[70px]
+            pt-[88px]
+
+            sm:px-6
+            sm:pb-[82px]
+            sm:pt-[100px]
+
+            lg:min-h-[768px]
+            lg:grid-cols-[46%_54%]
+            lg:px-10
+            lg:py-0
+          "
+        >
+          <div
+            data-cursor-block
+            className="
+              max-w-[650px]
+            "
+          >
+            <p
+              className="
+                mb-5
+                text-[10px]
+                uppercase
+                tracking-[0.38em]
+                text-zinc-400
+
+                sm:text-xs
+                sm:tracking-[0.42em]
+
+                lg:mb-6
+              "
+            >
               More Than Just Games
             </p>
 
-            <h1 className="text-5xl font-black leading-[0.96] tracking-[-0.04em] sm:text-6xl lg:text-[67px]">
+            <h1
+              className="
+                text-[46px]
+                font-black
+                leading-[0.94]
+                tracking-[-0.045em]
+
+                sm:text-[56px]
+
+                lg:text-[67px]
+              "
+            >
               Play Better.
 
               <br />
 
-              <span className="text-red-600">
+              <span
+                className="
+                  text-red-600
+                "
+              >
                 Connect Smarter.
               </span>
 
@@ -1553,26 +2228,68 @@ export default function Home() {
               Win Together.
             </h1>
 
-            <p className="mt-7 max-w-[510px] text-lg leading-8 text-zinc-400">
-              Find teammates, coaches, gaming services and tournaments —
-              all in one place.
+            <p
+              className="
+                mt-6
+                max-w-[510px]
+                text-[16px]
+                leading-7
+                text-zinc-400
+
+                sm:text-[17px]
+                sm:leading-8
+
+                lg:mt-7
+                lg:text-lg
+              "
+            >
+              Find teammates,
+              coaches, gaming
+              services and
+              tournaments — all in
+              one place.
             </p>
 
-            <div className="mt-9 flex flex-wrap gap-4">
+            <div
+              className="
+                mt-8
+                flex
+                flex-col
+                gap-3
+
+                sm:flex-row
+                sm:flex-wrap
+                sm:gap-4
+
+                lg:mt-9
+              "
+            >
               <a
                 href="#ecosystem"
                 className="
+                  flex
+                  w-full
+                  items-center
+                  justify-center
                   rounded-full
                   bg-red-600
-                  px-8
-                  py-4
+                  px-7
+                  py-3.5
                   font-semibold
+
                   transition-all
                   duration-300
-                  hover:scale-[1.055]
+
                   hover:bg-red-500
-                  hover:shadow-[0_0_38px_rgba(255,0,45,.32)]
+
                   active:scale-[.98]
+
+                  sm:w-auto
+                  sm:px-8
+                  sm:py-4
+
+                  lg:hover:scale-[1.055]
+                  lg:hover:shadow-[0_0_38px_rgba(255,0,45,.32)]
                 "
               >
                 Explore ProVN →
@@ -1581,19 +2298,31 @@ export default function Home() {
               <a
                 href="#proof"
                 className="
+                  flex
+                  w-full
+                  items-center
+                  justify-center
                   rounded-full
                   border
                   border-red-600/75
                   bg-black/25
-                  px-8
-                  py-4
+                  px-7
+                  py-3.5
+
                   transition-all
                   duration-300
-                  hover:scale-[1.055]
+
                   hover:border-red-400
                   hover:bg-red-950/45
-                  hover:shadow-[0_0_32px_rgba(255,0,45,.18)]
+
                   active:scale-[.98]
+
+                  sm:w-auto
+                  sm:px-8
+                  sm:py-4
+
+                  lg:hover:scale-[1.055]
+                  lg:hover:shadow-[0_0_32px_rgba(255,0,45,.18)]
                 "
               >
                 Become a Provider
@@ -1606,16 +2335,32 @@ export default function Home() {
       <SectionTransition />
 
       {/* ===================================================
-          SECTION 2
+          ECOSYSTEM
       ==================================================== */}
 
       <section
         id="ecosystem"
-        className="relative overflow-hidden bg-[#050506] py-[116px]"
+        className="
+          relative
+          overflow-hidden
+          bg-[#050506]
+          py-[68px]
+
+          sm:py-[82px]
+
+          lg:py-[116px]
+        "
       >
         <div
           data-cursor-block
-          className="absolute inset-[-45px] opacity-[0.22] blur-[32px]"
+          className="
+            absolute
+            inset-[-45px]
+            opacity-[0.18]
+            blur-[32px]
+
+            lg:opacity-[0.22]
+          "
           style={{
             backgroundImage:
               "url('/home/section2.png')",
@@ -1628,26 +2373,89 @@ export default function Home() {
           }}
         />
 
-        <div className="pointer-events-none absolute inset-0 bg-black/65" />
+        <div
+          className="
+            pointer-events-none
+            absolute
+            inset-0
+            bg-black/70
 
-        <div className="relative z-10 mx-auto max-w-[1500px] px-6 lg:px-10">
-          <div data-cursor-block>
-            <h2 className="text-5xl font-black leading-[0.95] lg:text-6xl">
+            lg:bg-black/65
+          "
+        />
+
+        <div
+          className="
+            relative
+            z-10
+            mx-auto
+            max-w-[1500px]
+            px-5
+
+            sm:px-6
+            lg:px-10
+          "
+        >
+          <div
+            data-cursor-block
+          >
+            <h2
+              className="
+                text-[45px]
+                font-black
+                leading-[0.94]
+                tracking-[-0.04em]
+
+                sm:text-5xl
+                lg:text-6xl
+              "
+            >
               One Platform.
 
               <br />
 
-              <span className="text-red-600">
+              <span
+                className="
+                  text-red-600
+                "
+              >
                 Every Side of Gaming.
               </span>
             </h2>
 
-            <p className="mt-6 text-zinc-400">
-              Choose what you want to do and enter the part of ProVN built for you.
+            <p
+              className="
+                mt-5
+                max-w-xl
+                text-[15px]
+                leading-7
+                text-zinc-400
+
+                lg:mt-6
+                lg:text-base
+              "
+            >
+              Choose what you want
+              to do and enter the
+              part of ProVN built
+              for you.
             </p>
           </div>
 
-          <div className="mt-[68px] grid gap-[18px] lg:grid-cols-5">
+          <div
+            className="
+              mt-10
+              grid
+              gap-4
+
+              sm:mt-12
+              sm:grid-cols-2
+
+              lg:mt-[68px]
+              lg:grid-cols-5
+              lg:gap-[18px]
+            "
+          >
             <EcosystemCard
               icon="discover"
               title="Discover"
@@ -1689,14 +2497,35 @@ export default function Home() {
       <SectionTransition />
 
       {/* ===================================================
-          SECTION 3
+          GAMES
       ==================================================== */}
 
       <section
         id="games"
-        className="relative overflow-hidden bg-[#050506] py-[118px]"
+        className="
+          relative
+          overflow-hidden
+          bg-[#050506]
+          py-[70px]
+
+          sm:py-[82px]
+
+          lg:py-[118px]
+        "
       >
-        <div className="relative z-10 mx-auto max-w-[1450px] px-6 lg:px-10">
+        <div
+          className="
+            relative
+            z-10
+            mx-auto
+            max-w-[1450px]
+            px-5
+
+            sm:px-6
+
+            lg:px-10
+          "
+        >
           <SectionHeading
             eyebrow="Choose · Play · Grow"
             normal="Choose Your"
@@ -1704,104 +2533,130 @@ export default function Home() {
             description="Enter a dedicated ecosystem of players, coaches, services and tournaments built around your game."
           />
 
-          <div className="mt-16 grid gap-7 md:grid-cols-2 lg:grid-cols-4">
-            {gameCards.map(game => (
-              <a
-                key={game.name}
-                href={game.href}
-                data-cursor-block
-                aria-label={`Explore ${game.name}`}
-                className="
-                  group/game
-                  relative
-                  aspect-[337/238]
-                  cursor-pointer
-                  overflow-hidden
-                  rounded-[14px]
+          <div
+            className="
+              mt-10
+              grid
+              gap-5
 
-                  transition-all
-                  duration-300
-                  ease-out
+              sm:mt-12
+              sm:grid-cols-2
 
-                  hover:z-20
-                  hover:scale-[1.045]
-                  hover:shadow-[0_22px_60px_rgba(185,0,30,.27)]
-
-                  active:scale-[1.015]
-                "
-                style={{
-                  backgroundImage:
-                    "url('/home/section3.png')",
-
-                  backgroundSize:
-                    '496% 395%',
-
-                  backgroundPosition:
-                    game.position,
-
-                  backgroundRepeat:
-                    'no-repeat',
-                }}
-              >
-                <span
+              lg:mt-16
+              lg:grid-cols-4
+              lg:gap-7
+            "
+          >
+            {gameCards.map(
+              game => (
+                <a
+                  key={
+                    game.name
+                  }
+                  href={
+                    game.href
+                  }
+                  data-cursor-block
+                  aria-label={`Explore ${game.name}`}
                   className="
-                    pointer-events-none
-                    absolute
-                    inset-0
-                    opacity-0
-                    transition-opacity
+                    group/game
+                    relative
+                    aspect-[337/238]
+                    cursor-pointer
+                    overflow-hidden
+                    rounded-[14px]
+
+                    transition-all
                     duration-300
-                    group-hover/game:opacity-100
+                    ease-out
+
+                    hover:z-20
+
+                    active:scale-[.99]
+
+                    lg:hover:scale-[1.045]
+                    lg:hover:shadow-[0_22px_60px_rgba(185,0,30,.27)]
                   "
                   style={{
-                    background:
-                      `
-                        linear-gradient(
-                          135deg,
-                          rgba(82,0,16,.33),
-                          rgba(16,0,4,.06) 48%,
-                          rgba(96,0,18,.25)
-                        )
-                      `,
-                  }}
-                />
+                    backgroundImage:
+                      "url('/home/section3.png')",
 
-                <span
-                  className="
-                    pointer-events-none
-                    absolute
-                    bottom-[-30%]
-                    left-1/2
-                    h-[58%]
-                    w-[80%]
-                    -translate-x-1/2
-                    rounded-full
-                    bg-red-600/20
-                    opacity-0
-                    blur-[44px]
-                    transition-opacity
-                    duration-300
-                    group-hover/game:opacity-100
-                  "
-                />
+                    backgroundSize:
+                      '496% 395%',
 
-                <span
-                  className="
-                    pointer-events-none
-                    absolute
-                    inset-0
-                    opacity-0
-                    transition-opacity
-                    duration-300
-                    group-hover/game:opacity-100
-                  "
-                  style={{
-                    boxShadow:
-                      'inset 0 0 32px rgba(230,20,45,.12)',
+                    backgroundPosition:
+                      game.position,
+
+                    backgroundRepeat:
+                      'no-repeat',
                   }}
-                />
-              </a>
-            ))}
+                >
+                  <span
+                    className="
+                      pointer-events-none
+                      absolute
+                      inset-0
+                      opacity-0
+
+                      transition-opacity
+                      duration-300
+
+                      group-hover/game:opacity-100
+                    "
+                    style={{
+                      background:
+                        `
+                          linear-gradient(
+                            135deg,
+                            rgba(82,0,16,.33),
+                            rgba(16,0,4,.06) 48%,
+                            rgba(96,0,18,.25)
+                          )
+                        `,
+                    }}
+                  />
+
+                  <span
+                    className="
+                      pointer-events-none
+                      absolute
+                      bottom-[-30%]
+                      left-1/2
+                      h-[58%]
+                      w-[80%]
+                      -translate-x-1/2
+                      rounded-full
+                      bg-red-600/20
+                      opacity-0
+                      blur-[44px]
+
+                      transition-opacity
+                      duration-300
+
+                      group-hover/game:opacity-100
+                    "
+                  />
+
+                  <span
+                    className="
+                      pointer-events-none
+                      absolute
+                      inset-0
+                      opacity-0
+
+                      transition-opacity
+                      duration-300
+
+                      group-hover/game:opacity-100
+                    "
+                    style={{
+                      boxShadow:
+                        'inset 0 0 32px rgba(230,20,45,.12)',
+                    }}
+                  />
+                </a>
+              )
+            )}
           </div>
         </div>
       </section>
@@ -1809,12 +2664,18 @@ export default function Home() {
       <SectionTransition />
 
       {/* ===================================================
-          SECTION 4
+          HOW PROVN WORKS
       ==================================================== */}
 
       <section
         id="how"
-        className="relative min-h-[900px] overflow-hidden bg-[#050506]"
+        className="
+          relative
+          overflow-hidden
+          bg-[#050506]
+
+          lg:min-h-[900px]
+        "
       >
         <div
           data-cursor-block
@@ -1830,7 +2691,10 @@ export default function Home() {
           "
         >
           <div
-            className="absolute inset-0"
+            className="
+              absolute
+              inset-0
+            "
             style={{
               backgroundImage:
                 "url('/home/section4.png')",
@@ -1846,38 +2710,144 @@ export default function Home() {
             }}
           />
 
-          <div className="pointer-events-none absolute inset-y-0 left-0 w-[18%] bg-[#050506]" />
+          <div
+            className="
+              pointer-events-none
+              absolute
+              inset-y-0
+              left-0
+              w-[18%]
+              bg-[#050506]
+            "
+          />
 
           <div
-            className="pointer-events-none absolute inset-y-0 left-[16%] w-[19%]"
+            className="
+              pointer-events-none
+              absolute
+              inset-y-0
+              left-[16%]
+              w-[19%]
+            "
             style={{
               background:
-                'linear-gradient(to right,#050506,rgba(5,5,6,.97) 18%,rgba(5,5,6,.70) 52%,rgba(5,5,6,.25) 80%,transparent)',
+                `
+                  linear-gradient(
+                    to right,
+                    #050506,
+                    rgba(5,5,6,.97) 18%,
+                    rgba(5,5,6,.70) 52%,
+                    rgba(5,5,6,.25) 80%,
+                    transparent
+                  )
+                `,
             }}
           />
         </div>
 
-        <div className="relative z-10 mx-auto max-w-[1450px] px-6 py-[124px] lg:px-10">
-          <div data-cursor-block className="lg:w-[48%]">
-            <p className="mb-4 text-[11px] uppercase tracking-[0.33em] text-zinc-400">
+        <div
+          className="
+            relative
+            z-10
+            mx-auto
+            max-w-[1450px]
+            px-5
+            py-[70px]
+
+            sm:px-6
+            sm:py-[82px]
+
+            lg:px-10
+            lg:py-[124px]
+          "
+        >
+          <div
+            data-cursor-block
+            className="
+              lg:w-[48%]
+            "
+          >
+            <p
+              className="
+                mb-4
+                text-[9px]
+                uppercase
+                tracking-[0.30em]
+                text-zinc-400
+
+                sm:text-[10px]
+
+                lg:text-[11px]
+                lg:tracking-[0.33em]
+              "
+            >
               Simple Steps. Bigger Opportunities.
             </p>
 
-            <h2 className="text-5xl font-black">
+            <h2
+              className="
+                text-[44px]
+                font-black
+                leading-[0.96]
+                tracking-[-0.04em]
+
+                sm:text-5xl
+              "
+            >
               How ProVN{' '}
 
-              <span className="text-red-600">
+              <span
+                className="
+                  text-red-600
+                "
+              >
                 Works.
               </span>
             </h2>
 
-            <p className="mt-4 text-zinc-400">
-              Join, connect and grow in a dedicated ecosystem built for gamers,
+            <p
+              className="
+                mt-4
+                max-w-xl
+                text-[15px]
+                leading-7
+                text-zinc-400
+
+                lg:text-base
+              "
+            >
+              Join, connect and grow
+              in a dedicated ecosystem
+              built for gamers,
               coaches and providers.
             </p>
 
-            <div className="relative mt-11 pl-[56px]">
-              <div className="absolute bottom-10 left-[17px] top-10 w-px bg-red-600" />
+            <div
+              className="
+                relative
+                mt-8
+                pl-[46px]
+
+                sm:mt-9
+
+                lg:mt-11
+                lg:pl-[56px]
+              "
+            >
+              <div
+                className="
+                  absolute
+                  bottom-9
+                  left-[16px]
+                  top-9
+                  w-px
+                  bg-red-600
+
+                  lg:bottom-10
+                  lg:left-[17px]
+                  lg:top-10
+                "
+              />
 
               <HowStep
                 number="01"
@@ -1919,38 +2889,137 @@ export default function Home() {
       <SectionTransition />
 
       {/* ===================================================
-          SECTION 5
+          PROOF
       ==================================================== */}
 
       <section
         id="proof"
-        className="relative overflow-hidden bg-[#050506] py-[128px]"
+        className="
+          relative
+          overflow-hidden
+          bg-[#050506]
+          py-[74px]
+
+          sm:py-[88px]
+
+          lg:py-[128px]
+        "
       >
-        <div className="relative z-10 mx-auto max-w-[1450px] px-6 lg:px-10">
-          <div data-cursor-block className="text-center">
-            <div className="flex items-center justify-center gap-4 text-[11px] uppercase tracking-[0.35em] text-zinc-400">
-              <span className="h-px w-8 bg-red-600" />
+        <div
+          className="
+            relative
+            z-10
+            mx-auto
+            max-w-[1450px]
+            px-5
+
+            sm:px-6
+            lg:px-10
+          "
+        >
+          <div
+            data-cursor-block
+            className="
+              text-center
+            "
+          >
+            <div
+              className="
+                flex
+                items-center
+                justify-center
+                gap-3
+                text-[9px]
+                uppercase
+                tracking-[0.30em]
+                text-zinc-400
+
+                sm:text-[10px]
+
+                lg:gap-4
+                lg:text-[11px]
+                lg:tracking-[0.35em]
+              "
+            >
+              <span
+                className="
+                  h-px
+                  w-7
+                  bg-red-600
+
+                  lg:w-8
+                "
+              />
 
               Verified Talent Ecosystem
 
-              <span className="h-px w-8 bg-red-600" />
+              <span
+                className="
+                  h-px
+                  w-7
+                  bg-red-600
+
+                  lg:w-8
+                "
+              />
             </div>
 
-            <h2 className="mt-5 text-5xl font-black lg:text-6xl">
+            <h2
+              className="
+                mt-5
+                text-[44px]
+                font-black
+                leading-[0.95]
+                tracking-[-0.04em]
+
+                sm:text-5xl
+                lg:text-6xl
+              "
+            >
               Skill Deserves{' '}
 
-              <span className="text-[#f0082f]">
+              <span
+                className="
+                  text-[#f0082f]
+                "
+              >
                 Proof.
               </span>
             </h2>
 
-            <p className="mx-auto mt-5 max-w-[650px] text-zinc-400">
-              A trusted space where players, coaches and teams connect through
-              real performance, not just claims.
+            <p
+              className="
+                mx-auto
+                mt-5
+                max-w-[650px]
+                text-[15px]
+                leading-7
+                text-zinc-400
+
+                lg:text-base
+              "
+            >
+              A trusted space where
+              players, coaches and
+              teams connect through
+              real performance, not
+              just claims.
             </p>
           </div>
 
-          <div className="mt-[70px] grid gap-6 lg:grid-cols-3">
+          <div
+            className="
+              mt-12
+              grid
+              gap-5
+
+              sm:mt-14
+
+              lg:mt-[70px]
+              lg:grid-cols-3
+              lg:gap-6
+            "
+          >
             <ProofCard
               number="01"
               title={
@@ -1962,7 +3031,8 @@ export default function Home() {
               }
               description={
                 <>
-                  Performance-backed profiles,
+                  Performance-backed
+                  profiles,
                   <br />
                   not claimed ranks.
                 </>
@@ -1972,30 +3042,41 @@ export default function Home() {
                 {
                   image:
                     '/home/proof-rank.png',
+
                   line1:
                     'Rank',
+
                   line2:
                     'Verification',
+
                   href:
                     '#join',
                 },
+
                 {
                   image:
                     '/home/proof-history.png',
+
                   line1:
                     'Match',
+
                   line2:
                     'History',
+
                   href:
                     '#join',
                 },
+
                 {
                   image:
                     '/home/proof-stats.png',
+
                   line1:
                     'Real',
+
                   line2:
                     'Stats',
+
                   href:
                     '#join',
                 },
@@ -2013,7 +3094,8 @@ export default function Home() {
               }
               description={
                 <>
-                  Coaching credibility earned
+                  Coaching credibility
+                  earned
                   <br />
                   through real student
                   <br />
@@ -2025,30 +3107,41 @@ export default function Home() {
                 {
                   image:
                     '/home/proof-reviews.png',
+
                   line1:
                     'Student',
+
                   line2:
                     'Reviews',
+
                   href:
                     '#join',
                 },
+
                 {
                   image:
                     '/home/proof-improvement.png',
+
                   line1:
                     'Track',
+
                   line2:
                     'Improvement',
+
                   href:
                     '#join',
                 },
+
                 {
                   image:
                     '/home/proof-experience.png',
+
                   line1:
                     'Verified',
+
                   line2:
                     'Experience',
+
                   href:
                     '#join',
                 },
@@ -2078,28 +3171,38 @@ export default function Home() {
                 {
                   image:
                     '/home/proof-team.png',
+
                   line1:
                     'Team',
+
                   line2:
                     'Opportunities',
+
                   href:
                     '#recruiter',
                 },
+
                 {
                   image:
                     '/home/proof-tournaments.png',
+
                   line1:
                     'Tournaments',
+
                   href:
                     '#tournaments',
                 },
+
                 {
                   image:
                     '/home/proof-scout.png',
+
                   line1:
                     'Scout',
+
                   line2:
                     'Visibility',
+
                   href:
                     '#recruiter',
                 },
@@ -2107,18 +3210,20 @@ export default function Home() {
             />
           </div>
 
-          {/* =================================================
-              MAIN CTA
-          ================================================= */}
+          {/* CTA */}
 
           <div
             id="join"
             data-cursor-block
             className="
-              mt-[78px]
+              mt-12
               flex
               flex-col
               items-center
+
+              sm:mt-14
+
+              lg:mt-[78px]
             "
           >
             <a
@@ -2137,47 +3242,55 @@ export default function Home() {
                 from-[#560b17]
                 via-[#6c111f]
                 to-[#39070f]
-                px-8
-                py-[17px]
-                text-lg
+                px-6
+                py-[15px]
+                text-[16px]
                 font-semibold
 
                 transition-all
                 duration-300
 
-                hover:scale-[1.045]
                 hover:border-red-400
                 hover:from-[#761020]
                 hover:via-[#8a1427]
                 hover:to-[#520a16]
-                hover:shadow-[0_0_42px_rgba(220,0,40,.24)]
 
                 active:scale-[.98]
+
+                sm:px-8
+                sm:py-[17px]
+                sm:text-lg
+
+                lg:hover:scale-[1.045]
+                lg:hover:shadow-[0_0_42px_rgba(220,0,40,.24)]
               "
             >
               Join Early Access
 
-              <span className="transition-transform duration-300 group-hover:translate-x-1">
+              <span
+                className="
+                  transition-transform
+                  duration-300
+
+                  group-hover:translate-x-1
+                "
+              >
                 →
               </span>
             </a>
 
-            {/* =================================================
-                COACH + RECRUITER
-
-                deliberately smaller than Join Early Access
-                so the main CTA remains dominant.
-            ================================================= */}
-
             <div
               id="recruiter"
               className="
-                mt-6
+                mt-4
                 grid
                 w-full
                 max-w-[620px]
-                gap-4
+                gap-3
+
+                sm:mt-6
                 sm:grid-cols-2
+                sm:gap-4
               "
             >
               <RoleCTA
@@ -2201,73 +3314,187 @@ export default function Home() {
       <SectionTransition />
 
       {/* ===================================================
-          SECTION 6
+          TOURNAMENTS
       ==================================================== */}
 
       <section
         id="tournaments"
-        className="relative overflow-hidden bg-[#050506] pb-[135px] pt-[105px]"
+        className="
+          relative
+          overflow-hidden
+          bg-[#050506]
+          pb-[78px]
+          pt-[66px]
+
+          sm:pb-[90px]
+          sm:pt-[78px]
+
+          lg:pb-[135px]
+          lg:pt-[105px]
+        "
       >
-        <div className="relative z-10 mx-auto max-w-[1540px] px-6 lg:px-10">
-          <div className="grid items-center gap-8 lg:grid-cols-[36%_64%]">
-            <div data-cursor-block className="relative z-20 max-w-[525px]">
-              <div className="mb-5 flex items-center gap-4 text-[11px] uppercase tracking-[0.34em] text-zinc-400">
-                <span className="h-px w-9 bg-red-600" />
+        <div
+          className="
+            relative
+            z-10
+            mx-auto
+            max-w-[1540px]
+            px-5
+
+            sm:px-6
+            lg:px-10
+          "
+        >
+          <div
+            className="
+              grid
+              items-center
+              gap-8
+
+              lg:grid-cols-[36%_64%]
+            "
+          >
+            <div
+              data-cursor-block
+              className="
+                relative
+                z-20
+                max-w-[525px]
+              "
+            >
+              <div
+                className="
+                  mb-4
+                  flex
+                  items-center
+                  gap-3
+                  text-[9px]
+                  uppercase
+                  tracking-[0.30em]
+                  text-zinc-400
+
+                  sm:text-[10px]
+
+                  lg:mb-5
+                  lg:gap-4
+                  lg:text-[11px]
+                  lg:tracking-[0.34em]
+                "
+              >
+                <span
+                  className="
+                    h-px
+                    w-7
+                    bg-red-600
+
+                    lg:w-9
+                  "
+                />
 
                 Competitions & Tournaments
               </div>
 
-              <h2 className="text-5xl font-black leading-[0.96] tracking-[-0.045em] lg:text-[61px]">
+              <h2
+                className="
+                  text-[45px]
+                  font-black
+                  leading-[0.95]
+                  tracking-[-0.045em]
+
+                  sm:text-5xl
+
+                  lg:text-[61px]
+                "
+              >
                 Compete With
 
                 <br />
 
-                <span className="text-red-600">
+                <span
+                  className="
+                    text-red-600
+                  "
+                >
                   Confidence.
                 </span>
               </h2>
 
-              <p className="mt-6 max-w-[500px] text-base leading-7 text-zinc-400">
-                From casual scrims to high-stakes tournaments,
-                play in a safe, verified and transparent environment.
+              <p
+                className="
+                  mt-5
+                  max-w-[500px]
+                  text-[15px]
+                  leading-7
+                  text-zinc-400
+
+                  lg:mt-6
+                  lg:text-base
+                "
+              >
+                From casual scrims to
+                high-stakes tournaments,
+                play in a safe, verified
+                and transparent
+                environment.
               </p>
 
-              <div className="mt-8 flex flex-wrap gap-4">
+              <div
+                className="
+                  mt-7
+                  flex
+                  flex-col
+                  gap-3
+
+                  sm:flex-row
+                  sm:flex-wrap
+                  sm:gap-4
+
+                  lg:mt-8
+                "
+              >
                 <a
                   href="#tournaments"
                   className="
                     flex
-                    min-w-[220px]
+                    w-full
                     items-center
                     justify-between
                     rounded-[10px]
                     bg-gradient-to-r
                     from-[#ff143c]
                     to-[#d70027]
-                    px-7
+                    px-6
                     py-4
                     font-semibold
 
                     transition-all
                     duration-300
 
-                    hover:scale-[1.055]
                     hover:from-[#ff3154]
                     hover:to-[#ed002d]
-                    hover:shadow-[0_0_36px_rgba(255,0,45,.28)]
 
                     active:scale-[.98]
+
+                    sm:w-auto
+                    sm:min-w-[220px]
+                    sm:px-7
+
+                    lg:hover:scale-[1.055]
+                    lg:hover:shadow-[0_0_36px_rgba(255,0,45,.28)]
                   "
                 >
                   Explore Tournaments
-                  <span>→</span>
+
+                  <span>
+                    →
+                  </span>
                 </a>
 
                 <a
                   href="#join"
                   className="
                     flex
-                    min-w-[195px]
+                    w-full
                     items-center
                     justify-between
                     rounded-[10px]
@@ -2282,19 +3509,32 @@ export default function Home() {
                     transition-all
                     duration-300
 
-                    hover:scale-[1.055]
                     hover:border-red-400
                     hover:bg-red-950/40
-                    hover:shadow-[0_0_28px_rgba(210,0,35,.18)]
 
                     active:scale-[.98]
+
+                    sm:w-auto
+                    sm:min-w-[195px]
+
+                    lg:hover:scale-[1.055]
+                    lg:hover:shadow-[0_0_28px_rgba(210,0,35,.18)]
                   "
                 >
                   Host a Tournament
-                  <span className="text-red-500">→</span>
+
+                  <span
+                    className="
+                      text-red-500
+                    "
+                  >
+                    →
+                  </span>
                 </a>
               </div>
             </div>
+
+            {/* DESKTOP IMAGE */}
 
             <div
               data-cursor-block
@@ -2356,9 +3596,26 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="h-[64px] lg:h-[90px]" />
+          <div
+            className="
+              h-[44px]
 
-          <div className="grid gap-[24px] md:grid-cols-3">
+              sm:h-[52px]
+
+              lg:h-[90px]
+            "
+          />
+
+          <div
+            className="
+              grid
+              gap-4
+
+              md:grid-cols-3
+
+              lg:gap-[24px]
+            "
+          >
             <TournamentFeatureCard
               type="shield"
               number="01"
@@ -2386,7 +3643,9 @@ export default function Home() {
         </div>
       </section>
 
-      <SectionTransition height={125} />
+      <SectionTransition
+        large
+      />
 
       {/* ===================================================
           FOUNDERS
@@ -2397,10 +3656,17 @@ export default function Home() {
           relative
           overflow-hidden
           bg-[#050506]
-          px-6
-          pb-[120px]
-          pt-[95px]
+          px-5
+          pb-[80px]
+          pt-[68px]
+
+          sm:px-6
+          sm:pb-[95px]
+          sm:pt-[80px]
+
           lg:px-10
+          lg:pb-[120px]
+          lg:pt-[95px]
         "
       >
         <div
@@ -2409,13 +3675,18 @@ export default function Home() {
             absolute
             left-1/2
             top-1/2
-            h-[330px]
-            w-[720px]
+            h-[260px]
+            w-[90%]
             -translate-x-1/2
             -translate-y-1/2
             rounded-full
-            bg-red-950/20
-            blur-[140px]
+            bg-red-950/15
+            blur-[120px]
+
+            lg:h-[330px]
+            lg:w-[720px]
+            lg:bg-red-950/20
+            lg:blur-[140px]
           "
         />
 
@@ -2429,89 +3700,295 @@ export default function Home() {
             text-center
           "
         >
-          <div className="flex items-center justify-center gap-4 text-[11px] uppercase tracking-[0.38em] text-zinc-500">
-            <span className="h-px w-10 bg-red-600" />
+          <div
+            className="
+              flex
+              items-center
+              justify-center
+              gap-3
+              text-[9px]
+              uppercase
+              tracking-[0.32em]
+              text-zinc-500
+
+              sm:text-[10px]
+
+              lg:gap-4
+              lg:text-[11px]
+              lg:tracking-[0.38em]
+            "
+          >
+            <span
+              className="
+                h-px
+                w-7
+                bg-red-600
+
+                lg:w-10
+              "
+            />
 
             The People Behind ProVN
 
-            <span className="h-px w-10 bg-red-600" />
+            <span
+              className="
+                h-px
+                w-7
+                bg-red-600
+
+                lg:w-10
+              "
+            />
           </div>
 
-          <h2 className="mt-7 text-4xl font-black tracking-[-0.04em] sm:text-5xl lg:text-[60px]">
+          <h2
+            className="
+              mx-auto
+              mt-6
+              max-w-[700px]
+              text-[40px]
+              font-black
+              leading-[0.98]
+              tracking-[-0.04em]
+
+              sm:text-5xl
+
+              lg:mt-7
+              lg:max-w-none
+              lg:text-[60px]
+            "
+          >
             Built for the
 
-            <span className="text-red-600">
-              {' '}Next Generation of Gaming.
+            <span
+              className="
+                text-red-600
+              "
+            >
+              {' '}
+              Next Generation of Gaming.
             </span>
           </h2>
 
-          <p className="mx-auto mt-7 max-w-[760px] text-base leading-8 text-zinc-400 sm:text-lg">
-            ProVN is being built around one simple idea:
-            gaming talent should be easier to discover,
-            easier to trust and easier to turn into opportunity.
+          <p
+            className="
+              mx-auto
+              mt-6
+              max-w-[620px]
+              text-[15px]
+              leading-7
+              text-zinc-400
+
+              sm:text-base
+              sm:leading-8
+
+              lg:mt-7
+              lg:max-w-[760px]
+              lg:text-lg
+            "
+          >
+            ProVN is being built
+            around one simple idea:
+            gaming talent should be
+            easier to discover,
+            easier to trust and
+            easier to turn into
+            opportunity.
           </p>
 
-          <div className="mx-auto mt-14 grid max-w-[760px] gap-5 sm:grid-cols-2">
+          <div
+            className="
+              mx-auto
+              mt-10
+              grid
+              max-w-[760px]
+              gap-4
+
+              sm:mt-12
+              sm:grid-cols-2
+              sm:gap-5
+
+              lg:mt-14
+            "
+          >
             <div
               className="
-                rounded-[24px]
+                rounded-[20px]
                 border
                 border-red-500/30
                 bg-gradient-to-br
                 from-[#170e11]
                 via-[#0d090a]
                 to-[#070708]
-                px-8
-                py-8
+                px-6
+                py-7
+
+                lg:rounded-[24px]
+                lg:px-8
+                lg:py-8
               "
             >
-              <div className="mx-auto flex h-[58px] w-[58px] items-center justify-center rounded-full border border-red-500/50 bg-red-950/30 text-xl font-black text-red-500">
+              <div
+                className="
+                  mx-auto
+                  flex
+                  h-[54px]
+                  w-[54px]
+                  items-center
+                  justify-center
+                  rounded-full
+                  border
+                  border-red-500/50
+                  bg-red-950/30
+                  text-lg
+                  font-black
+                  text-red-500
+
+                  lg:h-[58px]
+                  lg:w-[58px]
+                  lg:text-xl
+                "
+              >
                 K
               </div>
 
-              <p className="mt-5 text-[11px] uppercase tracking-[0.30em] text-zinc-500">
+              <p
+                className="
+                  mt-5
+                  text-[9px]
+                  uppercase
+                  tracking-[0.28em]
+                  text-zinc-500
+
+                  lg:text-[11px]
+                  lg:tracking-[0.30em]
+                "
+              >
                 Co-Founder
               </p>
 
-              <h3 className="mt-2 text-2xl font-bold">
+              <h3
+                className="
+                  mt-2
+                  text-[22px]
+                  font-bold
+
+                  lg:text-2xl
+                "
+              >
                 Mr. Kanav
               </h3>
             </div>
 
             <div
               className="
-                rounded-[24px]
+                rounded-[20px]
                 border
                 border-red-500/30
                 bg-gradient-to-br
                 from-[#170e11]
                 via-[#0d090a]
                 to-[#070708]
-                px-8
-                py-8
+                px-6
+                py-7
+
+                lg:rounded-[24px]
+                lg:px-8
+                lg:py-8
               "
             >
-              <div className="mx-auto flex h-[58px] w-[58px] items-center justify-center rounded-full border border-red-500/50 bg-red-950/30 text-xl font-black text-red-500">
+              <div
+                className="
+                  mx-auto
+                  flex
+                  h-[54px]
+                  w-[54px]
+                  items-center
+                  justify-center
+                  rounded-full
+                  border
+                  border-red-500/50
+                  bg-red-950/30
+                  text-lg
+                  font-black
+                  text-red-500
+
+                  lg:h-[58px]
+                  lg:w-[58px]
+                  lg:text-xl
+                "
+              >
                 A
               </div>
 
-              <p className="mt-5 text-[11px] uppercase tracking-[0.30em] text-zinc-500">
+              <p
+                className="
+                  mt-5
+                  text-[9px]
+                  uppercase
+                  tracking-[0.28em]
+                  text-zinc-500
+
+                  lg:text-[11px]
+                  lg:tracking-[0.30em]
+                "
+              >
                 Co-Founder
               </p>
 
-              <h3 className="mt-2 text-2xl font-bold">
+              <h3
+                className="
+                  mt-2
+                  text-[22px]
+                  font-bold
+
+                  lg:text-2xl
+                "
+              >
                 Mr. Anmol
               </h3>
             </div>
           </div>
 
-          <div className="mx-auto mt-14 max-w-[860px] border-t border-white/[0.06] pt-10">
-            <p className="text-xl font-semibold tracking-[-0.02em] text-zinc-200 sm:text-2xl">
+          <div
+            className="
+              mx-auto
+              mt-10
+              max-w-[860px]
+              border-t
+              border-white/[0.06]
+              pt-8
+
+              lg:mt-14
+              lg:pt-10
+            "
+          >
+            <p
+              className="
+                text-[18px]
+                font-semibold
+                leading-7
+                tracking-[-0.02em]
+                text-zinc-200
+
+                sm:text-xl
+                sm:leading-8
+
+                lg:text-2xl
+              "
+            >
               “Play with purpose.
 
-              <span className="text-red-500">
-                {' '}Build your proof. Own your game.
-              </span>”
+              <span
+                className="
+                  text-red-500
+                "
+              >
+                {' '}
+                Build your proof.
+                Own your game.
+              </span>
+              ”
             </p>
           </div>
         </div>
@@ -2527,40 +4004,99 @@ export default function Home() {
           border-t
           border-white/[0.06]
           bg-[#030304]
-          py-10
+          py-8
+
+          lg:py-10
         "
       >
-        <div className="mx-auto flex max-w-[1450px] flex-col gap-5 px-6 sm:flex-row sm:items-center sm:justify-between lg:px-10">
+        <div
+          className="
+            mx-auto
+            flex
+            max-w-[1450px]
+            flex-col
+            gap-5
+            px-5
+
+            sm:flex-row
+            sm:items-center
+            sm:justify-between
+            sm:px-6
+
+            lg:px-10
+          "
+        >
           <div>
             <a
               href="#home"
               className="
                 inline-block
-                text-2xl
+                text-[24px]
                 font-black
+
                 transition-transform
                 duration-300
+
                 hover:scale-105
+
+                lg:text-2xl
               "
             >
               Pro
 
-              <span className="text-red-600">
+              <span
+                className="
+                  text-red-600
+                "
+              >
                 VN
               </span>
             </a>
 
-            <p className="mt-2 text-sm text-zinc-600">
-              Where real performance becomes real recognition.
+            <p
+              className="
+                mt-2
+                max-w-[360px]
+                text-[12px]
+                leading-5
+                text-zinc-600
+
+                lg:text-sm
+              "
+            >
+              Where real performance
+              becomes real recognition.
             </p>
           </div>
 
-          <div className="text-left sm:text-right">
-            <p className="text-xs uppercase tracking-[0.25em] text-zinc-600">
+          <div
+            className="
+              text-left
+              sm:text-right
+            "
+          >
+            <p
+              className="
+                text-[9px]
+                uppercase
+                tracking-[0.25em]
+                text-zinc-600
+
+                lg:text-xs
+              "
+            >
               Founded by
             </p>
 
-            <p className="mt-2 text-sm text-zinc-400">
+            <p
+              className="
+                mt-2
+                text-[13px]
+                text-zinc-400
+
+                lg:text-sm
+              "
+            >
               Mr. Kanav &amp; Mr. Anmol
             </p>
           </div>
