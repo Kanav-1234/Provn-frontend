@@ -1,18 +1,18 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 
 import {
   FormEvent,
   PointerEvent as ReactPointerEvent,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react'
 
 /* =========================================================
-   PROVN NATIVE CURSOR
+   EXACT PROVN NATIVE CURSOR
 ========================================================= */
 
 const provnCursorSvg = `
@@ -68,25 +68,30 @@ const PROVN_CURSOR =
   )}") 1 1, auto`
 
 /* =========================================================
-   PROVN MARK
+   PROVN METALLIC MARK
 ========================================================= */
 
 function ProVNMark({
   id,
-  className = '',
+  className = 'h-[48px] w-[48px]',
 }: {
   id: string
   className?: string
 }) {
-  const main = `${id}-main`
-  const top = `${id}-top`
-  const edge = `${id}-edge`
+  const main =
+    `${id}-main`
+
+  const top =
+    `${id}-top`
+
+  const edge =
+    `${id}-edge`
 
   return (
     <svg
       viewBox="0 0 58 58"
       aria-hidden="true"
-      className={`h-[46px] w-[46px] shrink-0 overflow-visible ${className}`}
+      className={`${className} shrink-0 overflow-visible drop-shadow-[0_0_11px_rgba(226,32,57,.30)]`}
     >
       <defs>
         <linearGradient
@@ -98,32 +103,32 @@ function ProVNMark({
         >
           <stop
             offset="0%"
-            stopColor="#ffb7bd"
+            stopColor="#ff8a95"
           />
 
           <stop
             offset="12%"
-            stopColor="#fa7080"
+            stopColor="#e65362"
           />
 
           <stop
-            offset="31%"
-            stopColor="#d13249"
+            offset="30%"
+            stopColor="#bb283b"
           />
 
           <stop
-            offset="53%"
-            stopColor="#881321"
+            offset="51%"
+            stopColor="#811320"
           />
 
           <stop
-            offset="74%"
-            stopColor="#b51d33"
+            offset="72%"
+            stopColor="#ad1c30"
           />
 
           <stop
             offset="100%"
-            stopColor="#260408"
+            stopColor="#240508"
           />
         </linearGradient>
 
@@ -136,22 +141,22 @@ function ProVNMark({
         >
           <stop
             offset="0%"
-            stopColor="#72101b"
+            stopColor="#77101b"
           />
 
           <stop
             offset="34%"
-            stopColor="#e34759"
+            stopColor="#df4355"
           />
 
           <stop
-            offset="58%"
-            stopColor="#ffc0c6"
+            offset="57%"
+            stopColor="#ff9ea7"
           />
 
           <stop
             offset="100%"
-            stopColor="#650a15"
+            stopColor="#6e0b17"
           />
         </linearGradient>
 
@@ -164,17 +169,17 @@ function ProVNMark({
         >
           <stop
             offset="0%"
-            stopColor="#ffe5e8"
+            stopColor="#ffc7cc"
           />
 
           <stop
-            offset="35%"
-            stopColor="#ff6071"
+            offset="34%"
+            stopColor="#ff5265"
           />
 
           <stop
             offset="100%"
-            stopColor="#620714"
+            stopColor="#6c0716"
           />
         </linearGradient>
       </defs>
@@ -201,10 +206,16 @@ function ProVNMark({
       />
 
       <path
+        d="M23.7 28.6 L30.4 35.8 L26.4 36.9 L23.7 34.4 Z"
+        fill="#29060c"
+        opacity=".92"
+      />
+
+      <path
         d="M7.2 10 H38.2 L47.2 16.3"
         fill="none"
-        stroke="#ffe1e5"
-        strokeOpacity=".67"
+        stroke="#ffd3d7"
+        strokeOpacity=".66"
         strokeWidth="1"
         strokeLinecap="round"
       />
@@ -212,7 +223,7 @@ function ProVNMark({
       <path
         d="M43.8 22.7 C49 24.8 51 28.2 51 32.8 C51 38.8 46.4 43.3 38.6 43.7"
         fill="none"
-        stroke="#ff4059"
+        stroke="#ff334c"
         strokeOpacity=".72"
         strokeWidth="1"
         strokeLinecap="round"
@@ -229,24 +240,25 @@ function ProVNLogo() {
   return (
     <Link
       href="/"
+      aria-label="ProVN home"
       className="group inline-flex items-center"
     >
-      <span className="relative transition-transform duration-300 group-hover:scale-[1.07]">
-        <span className="pointer-events-none absolute inset-[5px] rounded-full bg-[#d92340]/25 opacity-0 blur-[16px] transition-opacity duration-300 group-hover:opacity-100" />
+      <span className="relative transition-all duration-300 group-hover:scale-[1.06] group-hover:-rotate-[1deg]">
+        <span className="pointer-events-none absolute inset-[8px] rounded-full bg-[#c31e35]/25 opacity-0 blur-[14px] transition-opacity duration-300 group-hover:opacity-100" />
 
-        <ProVNMark
-          id="header-logo"
-          className="relative z-10 drop-shadow-[0_0_11px_rgba(229,41,65,.26)]"
-        />
+        <span className="relative z-10">
+          <ProVNMark
+            id="login-logo"
+          />
+        </span>
       </span>
 
-      <span className="-ml-[4px] translate-y-[4px] text-[22px] font-black leading-none tracking-[-0.055em]">
-
-        <span className="text-[#f5f2f2]">
+      <span className="-ml-[3px] translate-y-[5px] text-[23px] font-black leading-none tracking-[-0.055em]">
+        <span className="text-[#f6f3f3]">
           ro
         </span>
 
-        <span className="text-[#ed2744]">
+        <span className="text-[#e51f3b] drop-shadow-[0_0_8px_rgba(229,31,59,.18)]">
           VN
         </span>
       </span>
@@ -255,7 +267,7 @@ function ProVNLogo() {
 }
 
 /* =========================================================
-   EYE
+   PASSWORD EYE
 ========================================================= */
 
 function EyeIcon({
@@ -266,7 +278,7 @@ function EyeIcon({
   return (
     <svg
       viewBox="0 0 24 24"
-      className="h-[17px] w-[17px]"
+      className="pointer-events-none h-[18px] w-[18px]"
       fill="none"
       stroke="currentColor"
       strokeWidth="1.7"
@@ -300,40 +312,35 @@ function EyeIcon({
 }
 
 /* =========================================================
-   STATUS ROW
+   LEFT STATUS ROW
 ========================================================= */
 
-function StatusRow({
+function AccessStatusRow({
   number,
   label,
-  value,
+  status,
 }: {
   number: string
   label: string
-  value: string
+  status: string
 }) {
   return (
-    <div className="status-row flex items-center justify-between border-b border-white/[0.05] py-[12px] last:border-none">
+    <div className="flex h-[43px] items-center border-b border-white/[0.045] px-4 last:border-b-0">
+      <span className="w-[29px] text-[8px] font-semibold text-[#b83447]">
+        {number}
+      </span>
 
-      <div className="flex items-center gap-3">
+      <span className="text-[8px] uppercase tracking-[0.18em] text-zinc-700">
+        {label}
+      </span>
 
-        <span className="text-[7px] font-bold tracking-[0.17em] text-[#bb3c50]">
-          {number}
+      <span className="ml-auto flex items-center gap-2">
+        <span className="h-[5px] w-[5px] rounded-full bg-[#e12f49] shadow-[0_0_10px_rgba(225,47,73,.8)]" />
+
+        <span className="text-[8px] uppercase tracking-[0.15em] text-zinc-600">
+          {status}
         </span>
-
-        <span className="text-[7px] uppercase tracking-[0.19em] text-zinc-600">
-          {label}
-        </span>
-      </div>
-
-      <div className="flex items-center gap-2">
-
-        <span className="h-[5px] w-[5px] rounded-full bg-[#ed4058] shadow-[0_0_12px_rgba(237,64,88,.80)]" />
-
-        <span className="text-[7px] uppercase tracking-[0.14em] text-zinc-500">
-          {value}
-        </span>
-      </div>
+      </span>
     </div>
   )
 }
@@ -343,9 +350,6 @@ function StatusRow({
 ========================================================= */
 
 export default function LoginPage() {
-  const router =
-    useRouter()
-
   const [
     username,
     setUsername,
@@ -382,6 +386,35 @@ export default function LoginPage() {
   ] =
     useState(false)
 
+  /* =======================================================
+     PREMIUM CARD TILT
+  ======================================================== */
+
+  const panelRef =
+    useRef<HTMLDivElement | null>(
+      null
+    )
+
+  const panelRectRef =
+    useRef<DOMRect | null>(
+      null
+    )
+
+  const panelFrameRef =
+    useRef<number | null>(
+      null
+    )
+
+  const panelPointerRef =
+    useRef({
+      x: 0,
+      y: 0,
+    })
+
+  /* =======================================================
+     USERNAME NORMALIZATION
+  ======================================================== */
+
   const cleanedUsername =
     useMemo(
       () =>
@@ -389,7 +422,10 @@ export default function LoginPage() {
           .trim()
           .toLowerCase()
           .replace(/^@/, ''),
-      [username]
+
+      [
+        username,
+      ]
     )
 
   const usernameValid =
@@ -401,6 +437,10 @@ export default function LoginPage() {
     usernameValid &&
     password.length > 0 &&
     !loading
+
+  /* =======================================================
+     IDENTITY VERIFIED MESSAGE
+  ======================================================== */
 
   useEffect(() => {
     const justVerified =
@@ -424,298 +464,323 @@ export default function LoginPage() {
   }, [])
 
   /* =======================================================
-     FULL RECTANGLE LIVE TILT
-  ======================================================= */
+     RAF CLEANUP
+  ======================================================== */
 
-  function handleShellMove(
-    event:
-      ReactPointerEvent<HTMLDivElement>
-  ) {
-    const shell =
-      event.currentTarget
-
-    const rect =
-      shell
-        .getBoundingClientRect()
-
-    const x =
-      event.clientX -
-      rect.left
-
-    const y =
-      event.clientY -
-      rect.top
-
-    const px =
-      Math.min(
-        Math.max(
-          x /
-            rect.width,
-          0
-        ),
-        1
-      )
-
-    const py =
-      Math.min(
-        Math.max(
-          y /
-            rect.height,
-          0
-        ),
-        1
-      )
-
-    /*
-       LEFT  = negative rotateY
-       RIGHT = positive rotateY
-
-       approx:
-       far left  -6°
-       center      0°
-       far right  +6°
-    */
-
-    const rotateY =
-      (px - 0.5) *
-      12
-
-    const rotateX =
-      (0.5 - py) *
-      7
-
-    /*
-       shadow moves opposite cursor
-    */
-
-    const shadowX =
-      (0.5 - px) *
-      34
-
-    const shadowY =
-      25 +
-      (0.5 - py) *
-        15
-
-    shell.style.setProperty(
-      '--shell-rx',
-      `${rotateX}deg`
-    )
-
-    shell.style.setProperty(
-      '--shell-ry',
-      `${rotateY}deg`
-    )
-
-    shell.style.setProperty(
-      '--shell-mx',
-      `${x}px`
-    )
-
-    shell.style.setProperty(
-      '--shell-my',
-      `${y}px`
-    )
-
-    shell.style.setProperty(
-      '--shell-shadow-x',
-      `${shadowX}px`
-    )
-
-    shell.style.setProperty(
-      '--shell-shadow-y',
-      `${shadowY}px`
-    )
-  }
-
-  function resetShell(
-    event:
-      ReactPointerEvent<HTMLDivElement>
-  ) {
-    const shell =
-      event.currentTarget
-
-    shell.style.setProperty(
-      '--shell-rx',
-      '0deg'
-    )
-
-    shell.style.setProperty(
-      '--shell-ry',
-      '0deg'
-    )
-
-    shell.style.setProperty(
-      '--shell-mx',
-      '50%'
-    )
-
-    shell.style.setProperty(
-      '--shell-my',
-      '50%'
-    )
-
-    shell.style.setProperty(
-      '--shell-shadow-x',
-      '0px'
-    )
-
-    shell.style.setProperty(
-      '--shell-shadow-y',
-      '25px'
-    )
-  }
+  useEffect(() => {
+    return () => {
+      if (
+        panelFrameRef.current !==
+        null
+      ) {
+        cancelAnimationFrame(
+          panelFrameRef.current
+        )
+      }
+    }
+  }, [])
 
   /* =======================================================
-     INNER ACCESS CORE TILT
-  ======================================================= */
+     CARD TILT
+  ======================================================== */
 
-  function handleModuleMove(
+  function handlePanelEnter(
     event:
       ReactPointerEvent<HTMLDivElement>
   ) {
-    /*
-      Important:
+    if (
+      !window
+        .matchMedia(
+          '(pointer: fine)'
+        )
+        .matches
+    ) {
+      return
+    }
 
-      Prevent the core's movement
-      from also constantly changing
-      the large rectangle movement.
-    */
-
-    event.stopPropagation()
-
-    const module =
-      event.currentTarget
-
-    const rect =
-      module
+    panelRectRef.current =
+      event
+        .currentTarget
         .getBoundingClientRect()
 
-    const x =
-      event.clientX -
-      rect.left
-
-    const y =
-      event.clientY -
-      rect.top
-
-    const px =
-      Math.min(
-        Math.max(
-          x /
-            rect.width,
-          0
-        ),
-        1
+    event
+      .currentTarget
+      .classList
+      .add(
+        'login-panel-tracking'
       )
-
-    const py =
-      Math.min(
-        Math.max(
-          y /
-            rect.height,
-          0
-        ),
-        1
-      )
-
-    const rotateY =
-      (px - 0.5) *
-      24
-
-    const rotateX =
-      (0.5 - py) *
-      15
-
-    const shadowX =
-      (0.5 - px) *
-      22
-
-    const shadowY =
-      12 +
-      (0.5 - py) *
-        13
-
-    module.style.setProperty(
-      '--module-rx',
-      `${rotateX}deg`
-    )
-
-    module.style.setProperty(
-      '--module-ry',
-      `${rotateY}deg`
-    )
-
-    module.style.setProperty(
-      '--module-mx',
-      `${x}px`
-    )
-
-    module.style.setProperty(
-      '--module-my',
-      `${y}px`
-    )
-
-    module.style.setProperty(
-      '--module-shadow-x',
-      `${shadowX}px`
-    )
-
-    module.style.setProperty(
-      '--module-shadow-y',
-      `${shadowY}px`
-    )
   }
 
-  function resetModule(
+  function handlePanelMove(
     event:
       ReactPointerEvent<HTMLDivElement>
   ) {
-    event.stopPropagation()
-
-    const module =
+    const panel =
       event.currentTarget
 
-    module.style.setProperty(
-      '--module-rx',
-      '0deg'
-    )
+    if (
+      panel.dataset
+        .formHover ===
+      'true'
+    ) {
+      return
+    }
 
-    module.style.setProperty(
-      '--module-ry',
-      '0deg'
-    )
+    if (
+      !window
+        .matchMedia(
+          '(pointer: fine)'
+        )
+        .matches
+    ) {
+      return
+    }
 
-    module.style.setProperty(
-      '--module-mx',
-      '50%'
-    )
+    if (
+      !panelRectRef.current
+    ) {
+      panelRectRef.current =
+        panel
+          .getBoundingClientRect()
+    }
 
-    module.style.setProperty(
-      '--module-my',
-      '50%'
-    )
+    panelPointerRef.current = {
+      x:
+        event.clientX,
 
-    module.style.setProperty(
-      '--module-shadow-x',
-      '0px'
-    )
+      y:
+        event.clientY,
+    }
 
-    module.style.setProperty(
-      '--module-shadow-y',
-      '12px'
-    )
+    if (
+      panelFrameRef.current !==
+      null
+    ) {
+      return
+    }
+
+    panelFrameRef.current =
+      requestAnimationFrame(
+        () => {
+          panelFrameRef.current =
+            null
+
+          const rect =
+            panelRectRef.current
+
+          if (!rect) {
+            return
+          }
+
+          const x =
+            Math.max(
+              0,
+              Math.min(
+                1,
+                (
+                  panelPointerRef
+                    .current
+                    .x -
+                  rect.left
+                ) /
+                  rect.width
+              )
+            )
+
+          const y =
+            Math.max(
+              0,
+              Math.min(
+                1,
+                (
+                  panelPointerRef
+                    .current
+                    .y -
+                  rect.top
+                ) /
+                  rect.height
+              )
+            )
+
+          const rotateY =
+            (
+              x -
+              0.5
+            ) *
+            7
+
+          const rotateX =
+            (
+              0.5 -
+              y
+            ) *
+            4.8
+
+          panel.style
+            .setProperty(
+              '--login-rx',
+              `${rotateX}deg`
+            )
+
+          panel.style
+            .setProperty(
+              '--login-ry',
+              `${rotateY}deg`
+            )
+        }
+      )
+  }
+
+  function handlePanelLeave(
+    event:
+      ReactPointerEvent<HTMLDivElement>
+  ) {
+    if (
+      panelFrameRef.current !==
+      null
+    ) {
+      cancelAnimationFrame(
+        panelFrameRef.current
+      )
+
+      panelFrameRef.current =
+        null
+    }
+
+    panelRectRef.current =
+      null
+
+    const panel =
+      event.currentTarget
+
+    panel
+      .classList
+      .remove(
+        'login-panel-tracking'
+      )
+
+    panel.style
+      .setProperty(
+        '--login-rx',
+        '0deg'
+      )
+
+    panel.style
+      .setProperty(
+        '--login-ry',
+        '0deg'
+      )
+  }
+
+  function pausePanelTilt(
+    event:
+      ReactPointerEvent<HTMLElement>
+  ) {
+    const panel =
+      event
+        .currentTarget
+        .closest(
+          '.login-panel'
+        ) as
+          | HTMLDivElement
+          | null
+
+    if (!panel) {
+      return
+    }
+
+    panel.dataset
+      .formHover =
+      'true'
+
+    if (
+      panelFrameRef.current !==
+      null
+    ) {
+      cancelAnimationFrame(
+        panelFrameRef.current
+      )
+
+      panelFrameRef.current =
+        null
+    }
+
+    panel
+      .classList
+      .remove(
+        'login-panel-tracking'
+      )
+
+    panel
+      .classList
+      .add(
+        'login-panel-form'
+      )
+
+    panel.style
+      .setProperty(
+        '--login-rx',
+        '0deg'
+      )
+
+    panel.style
+      .setProperty(
+        '--login-ry',
+        '0deg'
+      )
+  }
+
+  function resumePanelTilt(
+    event:
+      ReactPointerEvent<HTMLElement>
+  ) {
+    const panel =
+      event
+        .currentTarget
+        .closest(
+          '.login-panel'
+        ) as
+          | HTMLDivElement
+          | null
+
+    if (!panel) {
+      return
+    }
+
+    delete panel
+      .dataset
+      .formHover
+
+    panel
+      .classList
+      .remove(
+        'login-panel-form'
+      )
+
+    panel
+      .classList
+      .add(
+        'login-panel-tracking'
+      )
+
+    panelRectRef.current =
+      panel
+        .getBoundingClientRect()
   }
 
   /* =======================================================
      LOGIN
-  ======================================================= */
+  ======================================================== */
 
   async function handleLogin(
     event:
       FormEvent<HTMLFormElement>
   ) {
     event.preventDefault()
+
+    if (loading) {
+      return
+    }
 
     setError('')
 
@@ -735,7 +800,9 @@ export default function LoginPage() {
       return
     }
 
-    setLoading(true)
+    setLoading(
+      true
+    )
 
     try {
       const response =
@@ -752,6 +819,9 @@ export default function LoginPage() {
 
             credentials:
               'same-origin',
+
+            cache:
+              'no-store',
 
             body:
               JSON.stringify({
@@ -770,7 +840,9 @@ export default function LoginPage() {
             () => ({})
           )
 
-      if (!response.ok) {
+      if (
+        !response.ok
+      ) {
         setError(
           result.error ||
             'Invalid username or password.'
@@ -779,9 +851,24 @@ export default function LoginPage() {
         return
       }
 
-      router.replace('/')
-      router.refresh()
-    } catch (loginError) {
+      /*
+        IMPORTANT FIX:
+
+        Do a REAL browser navigation after login.
+
+        This guarantees the browser applies the fresh
+        Supabase auth cookies before the homepage loads.
+
+        It also means HomeAuthButton sees the authenticated
+        user immediately and changes Sign In -> Level Up.
+      */
+
+      window.location.replace(
+        '/'
+      )
+    } catch (
+      loginError
+    ) {
       console.error(
         'Login request failed:',
         loginError
@@ -791,59 +878,50 @@ export default function LoginPage() {
         'Could not reach ProVN authentication. Try again.'
       )
     } finally {
-      setLoading(false)
+      setLoading(
+        false
+      )
     }
   }
 
   return (
     <>
+      {/* ===================================================
+          LOGIN PAGE CSS
+      ==================================================== */}
+
       <style>
         {`
           @media (pointer: fine) {
             html,
             body,
             body * {
-              cursor:
-                ${PROVN_CURSOR}
-                !important;
+              cursor: ${PROVN_CURSOR} !important;
             }
 
             input[data-writing-field="true"],
             textarea[data-writing-field="true"],
             [contenteditable="true"] {
-              cursor:
-                text
-                !important;
+              cursor: text !important;
             }
 
             button,
             a,
             select,
             [role="button"] {
-              cursor:
-                ${PROVN_CURSOR}
-                !important;
+              cursor: ${PROVN_CURSOR} !important;
             }
           }
 
-          /* =============================================
-             ENTRY ANIMATION
-
-             VERY IMPORTANT:
-             this animation is on the OUTER wrapper,
-             NOT the tilting rectangle.
-          ============================================== */
-
-          @keyframes loginEntrance {
+          @keyframes provnLoginIn {
             from {
               opacity: 0;
-
               transform:
-                translateY(18px)
-                scale(.985);
+                translateY(12px)
+                scale(.988);
 
               filter:
-                blur(7px);
+                blur(5px);
             }
 
             to {
@@ -858,677 +936,205 @@ export default function LoginPage() {
             }
           }
 
-          .login-entry {
-            animation:
-              loginEntrance
-              .65s
-              cubic-bezier(.16,1,.3,1)
-              both;
-          }
-
-          /* =============================================
-             ORBIT ANIMATIONS
-          ============================================== */
-
-          @keyframes orbitOne {
-            from {
-              transform:
-                translate(-50%, -50%)
-                rotate(0deg);
+          @keyframes provnCoreScan {
+            0% {
+              top: 9%;
+              opacity: 0;
             }
 
-            to {
-              transform:
-                translate(-50%, -50%)
-                rotate(360deg);
-            }
-          }
-
-          @keyframes orbitTwo {
-            from {
-              transform:
-                translate(-50%, -50%)
-                rotate(360deg);
-            }
-
-            to {
-              transform:
-                translate(-50%, -50%)
-                rotate(0deg);
-            }
-          }
-
-          @keyframes pulseDot {
-            0%, 100% {
-              opacity: .55;
-
-              box-shadow:
-                0 0 8px
-                rgba(
-                  241,
-                  63,
-                  91,
-                  .45
-                );
+            15% {
+              opacity: .6;
             }
 
             50% {
-              opacity: 1;
+              opacity: .28;
+            }
 
-              box-shadow:
-                0 0 20px
-                rgba(
-                  241,
-                  63,
-                  91,
-                  1
-                );
+            85% {
+              opacity: .6;
+            }
+
+            100% {
+              top: 90%;
+              opacity: 0;
             }
           }
 
-          /* =============================================
-             WHOLE LOGIN RECTANGLE LIVE 3D
+          @keyframes provnCorePulse {
+            0%,
+            100% {
+              opacity: .42;
+              transform:
+                scale(.96);
+            }
 
-             THIS NOW OWNS TRANSFORM.
-             Nothing else overrides it.
-          ============================================== */
+            50% {
+              opacity: .8;
+              transform:
+                scale(1.04);
+            }
+          }
 
-          .login-shell {
-            --shell-rx:
-              0deg;
-
-            --shell-ry:
-              0deg;
-
-            --shell-mx:
-              50%;
-
-            --shell-my:
-              50%;
-
-            --shell-shadow-x:
-              0px;
-
-            --shell-shadow-y:
-              25px;
-
-            --shell-lift:
-              0px;
-
-            --shell-scale:
-              1;
+          .login-panel {
+            --login-rx: 0deg;
+            --login-ry: 0deg;
+            --login-lift: 0px;
+            --login-scale: 1;
 
             transform:
-              perspective(1350px)
+              perspective(1450px)
               translate3d(
                 0,
-                var(--shell-lift),
+                var(--login-lift),
                 0
               )
               scale(
-                var(--shell-scale)
+                var(--login-scale)
               )
               rotateX(
-                var(--shell-rx)
+                var(--login-rx)
               )
               rotateY(
-                var(--shell-ry)
+                var(--login-ry)
               );
 
             transform-style:
               preserve-3d;
 
-            transform-origin:
-              center center;
+            backface-visibility:
+              hidden;
 
             will-change:
               transform;
 
-            transition:
-              transform
-                85ms
-                linear,
-
-              border-color
-                260ms ease,
-
-              box-shadow
-                260ms ease;
-          }
-
-          .login-shell:hover {
-            --shell-lift:
-              -7px;
-
-            --shell-scale:
-              1.008;
-
-            border-color:
-              rgba(
-                255,
-                255,
-                255,
-                .14
-              );
-
-            box-shadow:
-              var(--shell-shadow-x)
-              var(--shell-shadow-y)
-              105px
-              rgba(
-                0,
-                0,
-                0,
-                .76
-              ),
-
-              0 35px 85px
-              rgba(
-                0,
-                0,
-                0,
-                .34
-              ),
-
-              0 0 0 1px
-              rgba(
-                231,
-                54,
-                78,
-                .045
-              ),
-
-              0 0 95px
-              rgba(
-                128,
-                13,
-                33,
-                .13
-              );
-          }
-
-          /* smooth return after pointer leaves */
-
-          .login-shell:not(:hover) {
-            transition:
-              transform
-                480ms
-                cubic-bezier(.16,1,.3,1),
-
-              border-color
-                280ms ease,
-
-              box-shadow
-                280ms ease;
-          }
-
-          /* =============================================
-             ENTIRE RECTANGLE POINTER REFLECTION
-          ============================================== */
-
-          .shell-reflection {
-            background:
-              radial-gradient(
-                430px circle
-                at
-                var(--shell-mx)
-                var(--shell-my),
-
-                rgba(
-                  255,
-                  255,
-                  255,
-                  .085
-                ),
-
-                rgba(
-                  239,
-                  61,
-                  86,
-                  .070
-                )
-                18%,
-
-                rgba(
-                  211,
-                  41,
-                  65,
-                  .022
-                )
-                39%,
-
-                transparent
-                66%
-              );
-
-            opacity:
-              0;
-
-            transition:
-              opacity
-                220ms ease;
-          }
-
-          .login-shell:hover
-          .shell-reflection {
-            opacity:
-              1;
-          }
-
-          /* metallic surface wash */
-
-          .shell-glass {
-            background:
-              linear-gradient(
-                115deg,
-
-                transparent
-                0%,
-
-                rgba(
-                  255,
-                  255,
-                  255,
-                  .012
-                )
-                32%,
-
-                rgba(
-                  255,
-                  255,
-                  255,
-                  .045
-                )
-                48%,
-
-                rgba(
-                  200,
-                  44,
-                  66,
-                  .026
-                )
-                57%,
-
-                transparent
-                79%
-              );
-
-            opacity:
-              .35;
-
-            transition:
-              opacity
-                260ms ease;
-          }
-
-          .login-shell:hover
-          .shell-glass {
-            opacity:
-              .7;
-          }
-
-          /* =============================================
-             LAYER DEPTH
-          ============================================== */
-
-          .shell-left-depth {
-            transform:
-              translateZ(26px);
-
-            transform-style:
-              preserve-3d;
-          }
-
-          .shell-right-depth {
-            transform:
-              translateZ(20px);
-
-            transform-style:
-              preserve-3d;
-          }
-
-          /* =============================================
-             INNER ACCESS CORE 3D
-          ============================================== */
-
-          .access-module {
-            --module-rx:
-              0deg;
-
-            --module-ry:
-              0deg;
-
-            --module-mx:
-              50%;
-
-            --module-my:
-              50%;
-
-            --module-shadow-x:
-              0px;
-
-            --module-shadow-y:
-              12px;
-
-            position:
-              relative;
-
-            transform:
-              perspective(800px)
-              rotateX(
-                var(--module-rx)
-              )
-              rotateY(
-                var(--module-ry)
-              );
-
-            transform-style:
-              preserve-3d;
-
-            transform-origin:
-              center center;
-
-            will-change:
-              transform;
-
-            transition:
-              transform
-                70ms
-                linear,
-
-              box-shadow
-                220ms ease,
-
-              border-color
-                220ms ease;
-
-            box-shadow:
-              var(--module-shadow-x)
-              var(--module-shadow-y)
-              38px
-              rgba(
-                0,
-                0,
-                0,
-                .44
-              ),
-
-              0 0 72px
-              rgba(
-                176,
-                24,
-                49,
-                .14
-              );
-          }
-
-          .access-module:not(:hover) {
             transition:
               transform
                 420ms
                 cubic-bezier(.16,1,.3,1),
-
-              box-shadow
-                220ms ease,
-
               border-color
-                220ms ease;
+                220ms
+                ease,
+              box-shadow
+                220ms
+                ease;
           }
 
-          .access-module:hover {
-            border-color:
-              rgba(
-                229,
-                61,
-                84,
-                .75
-              );
-
-            box-shadow:
-              var(--module-shadow-x)
-              var(--module-shadow-y)
-              52px
-              rgba(
-                0,
-                0,
-                0,
-                .54
-              ),
-
-              0 0 105px
-              rgba(
-                194,
-                31,
-                56,
-                .25
-              );
+          .login-panel.login-panel-tracking {
+            transition:
+              border-color
+                220ms
+                ease,
+              box-shadow
+                220ms
+                ease;
           }
 
-          .module-reflection {
-            background:
-              radial-gradient(
-                150px circle
-                at
-                var(--module-mx)
-                var(--module-my),
+          .login-panel.login-panel-form {
+            transition:
+              transform
+                150ms
+                cubic-bezier(.16,1,.3,1),
+              border-color
+                220ms
+                ease,
+              box-shadow
+                220ms
+                ease;
+          }
 
+          @media (hover: hover) and (pointer: fine) {
+            .login-panel:hover {
+              --login-lift: -6px;
+              --login-scale: 1.004;
+
+              border-color:
                 rgba(
-                  255,
-                  255,
-                  255,
-                  .20
+                  103,
+                  34,
+                  45,
+                  .72
+                );
+
+              box-shadow:
+                0
+                42px
+                110px
+                rgba(
+                  0,
+                  0,
+                  0,
+                  .62
                 ),
 
+                0
+                20px
+                44px
                 rgba(
-                  245,
-                  70,
-                  93,
-                  .12
-                )
-                25%,
-
-                transparent
-                67%
-              );
-
-            opacity:
-              0;
-
-            transition:
-              opacity
-                180ms ease;
+                  72,
+                  5,
+                  18,
+                  .15
+                );
+            }
           }
 
-          .access-module:hover
-          .module-reflection {
-            opacity:
-              1;
-          }
-
-          .module-logo-depth {
-            transform:
-              translateZ(56px)
-              scale(1);
-
-            transition:
-              transform
-                220ms
-                cubic-bezier(.16,1,.3,1),
-
-              filter
-                220ms ease;
-          }
-
-          .access-module:hover
-          .module-logo-depth {
-            transform:
-              translateZ(84px)
-              scale(1.08);
-
-            filter:
-              drop-shadow(
-                0 13px 18px
-                rgba(
-                  0,
-                  0,
-                  0,
-                  .44
-                )
-              )
-              drop-shadow(
-                0 0 17px
-                rgba(
-                  239,
-                  55,
-                  81,
-                  .34
-                )
-              );
-          }
-
-          .module-corner-depth {
-            transform:
-              translateZ(20px);
-          }
-
-          .module-text-depth {
-            transform:
-              translateZ(27px);
-          }
-
-          /* =============================================
-             FORM ELEMENTS
-          ============================================== */
-
-          .premium-field-shell {
-            transition:
-              transform
-                210ms
-                cubic-bezier(.16,1,.3,1),
-
-              box-shadow
-                210ms ease;
-          }
-
-          .premium-field-shell:hover {
-            transform:
-              translateY(-3px);
-
-            box-shadow:
-              0 15px 34px
-              rgba(
-                0,
-                0,
-                0,
-                .20
-              );
-          }
-
-          .premium-button {
-            transition:
-              transform
-                220ms
-                cubic-bezier(.16,1,.3,1),
-
-              border-color
-                220ms ease,
-
-              box-shadow
-                220ms ease,
-
-              background-color
-                220ms ease;
-          }
-
-          .premium-button:hover {
-            transform:
-              translateY(-3px)
-              scale(1.006);
-          }
-
-          .premium-button:active {
-            transform:
-              translateY(0)
-              scale(.997);
-          }
-
-          .status-row {
-            transition:
-              transform
-                180ms ease,
-
-              background-color
-                180ms ease;
-          }
-
-          .status-row:hover {
-            transform:
-              translateX(4px);
-          }
-
-          @media (
-            prefers-reduced-motion:
-            reduce
-          ) {
-            .login-entry,
-            .login-shell,
-            .access-module,
-            .premium-field-shell,
-            .premium-button {
-              animation:
-                none !important;
-
+          @media (prefers-reduced-motion: reduce) {
+            .login-panel {
               transform:
-                none !important;
+                none
+                !important;
 
               transition:
-                none !important;
+                none
+                !important;
             }
           }
         `}
       </style>
 
       <main className="relative min-h-screen overflow-hidden bg-[#020203] text-white">
-
-        {/* ===============================================
+        {/* =================================================
             BACKGROUND
-        ================================================ */}
+        ================================================= */}
 
         <div
           className="pointer-events-none absolute inset-0"
           style={{
             background:
-              'radial-gradient(circle at 68% 19%, rgba(120,10,31,.15), transparent 28%), radial-gradient(circle at 9% 76%, rgba(84,5,20,.125), transparent 29%), radial-gradient(circle at 50% 110%, rgba(93,8,26,.08), transparent 38%), linear-gradient(125deg,#020203 0%,#040304 57%,#060205 100%)',
+              'radial-gradient(circle at 7% 17%, rgba(125,9,27,.13), transparent 31%), radial-gradient(circle at 93% 20%, rgba(115,10,29,.09), transparent 28%), radial-gradient(circle at 50% 110%, rgba(88,5,20,.11), transparent 43%), #020203',
           }}
         />
 
         <div
-          className="pointer-events-none absolute inset-0 opacity-[0.055]"
+          className="pointer-events-none absolute inset-0 opacity-[0.08]"
           style={{
             backgroundImage:
-              'linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px)',
+              'linear-gradient(rgba(255,255,255,.022) 1px, transparent 1px), linear-gradient(90deg,rgba(255,255,255,.022) 1px,transparent 1px)',
+
             backgroundSize:
-              '88px 88px',
+              '76px 76px',
+
+            WebkitMaskImage:
+              'radial-gradient(circle at center,black,transparent 84%)',
+
+            maskImage:
+              'radial-gradient(circle at center,black,transparent 84%)',
           }}
         />
 
-        <div className="pointer-events-none absolute -left-[180px] top-[18%] h-[440px] w-[440px] rounded-full bg-[#5d0618]/10 blur-[120px]" />
+        <div className="pointer-events-none absolute left-1/2 top-[44%] h-[520px] w-[900px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#620819]/[0.065] blur-[155px]" />
 
-        <div className="pointer-events-none absolute -right-[180px] top-[8%] h-[500px] w-[500px] rounded-full bg-[#6f071c]/10 blur-[135px]" />
-
-        {/* ===============================================
+        {/* =================================================
             HEADER
-        ================================================ */}
+        ================================================= */}
 
-        <header className="relative z-40">
-
-          <div className="mx-auto flex h-[72px] max-w-[1400px] items-center justify-between px-6 sm:px-8 lg:px-10">
-
+        <header className="absolute left-0 top-0 z-40 w-full">
+          <div className="mx-auto flex h-[78px] max-w-[1500px] items-center justify-between px-5 sm:px-7 lg:px-10">
             <ProVNLogo />
 
             <Link
               href="/"
-              className="group flex items-center gap-2 text-[9px] font-medium text-zinc-600 transition-all duration-200 hover:-translate-y-[1px] hover:text-zinc-300"
+              className="group flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.16em] text-zinc-700 transition-colors duration-200 hover:text-zinc-300"
             >
               <span className="transition-transform duration-200 group-hover:-translate-x-1">
                 ←
@@ -1539,299 +1145,253 @@ export default function LoginPage() {
           </div>
         </header>
 
-        {/* ===============================================
-            TRUE CENTERING AREA
-        ================================================ */}
+        {/* =================================================
+            PAGE
+        ================================================= */}
 
-        <div className="relative z-10 flex min-h-[calc(100vh-72px)] w-full items-center justify-center px-5 pb-[72px] sm:px-7 lg:px-9">
-
-          {/* =============================================
-              OUTER ENTRY WRAPPER
-
-              This handles entrance animation ONLY.
-              It never touches live tilt transform.
-          ============================================== */}
-
-          <div className="login-entry w-full max-w-[930px]">
-
-            {/* ===========================================
-                ACTUAL 3D LOGIN RECTANGLE
-            ============================================ */}
-
+        <div className="relative z-10 mx-auto flex min-h-screen max-w-[1500px] items-center justify-center px-5 pb-10 pt-[92px] sm:px-7 lg:px-10">
+          <div className="w-full max-w-[1015px] [perspective:1450px]">
             <div
+              ref={panelRef}
+              onPointerEnter={
+                handlePanelEnter
+              }
               onPointerMove={
-                handleShellMove
+                handlePanelMove
               }
               onPointerLeave={
-                resetShell
+                handlePanelLeave
               }
-              className="login-shell relative w-full overflow-hidden rounded-[28px] border border-white/[0.085] bg-[#070708]/[0.98] shadow-[0_46px_110px_rgba(0,0,0,.70)]"
+              className="login-panel relative animate-[provnLoginIn_.6s_cubic-bezier(.16,1,.3,1)_both] overflow-hidden rounded-[30px] border border-white/[0.07] bg-[#060607]/98 shadow-[0_44px_115px_rgba(0,0,0,.60)]"
             >
+              {/* TOP METALLIC EDGE */}
 
-              {/* moving cursor reflection */}
+              <div className="pointer-events-none absolute left-[7%] right-[7%] top-0 z-30 h-px bg-gradient-to-r from-transparent via-[#9a2d3d]/38 to-transparent" />
 
-              <div className="shell-reflection pointer-events-none absolute inset-0 z-[20]" />
-
-              {/* surface metallic wash */}
-
-              <div className="shell-glass pointer-events-none absolute inset-0 z-[19]" />
-
-              {/* premium top highlight */}
-
-              <div className="pointer-events-none absolute left-[3%] right-[3%] top-0 z-[24] h-px bg-gradient-to-r from-transparent via-white/[0.18] to-transparent opacity-60" />
-
-              {/* micro inner border */}
-
-              <div className="pointer-events-none absolute inset-[1px] z-[23] rounded-[27px] border border-white/[0.016]" />
-
-              <div className="relative z-[4] grid lg:grid-cols-[385px_minmax(0,1fr)]">
-
+              <div className="relative z-10 grid lg:grid-cols-[.93fr_1.07fr]">
                 {/* =========================================
                     LEFT ACCESS NODE
                 ========================================== */}
 
-                <aside className="relative hidden min-h-[570px] overflow-hidden border-r border-white/[0.055] p-8 lg:flex lg:flex-col">
+                <section className="relative hidden min-h-[720px] overflow-hidden border-r border-white/[0.05] px-9 py-8 lg:flex lg:flex-col">
+                  {/* BACKGROUND */}
 
                   <div
                     className="pointer-events-none absolute inset-0"
                     style={{
                       background:
-                        'radial-gradient(circle at 48% 43%, rgba(150,19,42,.16), transparent 37%), linear-gradient(145deg,#0d080a 0%,#080708 55%,#050506 100%)',
+                        'radial-gradient(circle at 49% 44%,rgba(122,15,34,.14),transparent 35%),linear-gradient(150deg,#090608,#050506 55%,#030304)',
                     }}
                   />
 
-                  <div className="shell-left-depth relative z-10 flex h-full flex-col">
+                  {/* TOP */}
 
-                    {/* TOP */}
+                  <div className="relative z-10 flex items-start justify-between">
+                    <div>
+                      <p className="text-[8px] font-semibold uppercase tracking-[0.36em] text-[#a13848]">
+                        ACCESS NODE
+                      </p>
 
-                    <div className="flex items-center justify-between">
-
-                      <div>
-
-                        <p className="text-[8px] uppercase tracking-[0.35em] text-[#b83b4e]">
-                          ACCESS NODE
-                        </p>
-
-                        <p className="mt-2 text-[6px] uppercase tracking-[0.21em] text-zinc-700">
-                          PROVN / AUTH 002
-                        </p>
-                      </div>
-
-                      <div className="flex items-center gap-2 rounded-full border border-[#82303d]/60 bg-[#16090c] px-3 py-[7px] shadow-[0_0_20px_rgba(132,24,43,.08)]">
-
-                        <span className="h-[5px] w-[5px] animate-pulse rounded-full bg-[#f1425b] shadow-[0_0_10px_rgba(241,66,91,.9)]" />
-
-                        <span className="text-[6px] uppercase tracking-[0.19em] text-[#b64c5b]">
-                          ONLINE
-                        </span>
-                      </div>
+                      <p className="mt-[7px] text-[7px] uppercase tracking-[0.22em] text-zinc-800">
+                        PROVN / AUTH 002
+                      </p>
                     </div>
 
-                    {/* =====================================
-                        ACCESS CORE
-                    ====================================== */}
+                    <div className="flex items-center gap-2 rounded-full border border-[#68222e]/65 bg-[#100709] px-3 py-[7px]">
+                      <span className="h-[5px] w-[5px] animate-pulse rounded-full bg-[#cb2f46] shadow-[0_0_8px_rgba(203,47,70,.75)]" />
 
-                    <div className="my-auto flex items-center justify-center py-6">
-
-                      <div className="relative h-[260px] w-full max-w-[285px]">
-
-                        <div className="pointer-events-none absolute left-1/2 top-1/2 h-[230px] w-[230px] animate-[orbitOne_24s_linear_infinite] rounded-full border border-[#8d2030]/28" />
-
-                        <div className="pointer-events-none absolute left-1/2 top-1/2 h-[185px] w-[185px] animate-[orbitTwo_17s_linear_infinite] rounded-full border border-[#a9283b]/28" />
-
-                        <div className="pointer-events-none absolute left-1/2 top-1/2 h-px w-[90%] -translate-x-1/2 bg-gradient-to-r from-transparent via-[#992439]/38 to-transparent" />
-
-                        <div className="pointer-events-none absolute left-1/2 top-1/2 h-[88%] w-px -translate-x-1/2 -translate-y-1/2 bg-gradient-to-b from-transparent via-[#992439]/34 to-transparent" />
-
-                        <span className="pointer-events-none absolute left-[77%] top-[15%] h-[7px] w-[7px] animate-[pulseDot_2.3s_ease-in-out_infinite] rounded-full bg-[#f33c59]" />
-
-                        <span className="pointer-events-none absolute bottom-[14%] left-[27%] h-[5px] w-[5px] rounded-full bg-[#cf3047] shadow-[0_0_12px_rgba(207,48,71,.8)]" />
-
-                        {/* CORE OBJECT */}
-
-                        <div
-                          onPointerMove={
-                            handleModuleMove
-                          }
-                          onPointerLeave={
-                            resetModule
-                          }
-                          className="access-module absolute left-1/2 top-1/2 z-20 h-[126px] w-[126px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[28px] border border-[#ab2b40]/60 bg-[linear-gradient(145deg,#12090b_0%,#080506_48%,#050405_100%)]"
-                        >
-
-                          <div className="pointer-events-none absolute inset-[1px] rounded-[27px] border border-white/[0.035]" />
-
-                          <div className="module-reflection pointer-events-none absolute inset-0 z-30" />
-
-                          <div className="pointer-events-none absolute -right-[35px] -top-[30px] h-[100px] w-[100px] rounded-full bg-[#c62841]/15 blur-[36px]" />
-
-                          <div className="pointer-events-none absolute left-[15%] right-[15%] top-0 h-px bg-gradient-to-r from-transparent via-[#ff7585]/55 to-transparent" />
-
-                          <div className="module-corner-depth absolute left-4 top-4 h-[10px] w-[10px] border-l border-t border-[#a83245]/55" />
-
-                          <div className="module-corner-depth absolute right-4 top-4 h-[10px] w-[10px] border-r border-t border-[#a83245]/55" />
-
-                          <div className="module-corner-depth absolute bottom-4 left-4 h-[10px] w-[10px] border-b border-l border-[#a83245]/55" />
-
-                          <div className="module-corner-depth absolute bottom-4 right-4 h-[10px] w-[10px] border-b border-r border-[#a83245]/55" />
-
-                          <div className="module-logo-depth relative z-20 flex h-full items-center justify-center">
-
-                            <ProVNMark
-                              id="interactive-core-logo"
-                              className="h-[59px] w-[59px] drop-shadow-[0_0_18px_rgba(239,53,78,.30)]"
-                            />
-                          </div>
-
-                          <div className="module-text-depth pointer-events-none absolute bottom-[10px] left-0 right-0 text-center">
-
-                            <span className="text-[5px] uppercase tracking-[0.24em] text-[#71303b]">
-                              PVN / CORE
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* CORE LABEL */}
-
-                        <div className="pointer-events-none absolute bottom-[-2px] left-1/2 -translate-x-1/2 whitespace-nowrap text-center">
-
-                          <p className="text-[6px] uppercase tracking-[0.31em] text-[#a03b4b]">
-                            ACCESS CORE
-                          </p>
-
-                          <p className="mt-2 text-[6px] uppercase tracking-[0.18em] text-zinc-700">
-                            LIVE IDENTITY GATEWAY
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* =====================================
-                        STATUS
-                    ====================================== */}
-
-                    <div className="rounded-[17px] border border-white/[0.065] bg-[#080708]/65 px-4 shadow-[0_14px_35px_rgba(0,0,0,.18)] backdrop-blur-xl">
-
-                      <StatusRow
-                        number="01"
-                        label="Gateway"
-                        value="Ready"
-                      />
-
-                      <StatusRow
-                        number="02"
-                        label="Identity"
-                        value="Active"
-                      />
-
-                      <StatusRow
-                        number="03"
-                        label="Session"
-                        value="Protected"
-                      />
-                    </div>
-
-                    <div className="mt-5 flex items-center justify-between text-[6px] uppercase tracking-[0.18em] text-zinc-700">
-
-                      <span>
-                        NODE / 002
-                      </span>
-
-                      <span>
-                        SECURE ACCESS
+                      <span className="text-[7px] uppercase tracking-[0.16em] text-[#81404a]">
+                        ONLINE
                       </span>
                     </div>
                   </div>
-                </aside>
+
+                  {/* ACCESS CORE */}
+
+                  <div className="relative z-10 flex flex-1 items-center justify-center">
+                    <div className="relative flex h-[310px] w-[310px] items-center justify-center">
+                      {/* ORBITS */}
+
+                      <div className="absolute h-[245px] w-[245px] animate-spin rounded-full border border-[#7f1c2d]/25 [animation-duration:24s]">
+                        <span className="absolute right-[30px] top-[20px] h-[7px] w-[7px] rounded-full bg-[#d63c50] shadow-[0_0_13px_rgba(214,60,80,.85)]" />
+                      </div>
+
+                      <div className="absolute h-[190px] w-[190px] animate-spin rounded-full border border-[#8d2433]/30 [animation-direction:reverse] [animation-duration:17s]">
+                        <span className="absolute bottom-[10px] left-[24px] h-[5px] w-[5px] rounded-full bg-[#d42f46] shadow-[0_0_11px_rgba(212,47,70,.75)]" />
+                      </div>
+
+                      <div className="absolute h-[138px] w-[138px] rounded-full border border-[#8b2432]/22" />
+
+                      <div className="absolute left-[20px] right-[20px] top-1/2 h-px bg-gradient-to-r from-transparent via-[#79202e]/30 to-transparent" />
+
+                      <div className="absolute bottom-[18px] left-1/2 top-[18px] w-px -translate-x-1/2 bg-gradient-to-b from-transparent via-[#79202e]/22 to-transparent" />
+
+                      {/* CORE SQUARE */}
+
+                      <div className="relative z-10 flex h-[128px] w-[128px] items-center justify-center rounded-[26px] border border-[#792a36]/75 bg-[#090709]/95 shadow-[0_20px_55px_rgba(0,0,0,.40),0_0_52px_rgba(119,13,31,.10),inset_0_1px_0_rgba(255,255,255,.025)]">
+                        {/* CORNERS */}
+
+                        <span className="absolute left-[16px] top-[16px] h-[11px] w-[11px] border-l border-t border-[#8d3440]/70" />
+
+                        <span className="absolute right-[16px] top-[16px] h-[11px] w-[11px] border-r border-t border-[#8d3440]/70" />
+
+                        <span className="absolute bottom-[16px] left-[16px] h-[11px] w-[11px] border-b border-l border-[#8d3440]/70" />
+
+                        <span className="absolute bottom-[16px] right-[16px] h-[11px] w-[11px] border-b border-r border-[#8d3440]/70" />
+
+                        {/* SCAN LINE */}
+
+                        <span className="pointer-events-none absolute left-[15%] right-[15%] h-px animate-[provnCoreScan_3.1s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-[#db3f53]/45 to-transparent" />
+
+                        {/* GLOW */}
+
+                        <span className="pointer-events-none absolute h-[76px] w-[76px] animate-[provnCorePulse_2.7s_ease-in-out_infinite] rounded-full bg-[#a81830]/12 blur-[18px]" />
+
+                        <div className="relative z-10 scale-[1.22]">
+                          <ProVNMark
+                            id="login-core"
+                          />
+                        </div>
+
+                        <span className="absolute bottom-[9px] text-[6px] uppercase tracking-[0.24em] text-[#612934]">
+                          PVN / CORE
+                        </span>
+                      </div>
+
+                      <div className="absolute bottom-[7px] left-1/2 -translate-x-1/2 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <span className="h-px w-6 bg-[#69222f]/60" />
+
+                          <p className="text-[7px] uppercase tracking-[0.25em] text-[#7b303c]">
+                            ACCESS CORE
+                          </p>
+
+                          <span className="h-px w-6 bg-[#69222f]/60" />
+                        </div>
+
+                        <p className="mt-[8px] whitespace-nowrap text-[6px] uppercase tracking-[0.20em] text-zinc-800">
+                          LIVE IDENTITY GATEWAY
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* STATUS BLOCK */}
+
+                  <div className="relative z-10 overflow-hidden rounded-[16px] border border-white/[0.055] bg-black/25">
+                    <AccessStatusRow
+                      number="01"
+                      label="Gateway"
+                      status="Ready"
+                    />
+
+                    <AccessStatusRow
+                      number="02"
+                      label="Identity"
+                      status="Active"
+                    />
+
+                    <AccessStatusRow
+                      number="03"
+                      label="Session"
+                      status="Protected"
+                    />
+                  </div>
+
+                  {/* BOTTOM */}
+
+                  <div className="relative z-10 mt-5 flex items-center justify-between text-[6px] uppercase tracking-[0.20em] text-zinc-800">
+                    <span>
+                      NODE / 002
+                    </span>
+
+                    <span>
+                      SECURE ACCESS
+                    </span>
+                  </div>
+                </section>
 
                 {/* =========================================
-                    RIGHT LOGIN SIDE
+                    RIGHT LOGIN
                 ========================================== */}
 
-                <section className="relative flex min-h-[570px] items-center px-7 py-9 sm:px-10 lg:px-10">
+                <section
+                  onPointerEnter={
+                    pausePanelTilt
+                  }
+                  onPointerLeave={
+                    resumePanelTilt
+                  }
+                  className="relative flex min-h-[720px] items-center px-6 py-8 sm:px-10 lg:px-10"
+                >
+                  <div className="pointer-events-none absolute right-[-150px] top-[-160px] h-[350px] w-[350px] rounded-full bg-[#971329]/[0.055] blur-[110px]" />
 
-                  <div className="pointer-events-none absolute right-[-140px] top-[-130px] h-[310px] w-[310px] rounded-full bg-[#ba1735]/[0.055] blur-[100px]" />
+                  <div className="relative z-10 mx-auto w-full max-w-[445px]">
+                    {/* TOP STATUS */}
 
-                  <div className="shell-right-depth relative z-10 mx-auto w-full max-w-[410px]">
-
-                    {/* TOP */}
-
-                    <div className="flex items-center justify-between">
-
+                    <div className="flex items-start justify-between gap-4">
                       <div>
-
-                        <p className="text-[8px] font-medium uppercase tracking-[0.34em] text-[#bd4052]">
+                        <p className="text-[8px] font-semibold uppercase tracking-[0.34em] text-[#9f3847]">
                           SIGN IN
                         </p>
 
-                        <div className="mt-[7px] flex items-center gap-2">
+                        <div className="mt-[8px] flex items-center gap-2">
+                          <span className="h-[5px] w-[5px] animate-pulse rounded-full bg-[#d52e45] shadow-[0_0_9px_rgba(213,46,69,.7)]" />
 
-                          <span className="h-[5px] w-[5px] animate-pulse rounded-full bg-[#ef4059] shadow-[0_0_10px_rgba(239,64,89,.85)]" />
-
-                          <span className="text-[6px] uppercase tracking-[0.21em] text-zinc-700">
-                            Secure Authentication Online
+                          <span className="text-[7px] uppercase tracking-[0.20em] text-zinc-800">
+                            SECURE AUTHENTICATION ONLINE
                           </span>
                         </div>
                       </div>
 
-                      <span className="hidden rounded-full border border-[#84313e]/65 bg-[#17090c] px-3 py-[8px] text-[6px] font-medium uppercase tracking-[0.19em] text-[#bd4e5e] shadow-[0_0_20px_rgba(151,26,47,.08)] sm:inline-flex">
+                      <span className="rounded-full border border-[#63232d]/65 bg-[#100708] px-3 py-[8px] text-[7px] uppercase tracking-[0.16em] text-[#7c3540]">
                         PROTECTED
                       </span>
                     </div>
 
                     {/* TITLE */}
 
-                    <div className="mt-7">
+                    <p className="mt-7 text-[12px] text-zinc-600">
+                      Welcome back.
+                    </p>
 
-                      <p className="text-[11px] font-medium text-zinc-500">
-                        Welcome back.
-                      </p>
+                    <h1 className="mt-2 text-[45px] font-black leading-[0.94] tracking-[-0.055em] text-[#f7f3f3]">
+                      Enter{' '}
 
-                      <h1 className="mt-2 text-[40px] font-black leading-[.92] tracking-[-0.058em] sm:text-[45px]">
+                      <span className="text-[#d72e43]">
+                        ProVN.
+                      </span>
+                    </h1>
 
-                        Enter{' '}
+                    <p className="mt-5 text-[11px] leading-5 text-zinc-600">
+                      Continue to your gaming identity,
+                      reputation and opportunities.
+                    </p>
 
-                        <span className="bg-gradient-to-r from-[#ef334f] via-[#e62643] to-[#b71531] bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(225,42,67,.12)]">
-                          ProVN.
-                        </span>
-                      </h1>
-
-                      <p className="mt-5 max-w-[340px] text-[10px] leading-[1.9] text-zinc-500">
-                        Continue to your gaming
-                        identity, reputation and
-                        opportunities.
-                      </p>
-                    </div>
-
-                    {/* VERIFIED */}
+                    {/* VERIFIED NOTICE */}
 
                     {verifiedNotice && (
-                      <div className="mt-5 flex items-center justify-between rounded-[12px] border border-emerald-900/40 bg-emerald-950/[0.08] px-4 py-3">
+                      <div className="mt-7 flex min-h-[52px] items-center rounded-[13px] border border-emerald-900/45 bg-emerald-950/[0.08] px-4">
+                        <span className="mr-3 h-[6px] w-[6px] rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,.75)]" />
 
-                        <div className="flex items-center gap-3">
+                        <div>
+                          <p className="text-[8px] font-semibold uppercase tracking-[0.14em] text-emerald-500">
+                            IDENTITY CREATED
+                          </p>
 
-                          <span className="h-[6px] w-[6px] rounded-full bg-emerald-500/80 shadow-[0_0_9px_rgba(34,197,94,.45)]" />
-
-                          <div>
-
-                            <p className="text-[7px] font-semibold uppercase tracking-[0.15em] text-emerald-500/80">
-                              Identity Created
-                            </p>
-
-                            <p className="mt-1 text-[8px] text-zinc-500">
-                              Your account is ready.
-                            </p>
-                          </div>
+                          <p className="mt-[5px] text-[7px] text-zinc-700">
+                            Your account is ready.
+                          </p>
                         </div>
 
-                        <span className="text-[6px] uppercase tracking-[0.15em] text-zinc-700">
+                        <span className="ml-auto text-[7px] uppercase tracking-[0.14em] text-zinc-800">
                           VERIFIED
                         </span>
                       </div>
                     )}
 
                     {/* =====================================
-                        FORM
+                        LOGIN FORM
                     ====================================== */}
 
                     <form
@@ -1841,30 +1401,27 @@ export default function LoginPage() {
                       noValidate
                       className="mt-7"
                     >
-
                       {/* USERNAME */}
 
                       <div>
-
                         <div className="mb-2 flex items-center justify-between">
-
-                          <label className="text-[7px] font-semibold uppercase tracking-[0.24em] text-zinc-400">
+                          <label className="text-[8px] font-semibold uppercase tracking-[0.21em] text-zinc-500">
                             Username
                           </label>
 
-                          <span className="text-[6px] uppercase tracking-[0.18em] text-zinc-700">
+                          <span className="text-[6px] uppercase tracking-[0.18em] text-zinc-800">
                             ID / 01
                           </span>
                         </div>
 
-                        <div className="premium-field-shell relative rounded-[13px]">
-
-                          <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[13px] text-zinc-500">
+                        <div className="relative">
+                          <span className="pointer-events-none absolute left-4 top-1/2 z-10 -translate-y-1/2 text-[14px] text-zinc-600">
                             @
                           </span>
 
                           <input
                             data-writing-field="true"
+                            type="text"
                             value={
                               username
                             }
@@ -1885,7 +1442,9 @@ export default function LoginPage() {
                                     )
                                 )
 
-                                setError('')
+                                setError(
+                                  ''
+                                )
                               }
                             }
                             placeholder="yourname"
@@ -1894,7 +1453,7 @@ export default function LoginPage() {
                             autoCorrect="off"
                             spellCheck={false}
                             maxLength={20}
-                            className="h-[53px] w-full rounded-[13px] border border-white/[0.09] bg-[#09090b]/95 py-0 pl-8 pr-4 text-[13px] text-zinc-100 outline-none transition-all duration-200 placeholder:text-zinc-600 hover:border-white/[0.14] focus:border-[#c2374b] focus:bg-[#0e090b] focus:shadow-[0_0_0_3px_rgba(190,43,65,.07),0_0_32px_rgba(132,15,35,.13)]"
+                            className="h-[55px] w-full rounded-[13px] border border-white/[0.075] bg-[#070708] py-0 pl-8 pr-4 text-[13px] text-zinc-200 outline-none transition-[border-color,background-color,box-shadow] duration-200 placeholder:text-zinc-800 hover:border-white/[0.13] focus:border-[#9b2a3a] focus:bg-[#0a0809] focus:shadow-[0_0_0_3px_rgba(173,37,55,.06),0_0_25px_rgba(117,13,29,.10)]"
                           />
                         </div>
                       </div>
@@ -1902,20 +1461,17 @@ export default function LoginPage() {
                       {/* PASSWORD */}
 
                       <div className="mt-5">
-
                         <div className="mb-2 flex items-center justify-between">
-
-                          <label className="text-[7px] font-semibold uppercase tracking-[0.24em] text-zinc-400">
+                          <label className="text-[8px] font-semibold uppercase tracking-[0.21em] text-zinc-500">
                             Password
                           </label>
 
-                          <span className="text-[6px] uppercase tracking-[0.18em] text-zinc-700">
+                          <span className="text-[6px] uppercase tracking-[0.18em] text-zinc-800">
                             KEY / 02
                           </span>
                         </div>
 
-                        <div className="premium-field-shell relative rounded-[13px]">
-
+                        <div className="relative">
                           <input
                             data-writing-field="true"
                             type={
@@ -1934,30 +1490,54 @@ export default function LoginPage() {
                                     .value
                                 )
 
-                                setError('')
+                                setError(
+                                  ''
+                                )
                               }
                             }
                             placeholder="Enter your password"
                             autoComplete="current-password"
-                            className="h-[53px] w-full rounded-[13px] border border-white/[0.09] bg-[#09090b]/95 px-4 pr-12 text-[13px] text-zinc-100 outline-none transition-all duration-200 placeholder:text-zinc-600 hover:border-white/[0.14] focus:border-[#c2374b] focus:bg-[#0e090b] focus:shadow-[0_0_0_3px_rgba(190,43,65,.07),0_0_32px_rgba(132,15,35,.13)]"
+                            className="h-[55px] w-full rounded-[13px] border border-white/[0.075] bg-[#070708] px-4 pr-[54px] text-[13px] text-zinc-200 outline-none transition-[border-color,background-color,box-shadow] duration-200 placeholder:text-zinc-800 hover:border-white/[0.13] focus:border-[#a62c3b] focus:bg-[#0a0809] focus:shadow-[0_0_0_3px_rgba(173,37,55,.06),0_0_25px_rgba(117,13,29,.10)]"
                           />
+
+                          {/* =================================
+                              FIXED EYE BUTTON
+                          ================================= */}
 
                           <button
                             type="button"
-                            onClick={() =>
-                              setShowPassword(
-                                value =>
-                                  !value
-                              )
-                            }
                             aria-label={
                               showPassword
                                 ? 'Hide password'
                                 : 'Show password'
                             }
-                            className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 transition-all duration-200 hover:scale-110 hover:text-zinc-200"
-                          >
+                            aria-pressed={
+                              showPassword
+                            }
+                            onMouseDown={
+                              event => {
+                                /*
+                                  Keep password input from losing
+                                  focus when the eye is pressed.
+                                */
 
+                                event.preventDefault()
+                              }
+                            }
+                            onClick={
+                              event => {
+                                event.preventDefault()
+
+                                event.stopPropagation()
+
+                                setShowPassword(
+                                  current =>
+                                    !current
+                                )
+                              }
+                            }
+                            className="pointer-events-auto absolute right-[10px] top-1/2 z-30 flex h-[36px] w-[36px] -translate-y-1/2 items-center justify-center rounded-[9px] text-zinc-700 transition-[background-color,color,transform] duration-150 hover:bg-white/[0.035] hover:text-zinc-300 active:scale-[0.92]"
+                          >
                             <EyeIcon
                               open={
                                 showPassword
@@ -1970,36 +1550,32 @@ export default function LoginPage() {
                       {/* ERROR */}
 
                       {error && (
-                        <div className="mt-4 rounded-[11px] border border-red-900/55 bg-red-950/20 px-4 py-3 text-[9px] leading-5 text-red-300">
+                        <div className="mt-5 rounded-[12px] border border-red-900/60 bg-red-950/20 px-4 py-3 text-[10px] leading-5 text-red-300">
                           {error}
                         </div>
                       )}
 
-                      {/* LOGIN BUTTON */}
+                      {/* ENTER PROVN */}
 
                       <button
                         type="submit"
                         disabled={
                           !canSubmit
                         }
-                        className="premium-button group relative mt-5 flex h-[53px] w-full items-center justify-center overflow-hidden rounded-[13px] border border-[#cf374e] bg-[linear-gradient(100deg,#851122_0%,#b91e35_48%,#e23149_100%)] text-[8px] font-bold uppercase tracking-[0.2em] text-white shadow-[0_18px_42px_rgba(128,12,32,.26)] hover:border-[#ff6677] hover:shadow-[0_24px_60px_rgba(166,19,44,.37)] disabled:translate-y-0 disabled:scale-100 disabled:border-white/[0.07] disabled:bg-none disabled:bg-[#101012] disabled:text-zinc-600 disabled:shadow-none"
+                        className="group relative mt-6 flex h-[56px] w-full items-center justify-center overflow-hidden rounded-[13px] border border-[#b92b40] bg-gradient-to-r from-[#861123] via-[#a9182d] to-[#c42239] text-[9px] font-bold uppercase tracking-[0.19em] text-white shadow-[0_16px_38px_rgba(120,12,31,.22)] transition-[transform,border-color,box-shadow,filter] duration-200 hover:-translate-y-[2px] hover:border-[#e1485b] hover:brightness-[1.08] hover:shadow-[0_22px_52px_rgba(151,17,40,.31)] active:translate-y-0 active:scale-[0.993] disabled:translate-y-0 disabled:border-white/[0.055] disabled:bg-none disabled:bg-[#0b0b0d] disabled:text-zinc-700 disabled:shadow-none disabled:brightness-100"
                       >
+                        <span className="pointer-events-none absolute inset-y-0 left-[-40%] w-[35%] -skew-x-[22deg] bg-white/[0.10] opacity-0 blur-[4px] transition-all duration-700 group-hover:left-[120%] group-hover:opacity-100" />
 
-                        <span className="pointer-events-none absolute inset-y-0 left-[-40%] w-[32%] -skew-x-[22deg] bg-white/[0.14] opacity-0 blur-[5px] transition-all duration-700 group-hover:left-[125%] group-hover:opacity-100" />
-
-                        <span className="relative z-10 flex items-center gap-3">
-
+                        <span className="relative z-10 flex items-center gap-5">
                           {loading
                             ? 'AUTHENTICATING...'
-                            : (
-                              <>
-                                ENTER PROVN
+                            : 'ENTER PROVN'}
 
-                                <span className="text-[13px] transition-transform duration-200 group-hover:translate-x-1.5">
-                                  →
-                                </span>
-                              </>
-                            )}
+                          {!loading && (
+                            <span className="text-[14px] font-normal transition-transform duration-200 group-hover:translate-x-1">
+                              →
+                            </span>
+                          )}
                         </span>
                       </button>
                     </form>
@@ -2008,22 +1584,22 @@ export default function LoginPage() {
                         CREATE IDENTITY
                     ====================================== */}
 
-                    <div className="mt-6 flex items-center justify-between gap-5 border-t border-white/[0.065] pt-5">
+                    <div className="my-6 h-px bg-white/[0.05]" />
 
+                    <div className="flex items-center justify-between gap-5">
                       <div>
-
-                        <p className="text-[6px] uppercase tracking-[0.23em] text-zinc-600">
-                          New to ProVN?
+                        <p className="text-[7px] uppercase tracking-[0.18em] text-zinc-800">
+                          NEW TO PROVN?
                         </p>
 
-                        <p className="mt-2 text-[9px] text-zinc-500">
+                        <p className="mt-2 text-[8px] text-zinc-600">
                           Claim your identity.
                         </p>
                       </div>
 
                       <Link
                         href="/signup"
-                        className="premium-button group inline-flex h-[42px] items-center justify-center gap-3 rounded-[11px] border border-white/[0.10] bg-white/[0.02] px-4 text-[7px] font-semibold uppercase tracking-[0.12em] text-zinc-300 hover:border-[#9a3847] hover:bg-[#17090c] hover:text-white hover:shadow-[0_12px_30px_rgba(0,0,0,.2)]"
+                        className="group inline-flex h-[45px] min-w-[132px] items-center justify-center gap-4 rounded-[12px] border border-white/[0.07] bg-white/[0.012] px-4 text-[8px] font-semibold uppercase tracking-[0.08em] text-zinc-400 transition-[transform,border-color,background-color,color] duration-200 hover:-translate-y-[1px] hover:border-[#6f2933] hover:bg-[#13090b] hover:text-white"
                       >
                         Create Identity
 
@@ -2033,10 +1609,9 @@ export default function LoginPage() {
                       </Link>
                     </div>
 
-                    {/* FOOTER */}
+                    {/* BOTTOM META */}
 
-                    <div className="mt-5 flex items-center justify-between border-t border-white/[0.04] pt-3 text-[5px] uppercase tracking-[0.19em] text-zinc-700">
-
+                    <div className="mt-6 flex items-center justify-between border-t border-white/[0.035] pt-4 text-[6px] uppercase tracking-[0.18em] text-zinc-800">
                       <span>
                         PROVN ACCESS SYSTEM
                       </span>
