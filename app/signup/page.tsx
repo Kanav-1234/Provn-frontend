@@ -2,77 +2,56 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+
 import {
+  ClipboardEvent,
   FormEvent,
-  ReactNode,
+  KeyboardEvent,
+  PointerEvent as ReactPointerEvent,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from 'react'
 
-import type { PointerEvent as ReactPointerEvent } from 'react'
+import {
+  createClient,
+} from '@/lib/supabase/client'
 
-import { createClient } from '@/lib/supabase/client'
+/* =========================================================
+   TYPES
+========================================================= */
 
 type UsernameState =
   | 'idle'
-  | 'invalid'
   | 'checking'
   | 'available'
   | 'taken'
+  | 'invalid'
   | 'error'
 
-type PasswordRules = {
-  length: boolean
-  uppercase: boolean
-  lowercase: boolean
-  number: boolean
-  special: boolean
-}
+type SignupStep =
+  | 'form'
+  | 'otp'
+
+const PENDING_SIGNUP_EMAIL_KEY =
+  'provn.pending-signup-email'
 
 /* =========================================================
-   NATIVE PROVN CURSOR
-
-   CLEAN VERSION:
-   - no heavy black blob
-   - thin graphite edge
-   - metallic body
-   - subtle ProVN red accent
-   - browser/native rendering
-   - zero DOM tracking lag
+   PROVN CURSOR
 ========================================================= */
 
 const provnCursorSvg = `
-<svg
-  xmlns="http://www.w3.org/2000/svg"
-  width="14"
-  height="17"
-  viewBox="0 0 25 29"
->
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="17" viewBox="0 0 25 29">
   <defs>
-    <linearGradient
-      id="cursorBody"
-      x1="3"
-      y1="2"
-      x2="18"
-      y2="26"
-      gradientUnits="userSpaceOnUse"
-    >
+    <linearGradient id="cursorBody" x1="3" y1="2" x2="18" y2="26" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#ffffff"/>
       <stop offset="32%" stop-color="#f3f1f1"/>
       <stop offset="66%" stop-color="#d6d3d4"/>
       <stop offset="100%" stop-color="#aaa6a8"/>
     </linearGradient>
 
-    <linearGradient
-      id="cursorEdge"
-      x1="2"
-      y1="2"
-      x2="18"
-      y2="26"
-      gradientUnits="userSpaceOnUse"
-    >
+    <linearGradient id="cursorEdge" x1="2" y1="2" x2="18" y2="26" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#f7f7f7"/>
       <stop offset="48%" stop-color="#757276"/>
       <stop offset="78%" stop-color="#a62a3a"/>
@@ -109,75 +88,140 @@ const provnCursorSvg = `
 </svg>
 `
 
-const PROVN_CURSOR = `url("data:image/svg+xml,${encodeURIComponent(
-  provnCursorSvg
-)}") 1 1, auto`
+const PROVN_CURSOR =
+  `url("data:image/svg+xml,${encodeURIComponent(
+    provnCursorSvg
+  )}") 1 1, auto`
 
 /* =========================================================
    PROVN MARK
 ========================================================= */
 
-function ProVNMark() {
+function ProVNMark({
+  id,
+  className = '',
+}: {
+  id: string
+  className?: string
+}) {
+  const main =
+    `${id}-main`
+
+  const top =
+    `${id}-top`
+
+  const edge =
+    `${id}-edge`
+
   return (
     <svg
       viewBox="0 0 58 58"
       aria-hidden="true"
-      className="h-[48px] w-[48px] shrink-0 overflow-visible drop-shadow-[0_0_11px_rgba(226,32,57,.30)]"
+      className={`h-[46px] w-[46px] shrink-0 overflow-visible ${className}`}
     >
       <defs>
         <linearGradient
-          id="signup-main"
+          id={main}
           x1="0"
           y1="0"
           x2="0"
           y2="1"
         >
-          <stop offset="0%" stopColor="#ff8a95" />
-          <stop offset="12%" stopColor="#e65362" />
-          <stop offset="30%" stopColor="#bb283b" />
-          <stop offset="51%" stopColor="#811320" />
-          <stop offset="72%" stopColor="#ad1c30" />
-          <stop offset="100%" stopColor="#240508" />
+          <stop
+            offset="0%"
+            stopColor="#ffb7bd"
+          />
+
+          <stop
+            offset="12%"
+            stopColor="#fa7080"
+          />
+
+          <stop
+            offset="31%"
+            stopColor="#d13249"
+          />
+
+          <stop
+            offset="53%"
+            stopColor="#881321"
+          />
+
+          <stop
+            offset="74%"
+            stopColor="#b51d33"
+          />
+
+          <stop
+            offset="100%"
+            stopColor="#260408"
+          />
         </linearGradient>
 
         <linearGradient
-          id="signup-top"
+          id={top}
           x1="0"
           y1="0"
           x2="1"
           y2="0"
         >
-          <stop offset="0%" stopColor="#77101b" />
-          <stop offset="34%" stopColor="#df4355" />
-          <stop offset="57%" stopColor="#ff9ea7" />
-          <stop offset="100%" stopColor="#6e0b17" />
+          <stop
+            offset="0%"
+            stopColor="#72101b"
+          />
+
+          <stop
+            offset="34%"
+            stopColor="#e34759"
+          />
+
+          <stop
+            offset="58%"
+            stopColor="#ffc0c6"
+          />
+
+          <stop
+            offset="100%"
+            stopColor="#650a15"
+          />
         </linearGradient>
 
         <linearGradient
-          id="signup-edge"
+          id={edge}
           x1="0"
           y1="0"
           x2="1"
           y2="1"
         >
-          <stop offset="0%" stopColor="#ffc7cc" />
-          <stop offset="34%" stopColor="#ff5265" />
-          <stop offset="100%" stopColor="#6c0716" />
+          <stop
+            offset="0%"
+            stopColor="#ffe5e8"
+          />
+
+          <stop
+            offset="35%"
+            stopColor="#ff6071"
+          />
+
+          <stop
+            offset="100%"
+            stopColor="#620714"
+          />
         </linearGradient>
       </defs>
 
       <path
         d="M4.5 8.5 H39 L52 17.5 L44.5 20.5 H16.2 L8.7 15.3 Z"
-        fill="url(#signup-top)"
-        stroke="url(#signup-edge)"
+        fill={`url(#${top})`}
+        stroke={`url(#${edge})`}
         strokeWidth="0.8"
         strokeLinejoin="round"
       />
 
       <path
         d="M11.2 21.5 H37.6 C46.5 21.5 52.5 26.3 52.5 33 C52.5 40.4 46.8 45.4 37.6 45.4 H26.4 V36.9 H37.1 C40.9 36.9 43.4 35.2 43.4 32.8 C43.4 30.3 40.9 28.6 37.1 28.6 H23.6 V43.5 L12 55 Z"
-        fill="url(#signup-main)"
-        stroke="url(#signup-edge)"
+        fill={`url(#${main})`}
+        stroke={`url(#${edge})`}
         strokeWidth="0.8"
         strokeLinejoin="round"
       />
@@ -190,8 +234,8 @@ function ProVNMark() {
       <path
         d="M7.2 10 H38.2 L47.2 16.3"
         fill="none"
-        stroke="#ffd3d7"
-        strokeOpacity=".66"
+        stroke="#ffe1e5"
+        strokeOpacity=".67"
         strokeWidth="1"
         strokeLinecap="round"
       />
@@ -199,7 +243,7 @@ function ProVNMark() {
       <path
         d="M43.8 22.7 C49 24.8 51 28.2 51 32.8 C51 38.8 46.4 43.3 38.6 43.7"
         fill="none"
-        stroke="#ff334c"
+        stroke="#ff4059"
         strokeOpacity=".72"
         strokeWidth="1"
         strokeLinecap="round"
@@ -209,7 +253,7 @@ function ProVNMark() {
 }
 
 /* =========================================================
-   PROVN LOGO
+   HEADER LOGO
 ========================================================= */
 
 function ProVNLogo() {
@@ -218,20 +262,21 @@ function ProVNLogo() {
       href="/"
       className="group inline-flex items-center"
     >
-      <span className="relative transition-all duration-300 group-hover:scale-[1.06] group-hover:-rotate-[1deg]">
-        <span className="pointer-events-none absolute inset-[8px] rounded-full bg-[#c31e35]/25 opacity-0 blur-[14px] transition-opacity duration-300 group-hover:opacity-100" />
+      <span className="relative transition-transform duration-300 group-hover:scale-[1.07]">
+        <span className="pointer-events-none absolute inset-[5px] rounded-full bg-[#d92340]/25 opacity-0 blur-[16px] transition-opacity duration-300 group-hover:opacity-100" />
 
-        <span className="relative z-10">
-          <ProVNMark />
-        </span>
+        <ProVNMark
+          id="signup-header-logo"
+          className="relative z-10 drop-shadow-[0_0_11px_rgba(229,41,65,.26)]"
+        />
       </span>
 
-      <span className="-ml-[3px] translate-y-[5px] text-[23px] font-black leading-none tracking-[-0.055em]">
-        <span className="text-[#f6f3f3]">
+      <span className="-ml-[4px] translate-y-[4px] text-[22px] font-black leading-none tracking-[-0.055em]">
+        <span className="text-[#f5f2f2]">
           ro
         </span>
 
-        <span className="text-[#e51f3b] drop-shadow-[0_0_8px_rgba(229,31,59,.18)]">
+        <span className="text-[#ed2744]">
           VN
         </span>
       </span>
@@ -240,7 +285,7 @@ function ProVNLogo() {
 }
 
 /* =========================================================
-   ICONS
+   EYE
 ========================================================= */
 
 function EyeIcon({
@@ -251,12 +296,13 @@ function EyeIcon({
   return (
     <svg
       viewBox="0 0 24 24"
-      className="h-[18px] w-[18px]"
+      className="h-[17px] w-[17px]"
       fill="none"
       stroke="currentColor"
       strokeWidth="1.7"
       strokeLinecap="round"
       strokeLinejoin="round"
+      aria-hidden="true"
     >
       {open ? (
         <>
@@ -283,947 +329,101 @@ function EyeIcon({
   )
 }
 
-function CheckIcon() {
-  return (
-    <svg
-      viewBox="0 0 20 20"
-      className="h-[13px] w-[13px]"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="m4 10 3.5 3.5L16 5.5" />
-    </svg>
-  )
-}
-
-function CrossIcon() {
-  return (
-    <svg
-      viewBox="0 0 20 20"
-      className="h-[12px] w-[12px]"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-    >
-      <path d="M5 5l10 10M15 5 5 15" />
-    </svg>
-  )
-}
-
-/* =========================================================
-   STANDARD INPUT
-========================================================= */
-
-function InputField({
-  label,
-  type = 'text',
-  value,
-  onChange,
-  placeholder,
-  autoComplete,
-  rightElement,
-}: {
-  label: string
-  type?: string
-  value: string
-  onChange: (
-    value: string
-  ) => void
-  placeholder: string
-  autoComplete?: string
-  rightElement?: ReactNode
-}) {
-  return (
-    <div className="group">
-      <label className="mb-2 block text-[9px] font-medium uppercase tracking-[0.22em] text-zinc-500 transition-colors duration-200 group-focus-within:text-[#cb4c5b]">
-        {label}
-      </label>
-
-      <div className="relative">
-        <input
-          data-writing-field="true"
-          type={type}
-          value={value}
-          onChange={event =>
-            onChange(
-              event.target.value
-            )
-          }
-          placeholder={placeholder}
-          autoComplete={autoComplete}
-          required
-          className="h-[55px] w-full rounded-[13px] border border-white/[0.075] bg-[#08080a]/95 px-4 pr-12 text-[14px] text-zinc-100 outline-none transition-[border-color,background-color,box-shadow] duration-200 placeholder:text-zinc-700 hover:border-white/[0.14] hover:bg-[#0b0b0e] focus:border-[#a62c3b] focus:bg-[#0d090b] focus:shadow-[0_0_0_3px_rgba(173,37,55,.07),0_0_26px_rgba(117,13,29,.11)]"
-        />
-
-        {rightElement && (
-          <div className="absolute right-4 top-1/2 -translate-y-1/2">
-            {rightElement}
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-/* =========================================================
-   USERNAME
-========================================================= */
-
-function UsernameField({
-  value,
-  onChange,
-  status,
-}: {
-  value: string
-  onChange: (
-    value: string
-  ) => void
-  status: UsernameState
-}) {
-  const inputRef =
-    useRef<HTMLInputElement | null>(
-      null
-    )
-
-  const cleaned =
-    value
-      .trim()
-      .toLowerCase()
-
-  function normalizeUsername(
-    input: string
-  ) {
-    return input
-      .toLowerCase()
-      .replace(
-        /\s/g,
-        ''
-      )
-  }
-
-  function syncInputValue() {
-    const input =
-      inputRef.current
-
-    if (!input) {
-      return
-    }
-
-    const next =
-      normalizeUsername(
-        input.value
-      )
-
-    if (
-      input.value !==
-      next
-    ) {
-      input.value =
-        next
-    }
-
-    if (
-      next !== value
-    ) {
-      onChange(
-        next
-      )
-    }
-  }
-
-  useEffect(() => {
-    const timers = [
-      window.setTimeout(
-        syncInputValue,
-        50
-      ),
-
-      window.setTimeout(
-        syncInputValue,
-        250
-      ),
-
-      window.setTimeout(
-        syncInputValue,
-        700
-      ),
-
-      window.setTimeout(
-        syncInputValue,
-        1500
-      ),
-    ]
-
-    return () => {
-      timers.forEach(
-        timer => {
-          window.clearTimeout(
-            timer
-          )
-        }
-      )
-    }
-  }, [])
-
-  let message = ''
-
-  let messageClass =
-    'text-zinc-600'
-
-  if (
-    value &&
-    status ===
-      'invalid'
-  ) {
-    message =
-      '3–20 characters. Use lowercase letters, numbers, _ or .'
-
-    messageClass =
-      'text-[#d85a68]'
-  }
-
-  if (
-    status ===
-    'checking'
-  ) {
-    message =
-      'Checking availability...'
-
-    messageClass =
-      'text-zinc-500'
-  }
-
-  if (
-    status ===
-    'available'
-  ) {
-    message =
-      `@${cleaned} is available`
-
-    messageClass =
-      'text-emerald-400'
-  }
-
-  if (
-    status ===
-    'taken'
-  ) {
-    message =
-      `@${cleaned} is already taken. Try another.`
-
-    messageClass =
-      'text-[#ff5a6e]'
-  }
-
-  if (
-    status ===
-    'error'
-  ) {
-    message =
-      'Could not check username. Try again.'
-
-    messageClass =
-      'text-amber-400'
-  }
-
-  return (
-    <div className="group">
-      <div className="mb-2 flex items-center justify-between">
-        <label className="block text-[9px] font-medium uppercase tracking-[0.22em] text-zinc-500 transition-colors duration-200 group-focus-within:text-[#cb4c5b]">
-          Username
-        </label>
-
-        {status ===
-          'available' && (
-          <span className="flex items-center gap-1 text-[8px] font-semibold uppercase tracking-[0.14em] text-emerald-400">
-            <CheckIcon />
-
-            Available
-          </span>
-        )}
-
-        {status ===
-          'taken' && (
-          <span className="flex items-center gap-1 text-[8px] font-semibold uppercase tracking-[0.14em] text-[#ff5a6e]">
-            <CrossIcon />
-
-            Taken
-          </span>
-        )}
-      </div>
-
-      <div className="relative">
-        <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[14px] text-zinc-600">
-          @
-        </span>
-
-        <input
-          ref={
-            inputRef
-          }
-          data-writing-field="true"
-          name="provn-signup-handle"
-          value={
-            value
-          }
-          onInput={
-            event => {
-              const next =
-                normalizeUsername(
-                  event
-                    .currentTarget
-                    .value
-                )
-
-              if (
-                event
-                  .currentTarget
-                  .value !==
-                next
-              ) {
-                event.currentTarget.value =
-                  next
-              }
-
-              onChange(
-                next
-              )
-            }
-          }
-          onChange={
-            event => {
-              onChange(
-                normalizeUsername(
-                  event
-                    .currentTarget
-                    .value
-                )
-              )
-            }
-          }
-          onFocus={() => {
-            window.setTimeout(
-              syncInputValue,
-              0
-            )
-
-            window.setTimeout(
-              syncInputValue,
-              100
-            )
-          }}
-          onBlur={
-            syncInputValue
-          }
-          placeholder="yourname"
-          autoComplete="off"
-          spellCheck={
-            false
-          }
-          autoCapitalize="none"
-          autoCorrect="off"
-          required
-          maxLength={
-            20
-          }
-          className={`h-[55px] w-full rounded-[13px] border bg-[#08080a]/95 py-0 pl-8 pr-12 text-[14px] text-zinc-100 outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-zinc-700 ${
-            status ===
-            'available'
-              ? 'border-emerald-700/55 focus:border-emerald-500/70 focus:shadow-[0_0_0_3px_rgba(16,185,129,.06)]'
-              : status ===
-                    'taken' ||
-                  status ===
-                    'invalid'
-                ? 'border-[#8d2636]/75 focus:border-[#d43d52]'
-                : 'border-white/[0.075] hover:border-white/[0.14] focus:border-[#a62c3b] focus:shadow-[0_0_0_3px_rgba(173,37,55,.07),0_0_26px_rgba(117,13,29,.11)]'
-          }`}
-        />
-
-        <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2">
-          {status ===
-            'checking' && (
-            <div className="h-[14px] w-[14px] animate-spin rounded-full border border-zinc-700 border-t-[#d42d42]" />
-          )}
-
-          {status ===
-            'available' && (
-            <span className="text-emerald-400">
-              <CheckIcon />
-            </span>
-          )}
-
-          {status ===
-            'taken' && (
-            <span className="text-[#ff5a6e]">
-              <CrossIcon />
-            </span>
-          )}
-        </div>
-      </div>
-
-      <div className="mt-2 min-h-[16px]">
-        {message ? (
-          <p
-            className={`text-[10px] leading-4 ${messageClass}`}
-          >
-            {message}
-          </p>
-        ) : (
-          <p className="text-[9px] tracking-[0.02em] text-zinc-700">
-            provn.games/profiles/
-            {cleaned ||
-              'yourname'}
-          </p>
-        )}
-      </div>
-    </div>
-  )
-}
-
-/* =========================================================
-   PASSWORD REQUIREMENT
-========================================================= */
-
-function PasswordRequirement({
-  passed,
-  children,
-}: {
-  passed: boolean
-  children: ReactNode
-}) {
-  return (
-    <div
-      className={`flex items-center gap-2 text-[9px] transition-colors duration-200 ${
-        passed
-          ? 'text-emerald-400'
-          : 'text-zinc-600'
-      }`}
-    >
-      <span
-        className={`flex h-[14px] w-[14px] items-center justify-center rounded-full border transition-all duration-200 ${
-          passed
-            ? 'border-emerald-500/50 bg-emerald-500/10'
-            : 'border-white/[0.08] bg-white/[0.015]'
-        }`}
-      >
-        {passed && (
-          <CheckIcon />
-        )}
-      </span>
-
-      {children}
-    </div>
-  )
-}
-
-/* =========================================================
-   PASSWORD CHECKLIST
-========================================================= */
-
-function PasswordChecklist({
-  rules,
-  password,
-}: {
-  rules: PasswordRules
-  password: string
-}) {
-  if (
-    !password
-  ) {
-    return (
-      <p className="mt-3 text-[9px] leading-4 text-zinc-700">
-        Use a strong password to
-        protect your ProVN identity.
-      </p>
-    )
-  }
-
-  const score =
-    Object
-      .values(
-        rules
-      )
-      .filter(
-        Boolean
-      )
-      .length
-
-  const label =
-    score <= 2
-      ? 'Weak'
-      : score <= 4
-        ? 'Getting stronger'
-        : 'Strong'
-
-  return (
-    <div className="mt-3 rounded-[12px] border border-white/[0.05] bg-black/20 px-3.5 py-3">
-      <div className="mb-3 flex items-center justify-between">
-        <span className="text-[8px] uppercase tracking-[0.18em] text-zinc-600">
-          Password strength
-        </span>
-
-        <span
-          className={`text-[8px] font-semibold uppercase tracking-[0.16em] ${
-            score === 5
-              ? 'text-emerald-400'
-              : score >= 3
-                ? 'text-[#c94a59]'
-                : 'text-zinc-600'
-          }`}
-        >
-          {label}
-        </span>
-      </div>
-
-      <div className="mb-3 grid grid-cols-5 gap-1">
-        {[
-          1,
-          2,
-          3,
-          4,
-          5,
-        ].map(
-          level => (
-            <div
-              key={
-                level
-              }
-              className={`h-[2px] rounded-full transition-all duration-300 ${
-                score >=
-                level
-                  ? score ===
-                    5
-                    ? 'bg-emerald-500/80'
-                    : 'bg-[#b42a3d]'
-                  : 'bg-white/[0.055]'
-              }`}
-            />
-          )
-        )}
-      </div>
-
-      <div className="grid gap-x-4 gap-y-2 sm:grid-cols-2">
-        <PasswordRequirement
-          passed={
-            rules.length
-          }
-        >
-          8+ characters
-        </PasswordRequirement>
-
-        <PasswordRequirement
-          passed={
-            rules.uppercase
-          }
-        >
-          1 uppercase letter
-        </PasswordRequirement>
-
-        <PasswordRequirement
-          passed={
-            rules.lowercase
-          }
-        >
-          1 lowercase letter
-        </PasswordRequirement>
-
-        <PasswordRequirement
-          passed={
-            rules.number
-          }
-        >
-          1 number
-        </PasswordRequirement>
-
-        <PasswordRequirement
-          passed={
-            rules.special
-          }
-        >
-          1 special character
-        </PasswordRequirement>
-      </div>
-    </div>
-  )
-}
-
 /* =========================================================
    IDENTITY VISUAL
 ========================================================= */
 
-function FloatingCard({
-  label,
-  value,
-  className,
-}: {
-  label: string
-  value: string
-  className: string
-}) {
-  return (
-    <div
-      className={`absolute rounded-[15px] border border-white/[0.08] bg-black/75 px-4 py-3 shadow-[0_18px_50px_rgba(0,0,0,.42)] backdrop-blur-xl transition-all duration-500 hover:-translate-y-1 hover:border-[#752934] hover:bg-[#0d0709]/90 ${className}`}
-    >
-      <p className="text-[8px] uppercase tracking-[0.24em] text-zinc-600">
-        {label}
-      </p>
-
-      <p className="mt-1 text-[12px] font-semibold tracking-[-0.02em] text-zinc-200">
-        {value}
-      </p>
-    </div>
-  )
-}
-
 function IdentityVisual() {
   return (
-    <div className="relative h-[245px] overflow-hidden rounded-[24px] border border-white/[0.055] bg-black/25 shadow-[inset_0_1px_0_rgba(255,255,255,.025)]">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(146,18,39,.13),transparent_48%)]" />
+    <div className="identity-visual relative mt-8 h-[235px] overflow-hidden rounded-[24px] border border-white/[0.065] bg-black/25">
 
-      <div className="absolute left-1/2 top-1/2 h-[198px] w-[198px] -translate-x-1/2 -translate-y-1/2 animate-spin rounded-full border border-[#8d2433]/28 [animation-duration:22s]">
-        <span className="absolute left-[20px] top-[22px] h-[7px] w-[7px] rounded-full bg-[#e82c45] shadow-[0_0_15px_rgba(232,44,69,.9)]" />
-      </div>
+      <div className="pointer-events-none absolute left-[-95px] top-1/2 h-[230px] w-[230px] -translate-y-1/2 rounded-full border border-[#711521]/20" />
 
-      <div className="absolute left-1/2 top-1/2 h-[148px] w-[148px] -translate-x-1/2 -translate-y-1/2 animate-spin rounded-full border border-[#a52a3a]/25 [animation-direction:reverse] [animation-duration:15s]">
-        <span className="absolute bottom-[8px] right-[24px] h-[5px] w-[5px] rounded-full bg-[#ff5369] shadow-[0_0_12px_rgba(255,83,105,.85)]" />
-      </div>
+      <div className="pointer-events-none absolute left-[-50px] top-1/2 h-[165px] w-[165px] -translate-y-1/2 rounded-full border border-[#711521]/22" />
 
-      <div className="absolute left-1/2 top-1/2 h-[116px] w-[116px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#72212d]/28" />
+      <div className="absolute left-1/2 top-1/2 h-[190px] w-[190px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#7c1b2a]/31" />
 
-      <div className="absolute left-1/2 top-1/2 flex h-[92px] w-[92px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-[#a72c3d]/55 bg-[#060607] shadow-[0_0_55px_rgba(170,25,48,.20),inset_0_0_22px_rgba(144,24,43,.08)]">
-        <div className="absolute inset-[11px] animate-pulse rounded-full bg-[#bd1e36]/10 blur-[9px]" />
+      <div className="absolute left-1/2 top-1/2 h-[145px] w-[145px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#9e2435]/37" />
 
-        <div className="relative z-10 scale-[1.02]">
-          <ProVNMark />
+      <div className="absolute left-1/2 top-1/2 h-[100px] w-[100px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#b32a3d]/46" />
+
+      <div className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-gradient-to-b from-transparent via-[#7b1b29]/45 to-transparent" />
+
+      <div className="absolute left-0 top-1/2 h-px w-full -translate-y-1/2 bg-gradient-to-r from-transparent via-[#7b1b29]/42 to-transparent" />
+
+      <div className="identity-core absolute left-1/2 top-1/2 flex h-[70px] w-[70px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-[#a6293a]/60 bg-[#080406] shadow-[0_0_70px_rgba(184,28,51,.20)]">
+        <div className="scale-[.78]">
+          <ProVNMark id="signup-core" />
         </div>
       </div>
 
-      <div className="absolute left-[10%] right-[10%] top-1/2 h-px bg-gradient-to-r from-transparent via-[#8e2433]/32 to-transparent" />
+      <span className="absolute left-[59%] top-[17%] h-[7px] w-[7px] rounded-full bg-[#f32b49] shadow-[0_0_16px_rgba(243,43,73,.9)]" />
 
-      <div className="absolute bottom-0 left-1/2 top-0 w-px -translate-x-1/2 bg-gradient-to-b from-transparent via-[#741b29]/16 to-transparent" />
+      <span className="absolute left-[69%] top-[43%] h-[5px] w-[5px] rounded-full bg-[#e92d48] shadow-[0_0_13px_rgba(233,45,72,.8)]" />
 
-      <FloatingCard
-        label="IDENTITY"
-        value="PRIVATE"
-        className="left-[18px] top-[18px]"
-      />
+      <div className="visual-chip absolute left-5 top-5 rounded-[13px] border border-white/[0.065] bg-black/50 px-4 py-3">
 
-      <FloatingCard
-        label="USERNAME"
-        value="UNIQUE"
-        className="right-[18px] top-[18px]"
-      />
+        <p className="text-[6px] uppercase tracking-[0.28em] text-zinc-700">
+          Identity
+        </p>
 
-      <FloatingCard
-        label="PROOF"
-        value="EARNED"
-        className="bottom-[18px] right-[18px]"
-      />
-
-      <div className="absolute bottom-[22px] left-[22px] flex items-center gap-2">
-        <span className="h-[5px] w-[5px] animate-pulse rounded-full bg-[#cc3046] shadow-[0_0_8px_rgba(204,48,70,.75)]" />
-
-        <p className="text-[8px] uppercase tracking-[0.28em] text-[#74333d]">
-          Identity Network
+        <p className="mt-1 text-[10px] font-bold text-zinc-300">
+          PRIVATE
         </p>
       </div>
-    </div>
-  )
-}
 
-/* =========================================================
-   SMOOTH INTERACTIVE PANEL
-========================================================= */
+      <div className="visual-chip absolute right-5 top-5 rounded-[13px] border border-white/[0.065] bg-black/50 px-4 py-3">
 
-function InteractivePanel({
-  left,
-  right,
-}: {
-  left: ReactNode
-  right: ReactNode
-}) {
-  const panelRef =
-    useRef<HTMLDivElement | null>(
-      null
-    )
+        <p className="text-[6px] uppercase tracking-[0.28em] text-zinc-700">
+          Username
+        </p>
 
-  const glowRef =
-    useRef<HTMLDivElement | null>(
-      null
-    )
+        <p className="mt-1 text-[10px] font-bold text-zinc-300">
+          UNIQUE
+        </p>
+      </div>
 
-  const leftRef =
-    useRef<HTMLDivElement | null>(
-      null
-    )
+      <div className="visual-chip absolute bottom-5 right-5 rounded-[13px] border border-white/[0.065] bg-black/50 px-4 py-3">
 
-  const rightRef =
-    useRef<HTMLDivElement | null>(
-      null
-    )
+        <p className="text-[6px] uppercase tracking-[0.28em] text-zinc-700">
+          Proof
+        </p>
 
-  const animationFrameRef =
-    useRef<number | null>(
-      null
-    )
+        <p className="mt-1 text-[10px] font-bold text-zinc-300">
+          EARNED
+        </p>
+      </div>
 
-  const latestMovementRef =
-    useRef<{
-      x: number
-      y: number
-    } | null>(
-      null
-    )
+      <div className="absolute bottom-5 left-5 flex items-center gap-2 text-[6px] uppercase tracking-[0.27em] text-[#792333]">
 
-  useEffect(() => {
-    return () => {
-      if (
-        animationFrameRef.current !==
-        null
-      ) {
-        cancelAnimationFrame(
-          animationFrameRef.current
-        )
-      }
-    }
-  }, [])
+        <span className="h-[5px] w-[5px] rounded-full bg-[#d62c46]" />
 
-  function renderMovement() {
-    animationFrameRef.current =
-      null
-
-    const movement =
-      latestMovementRef.current
-
-    if (!movement) {
-      return
-    }
-
-    const {
-      x,
-      y,
-    } =
-      movement
-
-    const rotateY =
-      (x - 0.5) *
-      3.8
-
-    const rotateX =
-      (0.5 - y) *
-      3
-
-    if (
-      panelRef.current
-    ) {
-      panelRef.current.style.transition =
-        'none'
-
-      panelRef.current.style.transform =
-        `perspective(1800px) translate3d(0,-3px,0) scale(1.006) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`
-
-      panelRef.current.style.boxShadow =
-        `${-rotateY}px ${36 + rotateX}px 100px rgba(0,0,0,.66), 0 18px 48px rgba(91,7,23,.14)`
-    }
-
-    if (
-      glowRef.current
-    ) {
-      glowRef.current.style.opacity =
-        '1'
-
-      glowRef.current.style.background =
-        `radial-gradient(450px circle at ${x * 100}% ${y * 100}%, rgba(235,47,72,.09), transparent 64%)`
-    }
-
-    if (
-      leftRef.current
-    ) {
-      leftRef.current.style.transform =
-        `translate3d(${(x - 0.5) * 5}px, ${(y - 0.5) * 4}px, 12px)`
-    }
-
-    if (
-      rightRef.current
-    ) {
-      rightRef.current.style.transform =
-        `translate3d(${(x - 0.5) * -2}px, ${(y - 0.5) * -1.5}px, 8px)`
-    }
-  }
-
-  function handleMove(
-    event:
-      ReactPointerEvent<HTMLDivElement>
-  ) {
-    if (
-      window.innerWidth <
-      1024
-    ) {
-      return
-    }
-
-    if (
-      !window
-        .matchMedia(
-          '(pointer: fine)'
-        )
-        .matches
-    ) {
-      return
-    }
-
-    const rect =
-      event
-        .currentTarget
-        .getBoundingClientRect()
-
-    latestMovementRef.current =
-      {
-        x:
-          (
-            event.clientX -
-            rect.left
-          ) /
-          rect.width,
-
-        y:
-          (
-            event.clientY -
-            rect.top
-          ) /
-          rect.height,
-      }
-
-    if (
-      animationFrameRef.current ===
-      null
-    ) {
-      animationFrameRef.current =
-        requestAnimationFrame(
-          renderMovement
-        )
-    }
-  }
-
-  function handleLeave() {
-    latestMovementRef.current =
-      null
-
-    if (
-      animationFrameRef.current !==
-      null
-    ) {
-      cancelAnimationFrame(
-        animationFrameRef.current
-      )
-
-      animationFrameRef.current =
-        null
-    }
-
-    if (
-      panelRef.current
-    ) {
-      panelRef.current.style.transition =
-        'transform 420ms cubic-bezier(.16,1,.3,1), box-shadow 400ms ease'
-
-      panelRef.current.style.transform =
-        'perspective(1800px) translate3d(0,0,0) scale(1) rotateX(0deg) rotateY(0deg)'
-
-      panelRef.current.style.boxShadow =
-        ''
-    }
-
-    if (
-      glowRef.current
-    ) {
-      glowRef.current.style.opacity =
-        '0'
-    }
-
-    if (
-      leftRef.current
-    ) {
-      leftRef.current.style.transform =
-        'translate3d(0,0,0)'
-    }
-
-    if (
-      rightRef.current
-    ) {
-      rightRef.current.style.transform =
-        'translate3d(0,0,0)'
-    }
-  }
-
-  return (
-    <div
-      onPointerMove={
-        handleMove
-      }
-      onPointerLeave={
-        handleLeave
-      }
-      className="relative w-full max-w-[1160px] [perspective:1800px]"
-    >
-      <div className="pointer-events-none absolute bottom-[-40px] left-1/2 h-[42px] w-[75%] -translate-x-1/2 rounded-full bg-black/80 blur-[27px]" />
-
-      <div className="pointer-events-none absolute -inset-px rounded-[31px] bg-gradient-to-br from-white/[0.09] via-transparent to-[#862431]/18 opacity-70" />
-
-      <div
-        ref={
-          panelRef
-        }
-        className="relative overflow-hidden rounded-[30px] border border-white/[0.07] bg-[#070708]/95 shadow-[0_44px_115px_rgba(0,0,0,.60)] [transform-style:preserve-3d] will-change-transform"
-      >
-        <div className="pointer-events-none absolute left-[3%] right-[3%] top-0 z-[3] h-px bg-gradient-to-r from-transparent via-[#b53748]/45 to-transparent" />
-
-        <div
-          ref={
-            glowRef
-          }
-          className="pointer-events-none absolute inset-0 z-[2] opacity-0 transition-opacity duration-150"
-        />
-
-        <div className="relative z-10 grid lg:grid-cols-[.97fr_1.03fr]">
-          <div
-            ref={
-              leftRef
-            }
-            className="hidden border-r border-white/[0.05] [transform-style:preserve-3d] will-change-transform lg:block"
-          >
-            {left}
-          </div>
-
-          <div
-            ref={
-              rightRef
-            }
-            className="[transform-style:preserve-3d] will-change-transform"
-          >
-            {right}
-          </div>
-        </div>
+        Identity Network
       </div>
     </div>
   )
 }
 
 /* =========================================================
-   SIGNUP PAGE
+   PAGE
 ========================================================= */
 
 export default function SignupPage() {
   const router =
     useRouter()
 
-  const pageRef =
-    useRef<HTMLDivElement | null>(
-      null
+  const supabase =
+    useMemo(
+      () => createClient(),
+      []
+    )
+
+  const [
+    step,
+    setStep,
+  ] =
+    useState<SignupStep>(
+      'form'
     )
 
   const [
@@ -1237,14 +437,6 @@ export default function SignupPage() {
     setUsername,
   ] =
     useState('')
-
-  const [
-    usernameState,
-    setUsernameState,
-  ] =
-    useState<UsernameState>(
-      'idle'
-    )
 
   const [
     email,
@@ -1265,6 +457,14 @@ export default function SignupPage() {
     useState(false)
 
   const [
+    usernameState,
+    setUsernameState,
+  ] =
+    useState<UsernameState>(
+      'idle'
+    )
+
+  const [
     loading,
     setLoading,
   ] =
@@ -1276,148 +476,255 @@ export default function SignupPage() {
   ] =
     useState('')
 
+  /* OTP */
+
   const [
-    success,
-    setSuccess,
+    otpEmail,
+    setOtpEmail,
   ] =
     useState('')
 
-  const cleanedFullName =
-    fullName
-      .trim()
-      .replace(
-        /\s+/g,
-        ' '
-      )
+  const [
+    otp,
+    setOtp,
+  ] =
+    useState([
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+    ])
 
-  const fullNameValid =
-    cleanedFullName.length >=
-      2 &&
-    cleanedFullName.length <=
-      80
+  const [
+    otpLoading,
+    setOtpLoading,
+  ] =
+    useState(false)
+
+  const [
+    otpError,
+    setOtpError,
+  ] =
+    useState('')
+
+  const [
+    verified,
+    setVerified,
+  ] =
+    useState(false)
+
+  const [
+    resendSeconds,
+    setResendSeconds,
+  ] =
+    useState(45)
+
+  const otpRefs =
+    useRef<
+      Array<HTMLInputElement | null>
+    >([])
+
+  /* =======================================================
+     VALIDATION
+  ======================================================= */
 
   const cleanedUsername =
-    username
-      .trim()
-      .toLowerCase()
-
-  const usernameValid =
-    /^[a-z0-9._]{3,20}$/.test(
-      cleanedUsername
+    useMemo(
+      () =>
+        username
+          .trim()
+          .toLowerCase()
+          .replace(/^@/, ''),
+      [username]
     )
 
   const cleanedEmail =
-    email
-      .trim()
-      .toLowerCase()
+    useMemo(
+      () =>
+        email
+          .trim()
+          .toLowerCase(),
+      [email]
+    )
+
+  const usernameFormatValid =
+    /^[a-z0-9._]{3,20}$/.test(
+      cleanedUsername
+    )
 
   const emailValid =
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
       cleanedEmail
     )
 
-  const passwordRules =
-    useMemo<PasswordRules>(
-      () => ({
-        length:
-          password.length >=
-          8,
+  const passwordRules = {
+    length:
+      password.length >= 8,
 
-        uppercase:
-          /[A-Z]/.test(
-            password
-          ),
+    uppercase:
+      /[A-Z]/.test(
+        password
+      ),
 
-        lowercase:
-          /[a-z]/.test(
-            password
-          ),
+    lowercase:
+      /[a-z]/.test(
+        password
+      ),
 
-        number:
-          /[0-9]/.test(
-            password
-          ),
+    number:
+      /\d/.test(
+        password
+      ),
+  }
 
-        special:
-          /[^A-Za-z0-9\s]/.test(
-            password
-          ),
-      }),
-      [
-        password,
-      ]
-    )
-
-  const passwordStrong =
+  const passwordValid =
     Object
       .values(
         passwordRules
       )
-      .every(
-        Boolean
-      )
+      .every(Boolean)
 
   const canSubmit =
-    fullNameValid &&
+    fullName
+      .trim()
+      .length >= 2 &&
+    usernameFormatValid &&
     usernameState ===
       'available' &&
     emailValid &&
-    passwordStrong &&
+    passwordValid &&
     !loading
 
   /* =======================================================
-     PAGE ENTRANCE
-  ======================================================== */
+     WHOLE SIGNUP RECTANGLE 3D MOVEMENT
+  ======================================================= */
 
-  useEffect(() => {
-    const page =
-      pageRef.current
+  function handleShellMove(
+    event:
+      ReactPointerEvent<HTMLDivElement>
+  ) {
+    const shell =
+      event.currentTarget
 
-    if (!page) {
-      return
-    }
+    const rect =
+      shell
+        .getBoundingClientRect()
 
-    page.style.opacity =
-      '0'
+    const x =
+      event.clientX -
+      rect.left
 
-    page.style.transform =
-      'translateY(8px) scale(.995)'
+    const y =
+      event.clientY -
+      rect.top
 
-    page.style.transition =
-      'opacity 520ms cubic-bezier(.16,1,.3,1), transform 650ms cubic-bezier(.16,1,.3,1)'
+    const normalX =
+      x / rect.width
 
-    const frame =
-      requestAnimationFrame(
-        () => {
-          requestAnimationFrame(
-            () => {
-              page.style.opacity =
-                '1'
+    const normalY =
+      y / rect.height
 
-              page.style.transform =
-                'translateY(0px) scale(1)'
-            }
-          )
-        }
-      )
+    /*
+      Same premium effect as login.
 
-    return () => {
-      cancelAnimationFrame(
-        frame
-      )
-    }
-  }, [])
+      Left  ~= -5 degrees
+      Right ~= +5 degrees
+    */
+
+    const rotateY =
+      (normalX - 0.5) *
+      10
+
+    const rotateX =
+      (0.5 - normalY) *
+      6
+
+    const shadowX =
+      (0.5 - normalX) *
+      28
+
+    const shadowY =
+      18 +
+      (0.5 - normalY) *
+        10
+
+    shell.style.setProperty(
+      '--shell-rx',
+      `${rotateX}deg`
+    )
+
+    shell.style.setProperty(
+      '--shell-ry',
+      `${rotateY}deg`
+    )
+
+    shell.style.setProperty(
+      '--shell-mx',
+      `${x}px`
+    )
+
+    shell.style.setProperty(
+      '--shell-my',
+      `${y}px`
+    )
+
+    shell.style.setProperty(
+      '--shell-shadow-x',
+      `${shadowX}px`
+    )
+
+    shell.style.setProperty(
+      '--shell-shadow-y',
+      `${shadowY}px`
+    )
+  }
+
+  function resetShell(
+    event:
+      ReactPointerEvent<HTMLDivElement>
+  ) {
+    const shell =
+      event.currentTarget
+
+    shell.style.setProperty(
+      '--shell-rx',
+      '0deg'
+    )
+
+    shell.style.setProperty(
+      '--shell-ry',
+      '0deg'
+    )
+
+    shell.style.setProperty(
+      '--shell-mx',
+      '50%'
+    )
+
+    shell.style.setProperty(
+      '--shell-my',
+      '50%'
+    )
+
+    shell.style.setProperty(
+      '--shell-shadow-x',
+      '0px'
+    )
+
+    shell.style.setProperty(
+      '--shell-shadow-y',
+      '18px'
+    )
+  }
 
   /* =======================================================
      USERNAME AVAILABILITY
-  ======================================================== */
+  ======================================================= */
 
   useEffect(() => {
-    setError('')
-
-    if (
-      !username
-    ) {
+    if (!cleanedUsername) {
       setUsernameState(
         'idle'
       )
@@ -1425,9 +732,7 @@ export default function SignupPage() {
       return
     }
 
-    if (
-      !usernameValid
-    ) {
+    if (!usernameFormatValid) {
       setUsernameState(
         'invalid'
       )
@@ -1435,126 +740,108 @@ export default function SignupPage() {
       return
     }
 
+    let cancelled =
+      false
+
     setUsernameState(
       'checking'
     )
 
-    let cancelled =
-      false
-
     const timer =
       window.setTimeout(
         async () => {
-          try {
-            const supabase =
-              createClient()
-
-            const {
-              data,
-              error:
-                usernameError,
-            } =
-              await supabase.rpc(
-                'is_username_available',
-                {
-                  p_username:
-                    cleanedUsername,
-                }
-              )
-
-            if (
-              cancelled
-            ) {
-              return
-            }
-
-            if (
-              usernameError
-            ) {
-              console.error(
-                'Username availability error:',
-                usernameError
-              )
-
-              setUsernameState(
-                'error'
-              )
-
-              return
-            }
-
-            setUsernameState(
-              data === true
-                ? 'available'
-                : 'taken'
+          const {
+            data,
+            error:
+              availabilityError,
+          } =
+            await supabase.rpc(
+              'is_username_available',
+              {
+                p_username:
+                  cleanedUsername,
+              }
             )
-          } catch (
-            usernameError
-          ) {
-            if (
-              cancelled
-            ) {
-              return
-            }
 
+          if (cancelled) {
+            return
+          }
+
+          if (
+            availabilityError
+          ) {
             console.error(
-              'Username availability request failed:',
-              usernameError
+              'Username availability failed:',
+              availabilityError
             )
 
             setUsernameState(
               'error'
             )
+
+            return
           }
+
+          setUsernameState(
+            data
+              ? 'available'
+              : 'taken'
+          )
         },
-        450
+        400
       )
 
     return () => {
-      cancelled =
-        true
+      cancelled = true
 
       window.clearTimeout(
         timer
       )
     }
   }, [
-    username,
-    usernameValid,
     cleanedUsername,
+    usernameFormatValid,
+    supabase,
   ])
 
-  async function checkUsernameNow() {
-    const supabase =
-      createClient()
+  /* =======================================================
+     OTP TIMER
+  ======================================================= */
 
-    const {
-      data,
-      error:
-        checkError,
-    } =
-      await supabase.rpc(
-        'is_username_available',
-        {
-          p_username:
-            cleanedUsername,
-        }
-      )
-
+  useEffect(() => {
     if (
-      checkError
+      step !== 'otp' ||
+      resendSeconds <= 0
     ) {
-      throw checkError
+      return
     }
 
-    return (
-      data === true
-    )
-  }
+    const timer =
+      window.setInterval(
+        () => {
+          setResendSeconds(
+            current =>
+              Math.max(
+                current - 1,
+                0
+              )
+          )
+        },
+        1000
+      )
+
+    return () =>
+      window.clearInterval(
+        timer
+      )
+  }, [
+    step,
+    resendSeconds,
+  ])
 
   /* =======================================================
      SIGNUP
-  ======================================================== */
+  ======================================================= */
 
   async function handleSignup(
     event:
@@ -1563,23 +850,22 @@ export default function SignupPage() {
     event.preventDefault()
 
     setError('')
-    setSuccess('')
 
     if (
-      !fullNameValid
+      fullName
+        .trim()
+        .length < 2
     ) {
       setError(
-        'Enter your full name before continuing.'
+        'Enter your full name.'
       )
 
       return
     }
 
-    if (
-      !usernameValid
-    ) {
+    if (!usernameFormatValid) {
       setError(
-        'Choose a valid username before continuing.'
+        'Username must be 3–20 characters using lowercase letters, numbers, dots or underscores.'
       )
 
       return
@@ -1596,9 +882,7 @@ export default function SignupPage() {
       return
     }
 
-    if (
-      !emailValid
-    ) {
+    if (!emailValid) {
       setError(
         'Enter a valid email address.'
       )
@@ -1606,48 +890,25 @@ export default function SignupPage() {
       return
     }
 
-    if (
-      !passwordStrong
-    ) {
+    if (!passwordValid) {
       setError(
-        'Complete all password requirements before continuing.'
+        'Create a stronger password before continuing.'
       )
 
       return
     }
 
-    setLoading(
-      true
-    )
+    setLoading(true)
 
     try {
-      const stillAvailable =
-        await checkUsernameNow()
-
-      if (
-        !stillAvailable
-      ) {
-        setUsernameState(
-          'taken'
-        )
-
-        setError(
-          `@${cleanedUsername} was just taken. Choose another username.`
-        )
-
-        return
-      }
-
-      const supabase =
-        createClient()
-
       const {
         data,
         error:
           signupError,
       } =
-        await supabase.auth.signUp(
-          {
+        await supabase
+          .auth
+          .signUp({
             email:
               cleanedEmail,
 
@@ -1655,19 +916,17 @@ export default function SignupPage() {
 
             options: {
               data: {
+                full_name:
+                  fullName
+                    .trim(),
+
                 username:
                   cleanedUsername,
-
-                full_name:
-                  cleanedFullName,
               },
             },
-          }
-        )
+          })
 
-      if (
-        signupError
-      ) {
+      if (signupError) {
         const message =
           signupError
             .message
@@ -1675,38 +934,53 @@ export default function SignupPage() {
 
         if (
           message.includes(
-            'database error'
+            'already'
           ) ||
           message.includes(
-            'duplicate'
-          ) ||
-          message.includes(
-            'unique'
+            'registered'
           )
         ) {
-          setUsernameState(
-            'taken'
-          )
-
           setError(
-            'That username is no longer available. Choose another one.'
+            'An account already exists with this email.'
           )
-
-          return
+        } else {
+          setError(
+            signupError
+              .message ||
+              'Could not create your ProVN identity.'
+          )
         }
-
-        setError(
-          signupError.message
-        )
 
         return
       }
 
-      if (
-        data.session
-      ) {
-        router.push(
-          '/'
+      /*
+        If confirmation is disabled,
+        signUp can create a session.
+
+        End it and move to login.
+      */
+
+      if (data.session) {
+        await supabase
+          .auth
+          .signOut()
+
+        window
+          .sessionStorage
+          .removeItem(
+            PENDING_SIGNUP_EMAIL_KEY
+          )
+
+        window
+          .sessionStorage
+          .setItem(
+            'provn.just-verified',
+            '1'
+          )
+
+        router.replace(
+          '/login'
         )
 
         router.refresh()
@@ -1714,408 +988,1083 @@ export default function SignupPage() {
         return
       }
 
-      setSuccess(
-        `Identity reserved. We sent a verification link to ${cleanedEmail}.`
+      if (!data.user) {
+        setError(
+          'Could not create your ProVN identity. Please try again.'
+        )
+
+        return
+      }
+
+      window
+        .sessionStorage
+        .setItem(
+          PENDING_SIGNUP_EMAIL_KEY,
+          cleanedEmail
+        )
+
+      setOtpEmail(
+        cleanedEmail
       )
-    } catch (
-      signupFailure
-    ) {
+
+      setOtp([
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+      ])
+
+      setOtpError('')
+
+      setResendSeconds(
+        45
+      )
+
+      setStep(
+        'otp'
+      )
+    } catch (signupFailure) {
       console.error(
-        'Signup failed:',
+        'ProVN signup failed:',
         signupFailure
       )
 
       setError(
-        'Something went wrong while creating your ProVN identity. Try again.'
+        'Could not reach ProVN authentication. Try again.'
       )
     } finally {
-      setLoading(
-        false
-      )
+      setLoading(false)
     }
   }
 
   /* =======================================================
-     LEFT PANEL
-  ======================================================== */
+     OTP INPUT
+  ======================================================= */
 
-  const leftPanel = (
-    <div className="relative flex min-h-[700px] flex-col justify-between overflow-hidden p-10 xl:p-11">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_20%,rgba(158,23,43,.16),transparent_39%),linear-gradient(145deg,#0d080a_0%,#080708_54%,#050506_100%)]" />
+  function updateOtp(
+    index: number,
+    value: string
+  ) {
+    const digit =
+      value
+        .replace(
+          /\D/g,
+          ''
+        )
+        .slice(-1)
 
-      <div className="pointer-events-none absolute left-[-210px] top-[115px] h-[490px] w-[490px] rounded-full border border-[#8e2634]/18" />
+    setOtp(current => {
+      const next =
+        [...current]
 
-      <div className="pointer-events-none absolute left-[-140px] top-[185px] h-[350px] w-[350px] rounded-full border border-[#ae3241]/10" />
+      next[index] =
+        digit
 
-      <div className="relative z-10">
-        <div className="flex items-center gap-3">
-          <span className="h-px w-8 bg-[#9f3040]" />
+      return next
+    })
 
-          <p className="text-[9px] uppercase tracking-[0.38em] text-[#9e414e]">
-            PROVN / IDENTITY 001
-          </p>
-        </div>
+    setOtpError('')
 
-        <h1 className="mt-7 text-[48px] font-black leading-[0.92] tracking-[-0.055em] xl:text-[54px]">
-          <span className="text-[#f7f3f3]">
-            Your Game.
-          </span>
+    if (
+      digit &&
+      index < 5
+    ) {
+      otpRefs
+        .current[
+          index + 1
+        ]
+        ?.focus()
+    }
+  }
 
-          <br />
+  function handleOtpKeyDown(
+    event:
+      KeyboardEvent<HTMLInputElement>,
+    index: number
+  ) {
+    if (
+      event.key ===
+        'Backspace' &&
+      !otp[index] &&
+      index > 0
+    ) {
+      otpRefs
+        .current[
+          index - 1
+        ]
+        ?.focus()
+    }
 
-          <span className="text-[#d42d42]">
-            Your Proof.
-          </span>
+    if (
+      event.key ===
+        'ArrowLeft' &&
+      index > 0
+    ) {
+      event.preventDefault()
 
-          <br />
+      otpRefs
+        .current[
+          index - 1
+        ]
+        ?.focus()
+    }
 
-          <span className="text-[#f7f3f3]">
-            Your Identity.
-          </span>
-        </h1>
+    if (
+      event.key ===
+        'ArrowRight' &&
+      index < 5
+    ) {
+      event.preventDefault()
 
-        <p className="mt-6 max-w-[395px] text-[14px] leading-7 text-zinc-500">
-          Start with a real identity.
-          Build your gaming proof,
-          reputation and opportunities
-          over time.
-        </p>
-      </div>
+      otpRefs
+        .current[
+          index + 1
+        ]
+        ?.focus()
+    }
+  }
 
-      <div className="relative z-10 my-6">
-        <IdentityVisual />
-      </div>
+  function handleOtpPaste(
+    event:
+      ClipboardEvent<HTMLInputElement>
+  ) {
+    event.preventDefault()
 
-      <div className="relative z-10 grid grid-cols-3 gap-3">
-        {[
-          [
-            '01',
-            'Claim Identity',
-          ],
+    const digits =
+      event
+        .clipboardData
+        .getData('text')
+        .replace(
+          /\D/g,
+          ''
+        )
+        .slice(
+          0,
+          6
+        )
+        .split('')
 
-          [
-            '02',
-            'Build Proof',
-          ],
+    if (!digits.length) {
+      return
+    }
 
-          [
-            '03',
-            'Level Up',
-          ],
-        ].map(
-          ([
-            number,
-            label,
-          ]) => (
-            <div
-              key={
-                number
-              }
-              className="rounded-[14px] border border-white/[0.055] bg-white/[0.018] px-4 py-3 transition-all duration-300 hover:-translate-y-[2px] hover:border-[#6e2731] hover:bg-[#11080a]"
-            >
-              <p className="text-[10px] font-semibold text-[#ca4858]">
-                {number}
-              </p>
+    const next =
+      [
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+      ]
 
-              <p className="mt-1 text-[10px] text-zinc-500">
-                {label}
-              </p>
-            </div>
+    digits.forEach(
+      (
+        digit,
+        index
+      ) => {
+        next[index] =
+          digit
+      }
+    )
+
+    setOtp(next)
+
+    otpRefs
+      .current[
+        Math.min(
+          digits.length,
+          5
+        )
+      ]
+      ?.focus()
+  }
+
+  /* =======================================================
+     VERIFY OTP
+  ======================================================= */
+
+  async function verifySignupOtp() {
+    const token =
+      otp.join('')
+
+    setOtpError('')
+
+    if (
+      token.length !== 6
+    ) {
+      setOtpError(
+        'Enter the complete 6-digit verification code.'
+      )
+
+      return
+    }
+
+    setOtpLoading(true)
+
+    try {
+      const {
+        data,
+        error:
+          verifyError,
+      } =
+        await supabase
+          .auth
+          .verifyOtp({
+            email:
+              otpEmail,
+
+            token,
+
+            type:
+              'signup',
+          })
+
+      if (
+        verifyError ||
+        !data.user
+      ) {
+        setOtpError(
+          'That verification code is invalid or expired.'
+        )
+
+        return
+      }
+
+      /*
+        OTP verification creates
+        a temporary session.
+
+        End it so normal sign-in
+        remains separate.
+      */
+
+      const {
+        error:
+          signOutError,
+      } =
+        await supabase
+          .auth
+          .signOut()
+
+      if (
+        signOutError
+      ) {
+        console.error(
+          'Temporary signup session sign-out failed:',
+          signOutError
+        )
+      }
+
+      window
+        .sessionStorage
+        .removeItem(
+          PENDING_SIGNUP_EMAIL_KEY
+        )
+
+      setVerified(true)
+
+      window.setTimeout(
+        () => {
+          window
+            .sessionStorage
+            .setItem(
+              'provn.just-verified',
+              '1'
+            )
+
+          router.replace(
+            '/login'
           )
-        )}
-      </div>
-    </div>
-  )
+
+          router.refresh()
+        },
+        1700
+      )
+    } catch (verifyFailure) {
+      console.error(
+        'OTP verification failed:',
+        verifyFailure
+      )
+
+      setOtpError(
+        'Could not verify the code. Please try again.'
+      )
+    } finally {
+      setOtpLoading(false)
+    }
+  }
+
+  async function resendOtp() {
+    if (
+      resendSeconds > 0
+    ) {
+      return
+    }
+
+    setOtpError('')
+
+    const {
+      error:
+        resendError,
+    } =
+      await supabase
+        .auth
+        .resend({
+          type:
+            'signup',
+
+          email:
+            otpEmail,
+        })
+
+    if (resendError) {
+      setOtpError(
+        'Could not resend the code yet. Try again shortly.'
+      )
+
+      return
+    }
+
+    setResendSeconds(
+      45
+    )
+  }
 
   /* =======================================================
-     RIGHT PANEL
-  ======================================================== */
+     SHARED STYLES
+  ======================================================= */
 
-  const rightPanel = (
-    <div className="relative flex min-h-[700px] items-center px-6 py-9 sm:px-10 lg:px-10 xl:px-12">
-      <div className="pointer-events-none absolute right-[-150px] top-[-150px] h-[330px] w-[330px] rounded-full bg-[#971329]/[0.055] blur-[105px]" />
+  const pageStyles = `
+    @media (pointer: fine) {
+      html,
+      body,
+      body * {
+        cursor:
+          ${PROVN_CURSOR}
+          !important;
+      }
 
-      <div className="relative z-10 mx-auto w-full max-w-[515px]">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-[9px] uppercase tracking-[0.34em] text-[#9e3746]">
-              CREATE ACCOUNT
-            </p>
+      input[data-writing-field="true"],
+      textarea[data-writing-field="true"],
+      [contenteditable="true"] {
+        cursor:
+          text
+          !important;
+      }
 
-            <div className="mt-[7px] flex items-center gap-2">
-              <span className="h-[5px] w-[5px] animate-pulse rounded-full bg-[#d62e45] shadow-[0_0_8px_rgba(214,46,69,.7)]" />
+      button,
+      a,
+      select,
+      [role="button"] {
+        cursor:
+          ${PROVN_CURSOR}
+          !important;
+      }
+    }
 
-              <span className="text-[8px] uppercase tracking-[0.22em] text-zinc-700">
-                Identity Node Online
-              </span>
-            </div>
-          </div>
+    @keyframes pageEntry {
+      from {
+        opacity: 0;
 
-          <span className="hidden rounded-full border border-[#65242e]/65 bg-[#12080a] px-3 py-[7px] text-[8px] uppercase tracking-[0.19em] text-[#94414d] sm:inline-flex">
-            IDENTITY ACCESS
-          </span>
-        </div>
+        transform:
+          translateY(16px)
+          scale(.987);
 
-        <h2 className="mt-5 text-[34px] font-black leading-[0.96] tracking-[-0.05em] sm:text-[40px]">
-          Claim Your{' '}
+        filter:
+          blur(7px);
+      }
 
-          <span className="text-[#d72e43]">
-            Identity.
-          </span>
-        </h2>
+      to {
+        opacity: 1;
 
-        <p className="mt-3 text-[13px] leading-6 text-zinc-500">
-          Real identity underneath.
-          Your public presence stays in
-          your control.
-        </p>
+        transform:
+          translateY(0)
+          scale(1);
 
-        <form
-          onSubmit={
-            handleSignup
-          }
-          noValidate
-          className="mt-7"
-        >
-          <div className="grid gap-5 sm:grid-cols-2">
-            <div>
-              <InputField
-                label="Full Name"
-                value={
-                  fullName
-                }
-                onChange={
-                  setFullName
-                }
-                placeholder="Kanav Agarwal"
-                autoComplete="name"
-              />
+        filter:
+          blur(0);
+      }
+    }
 
-              <p className="mt-2 text-[9px] leading-4 text-zinc-700">
-                Private by default. You
-                decide later if it appears
-                publicly.
-              </p>
-            </div>
+    @keyframes ringSpin {
+      from {
+        transform:
+          translate(-50%, -50%)
+          rotate(0deg);
+      }
 
-            <UsernameField
-              value={
-                username
-              }
-              onChange={
-                setUsername
-              }
-              status={
-                usernameState
-              }
-            />
-          </div>
+      to {
+        transform:
+          translate(-50%, -50%)
+          rotate(360deg);
+      }
+    }
 
-          <div className="mt-5">
-            <InputField
-              label="Email"
-              type="email"
-              value={
-                email
-              }
-              onChange={
-                setEmail
-              }
-              placeholder="you@example.com"
-              autoComplete="email"
-            />
-          </div>
+    @keyframes ringReverse {
+      from {
+        transform:
+          translate(-50%, -50%)
+          rotate(360deg);
+      }
 
-          <div className="mt-5">
-            <InputField
-              label="Password"
-              type={
-                showPassword
-                  ? 'text'
-                  : 'password'
-              }
-              value={
-                password
-              }
-              onChange={
-                setPassword
-              }
-              placeholder="Create a strong password"
-              autoComplete="new-password"
-              rightElement={
-                <button
-                  type="button"
-                  onClick={() =>
-                    setShowPassword(
-                      current =>
-                        !current
-                    )
-                  }
-                  className="text-zinc-600 transition-colors duration-150 hover:text-zinc-300"
-                  aria-label={
-                    showPassword
-                      ? 'Hide password'
-                      : 'Show password'
-                  }
-                >
-                  <EyeIcon
-                    open={
-                      showPassword
-                    }
-                  />
-                </button>
-              }
-            />
+      to {
+        transform:
+          translate(-50%, -50%)
+          rotate(0deg);
+      }
+    }
 
-            <PasswordChecklist
-              rules={
-                passwordRules
-              }
-              password={
-                password
-              }
-            />
-          </div>
+    /* ==========================================
+       WHOLE SIGNUP RECTANGLE
+    =========================================== */
 
-          {error && (
-            <div className="mt-5 rounded-[12px] border border-red-900/60 bg-red-950/20 px-4 py-3 text-[12px] leading-5 text-red-300">
-              {error}
-            </div>
-          )}
+    .signup-shell {
+      --shell-rx:
+        0deg;
 
-          {success && (
-            <div className="mt-5 rounded-[12px] border border-emerald-900/60 bg-emerald-950/20 px-4 py-3 text-[12px] leading-5 text-emerald-300">
-              {success}
-            </div>
-          )}
+      --shell-ry:
+        0deg;
 
-          <button
-            type="submit"
-            disabled={
-              !canSubmit
-            }
-            className="group relative mt-6 flex h-[56px] w-full items-center justify-center overflow-hidden rounded-[13px] border border-[#c02f42] bg-gradient-to-r from-[#8a1224] via-[#b91d34] to-[#d52942] text-[11px] font-bold uppercase tracking-[0.16em] text-white shadow-[0_16px_38px_rgba(120,12,31,.22)] transition-[transform,border-color,box-shadow] duration-200 hover:-translate-y-[2px] hover:border-[#e64b5d] hover:shadow-[0_22px_52px_rgba(151,17,40,.33)] active:translate-y-0 active:scale-[0.992] disabled:translate-y-0 disabled:border-white/[0.06] disabled:bg-none disabled:bg-[#0d0d0f] disabled:text-zinc-700 disabled:shadow-none"
-          >
-            <span className="pointer-events-none absolute inset-y-0 left-[-40%] w-[35%] -skew-x-[22deg] bg-white/[0.10] opacity-0 blur-[4px] transition-all duration-700 group-hover:left-[120%] group-hover:opacity-100" />
+      --shell-mx:
+        50%;
 
-            <span className="relative z-10">
-              {loading
-                ? 'Claiming Identity...'
-                : 'Create Account →'}
-            </span>
-          </button>
+      --shell-my:
+        50%;
 
-          <div className="mt-4 flex items-center justify-between gap-3 text-[8px] uppercase tracking-[0.16em] text-zinc-700">
-            <span>
-              Private Identity
-            </span>
+      --shell-shadow-x:
+        0px;
 
-            <span>
-              Verified Over Time
-            </span>
-          </div>
+      --shell-shadow-y:
+        18px;
 
-          <p className="mt-4 text-center text-[10px] leading-5 text-zinc-700">
-            By creating an account, you
-            agree to ProVN&apos;s Terms
-            and Privacy Policy.
-          </p>
-        </form>
+      --shell-lift:
+        0px;
 
-        <div className="my-6 flex items-center gap-4">
-          <div className="h-px flex-1 bg-white/[0.055]" />
+      --shell-scale:
+        1;
 
-          <span className="text-[8px] uppercase tracking-[0.24em] text-zinc-700">
-            Already locked in?
-          </span>
+      transform:
+        perspective(1450px)
+        translateY(
+          var(--shell-lift)
+        )
+        scale(
+          var(--shell-scale)
+        )
+        rotateX(
+          var(--shell-rx)
+        )
+        rotateY(
+          var(--shell-ry)
+        );
 
-          <div className="h-px flex-1 bg-white/[0.055]" />
-        </div>
+      transform-style:
+        preserve-3d;
 
-        <Link
-          href="/login"
-          className="group flex h-[50px] w-full items-center justify-center gap-2 rounded-[13px] border border-white/[0.075] bg-white/[0.015] text-[11px] font-semibold text-zinc-400 transition-[transform,border-color,background-color,color] duration-200 hover:-translate-y-[1px] hover:border-[#70303a] hover:bg-[#14090c] hover:text-white"
-        >
-          Sign In to ProVN
+      will-change:
+        transform;
 
-          <span className="transition-transform duration-200 group-hover:translate-x-1">
-            →
-          </span>
-        </Link>
-      </div>
-    </div>
-  )
+      transition:
+        transform
+          145ms
+          ease-out,
+
+        border-color
+          260ms ease,
+
+        box-shadow
+          260ms ease;
+    }
+
+    .signup-shell:hover {
+      --shell-lift:
+        -7px;
+
+      --shell-scale:
+        1.008;
+
+      border-color:
+        rgba(
+          255,
+          255,
+          255,
+          .13
+        );
+
+      box-shadow:
+        var(--shell-shadow-x)
+        var(--shell-shadow-y)
+        95px
+        rgba(
+          0,
+          0,
+          0,
+          .73
+        ),
+
+        0 35px 80px
+        rgba(
+          0,
+          0,
+          0,
+          .34
+        ),
+
+        0 0 0 1px
+        rgba(
+          229,
+          51,
+          76,
+          .035
+        ),
+
+        0 0 82px
+        rgba(
+          126,
+          12,
+          32,
+          .11
+        );
+    }
+
+    .shell-reflection {
+      background:
+        radial-gradient(
+          440px circle
+          at
+          var(--shell-mx)
+          var(--shell-my),
+
+          rgba(
+            255,
+            255,
+            255,
+            .065
+          ),
+
+          rgba(
+            235,
+            52,
+            78,
+            .052
+          )
+          20%,
+
+          rgba(
+            235,
+            52,
+            78,
+            .015
+          )
+          38%,
+
+          transparent
+          65%
+        );
+
+      opacity: 0;
+
+      transition:
+        opacity
+        220ms ease;
+    }
+
+    .signup-shell:hover
+    .shell-reflection {
+      opacity: 1;
+    }
+
+    .shell-left-depth {
+      transform:
+        translateZ(24px);
+
+      transform-style:
+        preserve-3d;
+    }
+
+    .shell-right-depth {
+      transform:
+        translateZ(18px);
+
+      transform-style:
+        preserve-3d;
+    }
+
+    /* ==========================================
+       INTERNAL POPS
+    =========================================== */
+
+    .identity-visual {
+      transition:
+        transform
+          300ms
+          cubic-bezier(.16,1,.3,1),
+
+        border-color
+          250ms ease,
+
+        box-shadow
+          250ms ease;
+    }
+
+    .identity-visual:hover {
+      transform:
+        translateY(-5px)
+        scale(1.008);
+
+      border-color:
+        rgba(
+          203,
+          54,
+          76,
+          .28
+        );
+
+      box-shadow:
+        0 22px 50px
+        rgba(
+          0,
+          0,
+          0,
+          .25
+        ),
+
+        0 0 45px
+        rgba(
+          137,
+          17,
+          37,
+          .08
+        );
+    }
+
+    .identity-core {
+      transition:
+        transform
+          300ms
+          cubic-bezier(.16,1,.3,1),
+
+        box-shadow
+          300ms ease;
+    }
+
+    .identity-visual:hover
+    .identity-core {
+      transform:
+        translate(-50%, -50%)
+        scale(1.09);
+
+      box-shadow:
+        0 0 85px
+        rgba(
+          190,
+          30,
+          55,
+          .29
+        );
+    }
+
+    .visual-chip {
+      transition:
+        transform
+          220ms ease,
+
+        border-color
+          220ms ease;
+    }
+
+    .visual-chip:hover {
+      transform:
+        translateY(-3px);
+
+      border-color:
+        rgba(
+          220,
+          59,
+          80,
+          .30
+        );
+    }
+
+    .signup-field {
+      transition:
+        transform
+          210ms
+          cubic-bezier(.16,1,.3,1),
+
+        box-shadow
+          210ms ease;
+    }
+
+    .signup-field:hover {
+      transform:
+        translateY(-2px);
+
+      box-shadow:
+        0 13px 30px
+        rgba(
+          0,
+          0,
+          0,
+          .18
+        );
+    }
+
+    .signup-button {
+      transition:
+        transform
+          220ms
+          cubic-bezier(.16,1,.3,1),
+
+        border-color
+          220ms ease,
+
+        box-shadow
+          220ms ease;
+    }
+
+    .signup-button:hover {
+      transform:
+        translateY(-3px)
+        scale(1.005);
+    }
+
+    .signup-button:active {
+      transform:
+        translateY(0)
+        scale(.997);
+    }
+
+    @media (
+      prefers-reduced-motion:
+      reduce
+    ) {
+      .signup-shell,
+      .identity-visual,
+      .signup-field,
+      .signup-button {
+        transform:
+          none !important;
+
+        transition:
+          none !important;
+      }
+    }
+  `
 
   /* =======================================================
-     PAGE
-  ======================================================== */
+     OTP VIEW
+  ======================================================= */
+
+  if (
+    step === 'otp'
+  ) {
+    return (
+      <>
+        <style>
+          {pageStyles}
+        </style>
+
+        <main className="relative min-h-screen overflow-hidden bg-[#020203] text-white">
+
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                'radial-gradient(circle at 50% 42%, rgba(112,10,28,.15), transparent 31%), radial-gradient(circle at 13% 17%, rgba(89,7,22,.11), transparent 28%), #020203',
+            }}
+          />
+
+          <header className="relative z-40">
+
+            <div className="mx-auto flex h-[72px] max-w-[1400px] items-center justify-between px-6 sm:px-8 lg:px-10">
+
+              <ProVNLogo />
+
+              <button
+                type="button"
+                onClick={() => {
+                  setStep(
+                    'form'
+                  )
+
+                  setOtpError('')
+                }}
+                className="text-[9px] font-medium text-zinc-600 transition-colors hover:text-zinc-300"
+              >
+                ← Change details
+              </button>
+            </div>
+          </header>
+
+          <div className="relative z-10 mx-auto flex min-h-[calc(100vh-72px)] max-w-[1400px] items-center justify-center px-5 pb-10">
+
+            <div
+              onPointerMove={
+                handleShellMove
+              }
+              onPointerLeave={
+                resetShell
+              }
+              className="signup-shell relative w-full max-w-[560px] overflow-hidden rounded-[28px] border border-white/[0.08] bg-[#070708]/95 shadow-[0_45px_110px_rgba(0,0,0,.66)]"
+              style={{
+                animation:
+                  'pageEntry .55s cubic-bezier(.16,1,.3,1) both',
+              }}
+            >
+
+              <div className="shell-reflection pointer-events-none absolute inset-0 z-[5]" />
+
+              <div className="relative z-10 px-7 py-8 sm:px-10 sm:py-10">
+
+                {verified ? (
+                  <div className="flex min-h-[450px] flex-col items-center justify-center text-center">
+
+                    <div className="relative h-[150px] w-[150px]">
+
+                      <div className="absolute left-1/2 top-1/2 h-[145px] w-[145px] animate-[ringSpin_8s_linear_infinite] rounded-full border border-[#8d2132]/40" />
+
+                      <div className="absolute left-1/2 top-1/2 h-[112px] w-[112px] animate-[ringReverse_5s_linear_infinite] rounded-full border border-[#b72b40]/38" />
+
+                      <div className="absolute left-1/2 top-1/2 flex h-[78px] w-[78px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-[#b72e42]/60 bg-[#0c0608] shadow-[0_0_70px_rgba(184,28,51,.26)]">
+
+                        <div className="scale-[.86]">
+                          <ProVNMark id="verified-core" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <p className="mt-7 text-[8px] uppercase tracking-[0.36em] text-[#a53a4a]">
+                      Authentication Complete
+                    </p>
+
+                    <h1 className="mt-4 text-[35px] font-black tracking-[-0.045em]">
+
+                      Identity{' '}
+
+                      <span className="text-[#dc3349]">
+                        Verified.
+                      </span>
+                    </h1>
+
+                    <p className="mt-4 max-w-[350px] text-[11px] leading-6 text-zinc-600">
+                      Your ProVN identity has
+                      been created. Moving you
+                      to secure access.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-between">
+
+                      <div>
+
+                        <p className="text-[8px] uppercase tracking-[0.34em] text-[#a43748]">
+                          IDENTITY CHECK
+                        </p>
+
+                        <div className="mt-2 flex items-center gap-2">
+
+                          <span className="h-[5px] w-[5px] animate-pulse rounded-full bg-[#dc3149] shadow-[0_0_8px_rgba(220,49,73,.8)]" />
+
+                          <span className="text-[7px] uppercase tracking-[0.2em] text-zinc-700">
+                            Verification Node Active
+                          </span>
+                        </div>
+                      </div>
+
+                      <span className="rounded-full border border-[#66242e]/60 bg-[#12080a] px-3 py-2 text-[6px] uppercase tracking-[0.2em] text-[#923f4a]">
+                        STEP 02
+                      </span>
+                    </div>
+
+                    <div className="mt-8 text-center">
+
+                      <h1 className="text-[32px] font-black leading-none tracking-[-0.045em]">
+
+                        Verify your{' '}
+
+                        <span className="text-[#d92f47]">
+                          identity.
+                        </span>
+                      </h1>
+
+                      <p className="mx-auto mt-4 max-w-[410px] text-[11px] leading-6 text-zinc-600">
+
+                        Enter the 6-digit code
+                        sent to{' '}
+
+                        <span className="text-zinc-400">
+                          {otpEmail}
+                        </span>
+                      </p>
+                    </div>
+
+                    <div
+                      onPaste={
+                        handleOtpPaste
+                      }
+                      className="mt-8 grid grid-cols-6 gap-2.5"
+                    >
+
+                      {otp.map(
+                        (
+                          digit,
+                          index
+                        ) => (
+                          <input
+                            key={
+                              index
+                            }
+                            ref={
+                              element => {
+                                otpRefs
+                                  .current[
+                                    index
+                                  ] =
+                                  element
+                              }
+                            }
+                            data-writing-field="true"
+                            inputMode="numeric"
+                            autoComplete={
+                              index === 0
+                                ? 'one-time-code'
+                                : 'off'
+                            }
+                            maxLength={1}
+                            value={
+                              digit
+                            }
+                            onChange={
+                              event =>
+                                updateOtp(
+                                  index,
+                                  event
+                                    .target
+                                    .value
+                                )
+                            }
+                            onKeyDown={
+                              event =>
+                                handleOtpKeyDown(
+                                  event,
+                                  index
+                                )
+                            }
+                            className="h-[58px] min-w-0 rounded-[12px] border border-white/[0.08] bg-[#09090b] text-center text-[20px] font-bold text-white outline-none transition focus:border-[#b02a3f] focus:bg-[#0e080a] focus:shadow-[0_0_0_3px_rgba(177,35,56,.07),0_0_24px_rgba(121,14,30,.13)]"
+                          />
+                        )
+                      )}
+                    </div>
+
+                    {otpError && (
+                      <div className="mt-5 rounded-[12px] border border-red-900/55 bg-red-950/20 px-4 py-3 text-[10px] leading-5 text-red-300">
+                        {otpError}
+                      </div>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={
+                        verifySignupOtp
+                      }
+                      disabled={
+                        otpLoading ||
+                        otp.join('')
+                          .length !== 6
+                      }
+                      className="signup-button group relative mt-6 flex h-[54px] w-full items-center justify-center overflow-hidden rounded-[13px] border border-[#bd3043] bg-gradient-to-r from-[#841122] via-[#b41c32] to-[#d12a42] text-[9px] font-bold uppercase tracking-[0.18em] text-white shadow-[0_16px_38px_rgba(120,12,31,.22)] hover:border-[#eb5263] hover:shadow-[0_20px_50px_rgba(152,18,40,.30)] disabled:translate-y-0 disabled:scale-100 disabled:border-white/[0.06] disabled:bg-none disabled:bg-[#0d0d0f] disabled:text-zinc-700 disabled:shadow-none"
+                    >
+
+                      <span className="pointer-events-none absolute inset-y-0 left-[-45%] w-[35%] -skew-x-[20deg] bg-white/[0.10] opacity-0 blur-[4px] transition-all duration-700 group-hover:left-[120%] group-hover:opacity-100" />
+
+                      <span className="relative z-10">
+                        {otpLoading
+                          ? 'VERIFYING...'
+                          : 'VERIFY IDENTITY →'}
+                      </span>
+                    </button>
+
+                    <div className="mt-7 flex items-center justify-center gap-2 text-[8px] text-zinc-700">
+
+                      <span>
+                        Didn&apos;t receive it?
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={
+                          resendOtp
+                        }
+                        disabled={
+                          resendSeconds >
+                          0
+                        }
+                        className="font-semibold text-zinc-500 transition-colors hover:text-zinc-200 disabled:text-zinc-700"
+                      >
+                        {resendSeconds >
+                        0
+                          ? `Resend in ${resendSeconds}s`
+                          : 'Resend code'}
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </main>
+      </>
+    )
+  }
+
+  /* =======================================================
+     SIGNUP FORM
+  ======================================================= */
 
   return (
     <>
       <style>
-        {`
-          @media (pointer: fine) {
-
-            html,
-            body,
-            body * {
-              cursor: ${PROVN_CURSOR} !important;
-            }
-
-            input[data-writing-field="true"],
-            textarea[data-writing-field="true"],
-            [contenteditable="true"] {
-              cursor: text !important;
-            }
-
-            button,
-            a,
-            select,
-            [role="button"] {
-              cursor: ${PROVN_CURSOR} !important;
-            }
-
-          }
-        `}
+        {pageStyles}
       </style>
 
       <main className="relative min-h-screen overflow-hidden bg-[#020203] text-white">
+
+        {/* BACKGROUND */}
+
         <div
           className="pointer-events-none absolute inset-0"
           style={{
             background:
-              'radial-gradient(circle at 7% 17%, rgba(125,9,27,.13), transparent 31%), radial-gradient(circle at 93% 20%, rgba(115,10,29,.09), transparent 28%), radial-gradient(circle at 50% 110%, rgba(88,5,20,.11), transparent 43%), #020203',
+              'radial-gradient(circle at 7% 32%, rgba(119,8,28,.15), transparent 29%), radial-gradient(circle at 91% 21%, rgba(102,8,25,.09), transparent 29%), radial-gradient(circle at 50% 108%, rgba(94,6,23,.09), transparent 38%), #020203',
           }}
         />
 
         <div
-          className="pointer-events-none absolute inset-0 opacity-[0.095]"
+          className="pointer-events-none absolute inset-0 opacity-[0.05]"
           style={{
             backgroundImage:
               'linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px)',
-
             backgroundSize:
-              '76px 76px',
+              '88px 88px',
           }}
         />
 
-        <div className="pointer-events-none absolute -left-[285px] top-[150px] h-[650px] w-[650px] animate-spin rounded-full border border-[#70202c]/14 [animation-duration:38s]" />
+        {/* HEADER */}
 
-        <div className="pointer-events-none absolute -right-[325px] bottom-[-170px] h-[710px] w-[710px] animate-spin rounded-full border border-[#812430]/13 [animation-direction:reverse] [animation-duration:46s]" />
+        <header className="relative z-40">
 
-        <div className="pointer-events-none absolute left-[8%] top-[39%] h-[7px] w-[7px] animate-pulse rounded-full bg-[#c42d43] shadow-[0_0_16px_rgba(196,45,67,.65)]" />
+          <div className="mx-auto flex h-[72px] max-w-[1400px] items-center justify-between px-6 sm:px-8 lg:px-10">
 
-        <div className="pointer-events-none absolute right-[9%] top-[47%] h-[6px] w-[6px] animate-pulse rounded-full bg-[#c22b40] shadow-[0_0_14px_rgba(194,43,64,.58)]" />
-
-        <div className="pointer-events-none absolute bottom-[14%] left-[18%] h-[4px] w-[4px] animate-pulse rounded-full bg-[#9f2638] shadow-[0_0_10px_rgba(159,38,56,.58)]" />
-
-        <header className="absolute left-0 top-0 z-40 w-full">
-          <div className="mx-auto flex h-[82px] max-w-[1500px] items-center justify-between px-5 sm:px-7 lg:px-10">
             <ProVNLogo />
 
             <Link
               href="/"
-              className="group flex items-center gap-2 text-[11px] font-medium text-zinc-600 transition-colors duration-200 hover:text-zinc-200"
+              className="group flex items-center gap-2 text-[9px] font-medium text-zinc-600 transition-all duration-200 hover:-translate-y-[1px] hover:text-zinc-300"
             >
               <span className="transition-transform duration-200 group-hover:-translate-x-1">
                 ←
@@ -2126,20 +2075,541 @@ export default function SignupPage() {
           </div>
         </header>
 
-        <div
-          ref={
-            pageRef
-          }
-          className="relative z-10 mx-auto flex min-h-screen max-w-[1500px] items-center justify-center px-5 pb-12 pt-[102px] sm:px-7 lg:px-10"
-        >
-          <InteractivePanel
-            left={
-              leftPanel
+        {/* ===============================================
+            SIGNUP RECTANGLE
+
+            Compact again:
+            MAX WIDTH 1120px
+            NOT STRETCHED ACROSS SCREEN.
+        ================================================ */}
+
+        <div className="relative z-10 mx-auto flex min-h-[calc(100vh-72px)] max-w-[1400px] items-center justify-center px-5 pb-10 sm:px-7 lg:px-9">
+
+          <div
+            onPointerMove={
+              handleShellMove
             }
-            right={
-              rightPanel
+            onPointerLeave={
+              resetShell
             }
-          />
+            className="signup-shell relative w-full max-w-[1120px] overflow-hidden rounded-[28px] border border-white/[0.08] bg-[#070708]/[0.98] shadow-[0_46px_110px_rgba(0,0,0,.70)]"
+            style={{
+              animation:
+                'pageEntry .6s cubic-bezier(.16,1,.3,1) both',
+            }}
+          >
+
+            {/* CURSOR REFLECTION */}
+
+            <div className="shell-reflection pointer-events-none absolute inset-0 z-[10]" />
+
+            {/* METALLIC TOP */}
+
+            <div className="pointer-events-none absolute left-[3%] right-[3%] top-0 z-20 h-px bg-gradient-to-r from-transparent via-white/[0.14] to-transparent opacity-50" />
+
+            <div className="pointer-events-none absolute inset-[1px] z-20 rounded-[27px] border border-white/[0.014]" />
+
+            <div className="relative z-[3] grid lg:grid-cols-[.96fr_1.04fr]">
+
+              {/* =========================================
+                  LEFT
+              ========================================== */}
+
+              <section className="relative hidden min-h-[655px] overflow-hidden border-r border-white/[0.055] p-9 lg:flex lg:flex-col">
+
+                <div
+                  className="pointer-events-none absolute inset-0"
+                  style={{
+                    background:
+                      'radial-gradient(circle at 33% 48%,rgba(143,15,38,.15),transparent 43%),linear-gradient(145deg,#0d0709_0%,#080708_58%,#050506_100%)',
+                  }}
+                />
+
+                <div className="shell-left-depth relative z-10 flex h-full flex-col">
+
+                  <div>
+
+                    <div className="flex items-center gap-3">
+
+                      <span className="h-px w-8 bg-[#9d2c3d]" />
+
+                      <p className="text-[7px] uppercase tracking-[0.38em] text-[#9b3746]">
+                        PROVN / IDENTITY 001
+                      </p>
+                    </div>
+
+                    <h1 className="mt-7 text-[47px] font-black leading-[0.91] tracking-[-0.058em]">
+
+                      Your Game.
+                      <br />
+
+                      <span className="text-[#dc3048]">
+                        Your Proof.
+                      </span>
+
+                      <br />
+
+                      Your Identity.
+                    </h1>
+
+                    <p className="mt-6 max-w-[390px] text-[12px] leading-6 text-zinc-500">
+
+                      Start with a real
+                      identity. Build your
+                      gaming proof, reputation
+                      and opportunities over
+                      time.
+                    </p>
+
+                    <IdentityVisual />
+                  </div>
+
+                  {/* BOTTOM CARDS */}
+
+                  <div className="mt-6 grid grid-cols-3 gap-3">
+
+                    <div className="visual-chip rounded-[14px] border border-white/[0.06] bg-white/[0.015] px-4 py-3.5">
+
+                      <p className="text-[8px] font-bold text-[#bd3347]">
+                        01
+                      </p>
+
+                      <p className="mt-2 text-[9px] text-zinc-500">
+                        Claim Identity
+                      </p>
+                    </div>
+
+                    <div className="visual-chip rounded-[14px] border border-white/[0.06] bg-white/[0.015] px-4 py-3.5">
+
+                      <p className="text-[8px] font-bold text-[#bd3347]">
+                        02
+                      </p>
+
+                      <p className="mt-2 text-[9px] text-zinc-500">
+                        Build Proof
+                      </p>
+                    </div>
+
+                    <div className="visual-chip rounded-[14px] border border-white/[0.06] bg-white/[0.015] px-4 py-3.5">
+
+                      <p className="text-[8px] font-bold text-[#bd3347]">
+                        03
+                      </p>
+
+                      <p className="mt-2 text-[9px] text-zinc-500">
+                        Level Up
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* =========================================
+                  RIGHT FORM
+              ========================================== */}
+
+              <section className="relative flex min-h-[655px] items-center px-7 py-8 sm:px-9 lg:px-10">
+
+                <div className="pointer-events-none absolute right-[-150px] top-[-160px] h-[340px] w-[340px] rounded-full bg-[#9a142a]/[0.05] blur-[105px]" />
+
+                <div className="shell-right-depth relative z-10 mx-auto w-full max-w-[470px]">
+
+                  {/* TOP */}
+
+                  <div className="flex items-center justify-between">
+
+                    <div>
+
+                      <p className="text-[8px] uppercase tracking-[0.34em] text-[#a33849]">
+                        CREATE IDENTITY
+                      </p>
+
+                      <div className="mt-2 flex items-center gap-2">
+
+                        <span className="h-[5px] w-[5px] rounded-full bg-[#d9324a] shadow-[0_0_8px_rgba(217,50,74,.75)]" />
+
+                        <span className="text-[7px] uppercase tracking-[0.2em] text-zinc-700">
+                          Identity Node Ready
+                        </span>
+                      </div>
+                    </div>
+
+                    <span className="hidden rounded-full border border-[#65232d]/60 bg-[#110709] px-3 py-[7px] text-[6px] uppercase tracking-[0.19em] text-[#8f3b48] sm:inline-flex">
+                      STEP 01
+                    </span>
+                  </div>
+
+                  {/* HEADING */}
+
+                  <h2 className="mt-5 text-[34px] font-black leading-[.98] tracking-[-0.048em] sm:text-[38px]">
+
+                    Build your{' '}
+
+                    <span className="text-[#dc3048]">
+                      ProVN identity.
+                    </span>
+                  </h2>
+
+                  <p className="mt-3 text-[10px] leading-5 text-zinc-600">
+
+                    Real identity underneath.
+                    Your public presence stays
+                    in your control.
+                  </p>
+
+                  {/* FORM */}
+
+                  <form
+                    onSubmit={
+                      handleSignup
+                    }
+                    noValidate
+                    className="mt-6"
+                  >
+
+                    {/* NAME + USERNAME */}
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+
+                      {/* FULL NAME */}
+
+                      <div>
+
+                        <label className="mb-2 block text-[7px] font-semibold uppercase tracking-[0.24em] text-zinc-500">
+                          Full Name
+                        </label>
+
+                        <div className="signup-field rounded-[12px]">
+
+                          <input
+                            data-writing-field="true"
+                            value={
+                              fullName
+                            }
+                            onChange={
+                              event => {
+                                setFullName(
+                                  event
+                                    .target
+                                    .value
+                                )
+
+                                setError('')
+                              }
+                            }
+                            placeholder="Kanav Agarwal"
+                            autoComplete="name"
+                            className="h-[52px] w-full rounded-[12px] border border-white/[0.08] bg-[#08080a]/95 px-4 text-[12px] text-zinc-100 outline-none transition placeholder:text-zinc-700 focus:border-[#a62c3b] focus:bg-[#0d090b] focus:shadow-[0_0_0_3px_rgba(173,37,55,.07),0_0_26px_rgba(117,13,29,.10)]"
+                          />
+                        </div>
+
+                        <p className="mt-2 text-[6px] leading-4 text-zinc-700">
+                          Private by default.
+                        </p>
+                      </div>
+
+                      {/* USERNAME */}
+
+                      <div>
+
+                        <label className="mb-2 block text-[7px] font-semibold uppercase tracking-[0.24em] text-zinc-500">
+                          Username
+                        </label>
+
+                        <div className="signup-field relative rounded-[12px]">
+
+                          <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[12px] text-zinc-600">
+                            @
+                          </span>
+
+                          <input
+                            data-writing-field="true"
+                            value={
+                              username
+                            }
+                            onChange={
+                              event => {
+                                setUsername(
+                                  event
+                                    .target
+                                    .value
+                                    .toLowerCase()
+                                    .replace(
+                                      /\s/g,
+                                      ''
+                                    )
+                                    .replace(
+                                      /^@/,
+                                      ''
+                                    )
+                                )
+
+                                setError('')
+                              }
+                            }
+                            placeholder="yourname"
+                            autoComplete="username"
+                            autoCapitalize="none"
+                            autoCorrect="off"
+                            spellCheck={false}
+                            maxLength={20}
+                            className="h-[52px] w-full rounded-[12px] border border-white/[0.08] bg-[#08080a]/95 py-0 pl-8 pr-4 text-[12px] text-zinc-100 outline-none transition placeholder:text-zinc-700 focus:border-[#a62c3b] focus:bg-[#0d090b] focus:shadow-[0_0_0_3px_rgba(173,37,55,.07),0_0_26px_rgba(117,13,29,.10)]"
+                          />
+                        </div>
+
+                        <div className="mt-2 flex min-h-[16px] items-center justify-between gap-2">
+
+                          <p className="max-w-[150px] truncate text-[6px] text-zinc-700">
+                            provn.games/profiles/
+                            {cleanedUsername ||
+                              'yourname'}
+                          </p>
+
+                          {usernameState ===
+                            'checking' && (
+                            <span className="text-[6px] text-zinc-600">
+                              Checking...
+                            </span>
+                          )}
+
+                          {usernameState ===
+                            'available' && (
+                            <span className="text-[6px] text-emerald-500/80">
+                              Available
+                            </span>
+                          )}
+
+                          {usernameState ===
+                            'taken' && (
+                            <span className="text-[6px] text-red-400">
+                              Taken
+                            </span>
+                          )}
+
+                          {usernameState ===
+                            'invalid' && (
+                            <span className="text-[6px] text-red-400">
+                              Invalid
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* EMAIL */}
+
+                    <div className="mt-4">
+
+                      <label className="mb-2 block text-[7px] font-semibold uppercase tracking-[0.24em] text-zinc-500">
+                        Email
+                      </label>
+
+                      <div className="signup-field rounded-[12px]">
+
+                        <input
+                          data-writing-field="true"
+                          type="email"
+                          value={
+                            email
+                          }
+                          onChange={
+                            event => {
+                              setEmail(
+                                event
+                                  .target
+                                  .value
+                              )
+
+                              setError('')
+                            }
+                          }
+                          placeholder="you@example.com"
+                          autoComplete="email"
+                          className="h-[52px] w-full rounded-[12px] border border-white/[0.08] bg-[#08080a]/95 px-4 text-[12px] text-zinc-100 outline-none transition placeholder:text-zinc-700 focus:border-[#a62c3b] focus:bg-[#0d090b] focus:shadow-[0_0_0_3px_rgba(173,37,55,.07),0_0_26px_rgba(117,13,29,.10)]"
+                        />
+                      </div>
+                    </div>
+
+                    {/* PASSWORD */}
+
+                    <div className="mt-4">
+
+                      <label className="mb-2 block text-[7px] font-semibold uppercase tracking-[0.24em] text-zinc-500">
+                        Password
+                      </label>
+
+                      <div className="signup-field relative rounded-[12px]">
+
+                        <input
+                          data-writing-field="true"
+                          type={
+                            showPassword
+                              ? 'text'
+                              : 'password'
+                          }
+                          value={
+                            password
+                          }
+                          onChange={
+                            event => {
+                              setPassword(
+                                event
+                                  .target
+                                  .value
+                              )
+
+                              setError('')
+                            }
+                          }
+                          placeholder="Create a strong password"
+                          autoComplete="new-password"
+                          className="h-[52px] w-full rounded-[12px] border border-white/[0.08] bg-[#08080a]/95 px-4 pr-12 text-[12px] text-zinc-100 outline-none transition placeholder:text-zinc-700 focus:border-[#a62c3b] focus:bg-[#0d090b] focus:shadow-[0_0_0_3px_rgba(173,37,55,.07),0_0_26px_rgba(117,13,29,.10)]"
+                        />
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setShowPassword(
+                              current =>
+                                !current
+                            )
+                          }
+                          aria-label={
+                            showPassword
+                              ? 'Hide password'
+                              : 'Show password'
+                          }
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-600 transition hover:text-zinc-300"
+                        >
+
+                          <EyeIcon
+                            open={
+                              showPassword
+                            }
+                          />
+                        </button>
+                      </div>
+
+                      {/* PASSWORD RULES */}
+
+                      <div className="mt-3 grid grid-cols-4 gap-2">
+
+                        {[
+                          [
+                            passwordRules.length,
+                            '8+ chars',
+                          ],
+                          [
+                            passwordRules.uppercase,
+                            'Uppercase',
+                          ],
+                          [
+                            passwordRules.lowercase,
+                            'Lowercase',
+                          ],
+                          [
+                            passwordRules.number,
+                            'Number',
+                          ],
+                        ].map(
+                          (
+                            [
+                              passed,
+                              label,
+                            ]
+                          ) => (
+                            <div
+                              key={
+                                String(
+                                  label
+                                )
+                              }
+                              className="flex items-center gap-1.5 text-[6px]"
+                            >
+
+                              <span
+                                className={`h-[4px] w-[4px] rounded-full ${
+                                  passed
+                                    ? 'bg-emerald-500/80'
+                                    : 'bg-zinc-800'
+                                }`}
+                              />
+
+                              <span
+                                className={
+                                  passed
+                                    ? 'text-zinc-500'
+                                    : 'text-zinc-700'
+                                }
+                              >
+                                {String(
+                                  label
+                                )}
+                              </span>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </div>
+
+                    {/* ERROR */}
+
+                    {error && (
+                      <div className="mt-4 rounded-[11px] border border-red-900/55 bg-red-950/20 px-4 py-3 text-[9px] leading-5 text-red-300">
+                        {error}
+                      </div>
+                    )}
+
+                    {/* CREATE ACCOUNT */}
+
+                    <button
+                      type="submit"
+                      disabled={
+                        !canSubmit
+                      }
+                      className="signup-button group relative mt-5 flex h-[54px] w-full items-center justify-center overflow-hidden rounded-[13px] border border-[#bf3044] bg-gradient-to-r from-[#861122] via-[#b51d33] to-[#d02a42] text-[9px] font-bold uppercase tracking-[0.18em] text-white shadow-[0_16px_40px_rgba(119,12,30,.22)] hover:border-[#e64b5e] hover:shadow-[0_22px_52px_rgba(151,17,40,.32)] disabled:translate-y-0 disabled:scale-100 disabled:border-white/[0.06] disabled:bg-none disabled:bg-[#0d0d0f] disabled:text-zinc-700 disabled:shadow-none"
+                    >
+
+                      <span className="pointer-events-none absolute inset-y-0 left-[-40%] w-[35%] -skew-x-[22deg] bg-white/[0.10] opacity-0 blur-[4px] transition-all duration-700 group-hover:left-[120%] group-hover:opacity-100" />
+
+                      <span className="relative z-10">
+                        {loading
+                          ? 'CREATING IDENTITY...'
+                          : 'CREATE ACCOUNT →'}
+                      </span>
+                    </button>
+                  </form>
+
+                  {/* SMALL META ONLY */}
+
+                  <div className="mt-5 flex items-center justify-between text-[6px] uppercase tracking-[0.2em] text-zinc-800">
+
+                    <span>
+                      Private Identity
+                    </span>
+
+                    <span>
+                      Verified Over Time
+                    </span>
+                  </div>
+
+                  <p className="mt-5 text-center text-[7px] leading-5 text-zinc-700">
+
+                    By creating an account,
+                    you agree to ProVN&apos;s
+                    Terms and Privacy Policy.
+                  </p>
+
+                  {/*
+                    INTENTIONALLY NO:
+                    "ALREADY LOCKED IN?"
+                    or
+                    "SIGN IN TO PROVN"
+                  */}
+                </div>
+              </section>
+            </div>
+          </div>
         </div>
       </main>
     </>
