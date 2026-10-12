@@ -14,7 +14,6 @@ function jsonResponse(
     body,
     {
       status,
-
       headers: {
         'Cache-Control':
           'no-store',
@@ -28,7 +27,7 @@ export async function POST(
 ) {
   try {
     /* =====================================================
-       AUTHENTICATED SERVER CLIENT
+       AUTH
     ====================================================== */
 
     const supabase =
@@ -38,9 +37,7 @@ export async function POST(
       data: userResult,
       error: userError,
     } =
-      await supabase
-        .auth
-        .getUser()
+      await supabase.auth.getUser()
 
     const user =
       userResult.user
@@ -60,20 +57,17 @@ export async function POST(
     }
 
     /* =====================================================
-       REQUEST BODY
+       BODY
     ====================================================== */
 
     const body =
       await request
         .json()
-        .catch(
-          () => null
-        )
+        .catch(() => null)
 
     if (
       !body ||
-      typeof body !==
-        'object'
+      typeof body !== 'object'
     ) {
       return jsonResponse(
         {
@@ -89,6 +83,7 @@ export async function POST(
       body as {
         displayName?: unknown
         bio?: unknown
+        avatarUrl?: unknown
       }
 
     const displayName =
@@ -148,10 +143,115 @@ export async function POST(
     }
 
     /* =====================================================
-       UPDATE OWN PROFILE
+       UPDATE PAYLOAD
+    ====================================================== */
 
-       RLS guarantees the user can only update
-       the row where profiles.id = auth.uid()
+    const updatePayload: {
+      display_name: string | null
+      bio: string | null
+      avatar_url?: string | null
+    } = {
+      display_name:
+        displayName || null,
+
+      bio:
+        bio || null,
+    }
+
+    /* =====================================================
+       OPTIONAL AVATAR URL
+
+       undefined = do not change avatar
+       null      = remove avatar
+       string    = save new avatar
+    ====================================================== */
+
+    if (
+      input.avatarUrl ===
+      null
+    ) {
+      updatePayload.avatar_url =
+        null
+    }
+
+    if (
+      typeof input.avatarUrl ===
+      'string'
+    ) {
+      const avatarUrl =
+        input.avatarUrl.trim()
+
+      if (
+        avatarUrl.length > 1000
+      ) {
+        return jsonResponse(
+          {
+            ok: false,
+            error:
+              'Avatar URL is invalid.',
+          },
+          400
+        )
+      }
+
+      try {
+        const parsedAvatar =
+          new URL(
+            avatarUrl
+          )
+
+        const supabaseUrl =
+          process.env
+            .NEXT_PUBLIC_SUPABASE_URL
+
+        if (!supabaseUrl) {
+          throw new Error(
+            'Missing Supabase URL.'
+          )
+        }
+
+        const expectedHost =
+          new URL(
+            supabaseUrl
+          ).host
+
+        const expectedPath =
+          `/storage/v1/object/public/avatars/${user.id}/`
+
+        const validAvatar =
+          parsedAvatar.host ===
+            expectedHost &&
+          parsedAvatar.pathname.startsWith(
+            expectedPath
+          )
+
+        if (!validAvatar) {
+          return jsonResponse(
+            {
+              ok: false,
+              error:
+                'Avatar URL is not valid for this account.',
+            },
+            400
+          )
+        }
+
+        updatePayload.avatar_url =
+          avatarUrl
+      } catch {
+        return jsonResponse(
+          {
+            ok: false,
+            error:
+              'Avatar URL is invalid.',
+          },
+          400
+        )
+      }
+    }
+
+    /* =====================================================
+       UPDATE PROFILE
     ====================================================== */
 
     const {
@@ -160,21 +260,21 @@ export async function POST(
     } =
       await supabase
         .from('profiles')
-        .update({
-          display_name:
-            displayName ||
-            null,
-
-          bio:
-            bio ||
-            null,
-        })
+        .update(
+          updatePayload
+        )
         .eq(
           'id',
           user.id
         )
         .select(
-          'id, username, display_name, avatar_url, bio'
+          `
+            id,
+            username,
+            display_name,
+            avatar_url,
+            bio
+          `
         )
         .single()
 
