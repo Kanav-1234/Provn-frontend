@@ -35,13 +35,12 @@ type Profile = {
 
 type CurrentUser = {
   id: string
-  email: string | null
   emailVerified: boolean
   fullName: string | null
 }
 
 /* =========================================================
-   PROVN CURSOR
+   CURSOR
 ========================================================= */
 
 const provnCursorSvg = `
@@ -119,13 +118,11 @@ function BigTiltSurface({
       element.getBoundingClientRect()
 
     const x =
-      (event.clientX -
-        rect.left) /
+      (event.clientX - rect.left) /
       rect.width
 
     const y =
-      (event.clientY -
-        rect.top) /
+      (event.clientY - rect.top) /
       rect.height
 
     const rotateY =
@@ -207,6 +204,11 @@ function BigTiltSurface({
         className="provn-big-card-glare"
       />
 
+      <span
+        aria-hidden="true"
+        className="provn-card-sheen"
+      />
+
       {children}
     </div>
   )
@@ -233,13 +235,11 @@ function AvatarTiltSurface({
       element.getBoundingClientRect()
 
     const x =
-      (event.clientX -
-        rect.left) /
+      (event.clientX - rect.left) /
       rect.width
 
     const y =
-      (event.clientY -
-        rect.top) /
+      (event.clientY - rect.top) /
       rect.height
 
     const rotateY =
@@ -333,13 +333,11 @@ function IdentityTiltSurface({
       element.getBoundingClientRect()
 
     const x =
-      (event.clientX -
-        rect.left) /
+      (event.clientX - rect.left) /
       rect.width
 
     const y =
-      (event.clientY -
-        rect.top) /
+      (event.clientY - rect.top) /
       rect.height
 
     const rotateY =
@@ -435,12 +433,35 @@ function ProVNMark({
           x2="0"
           y2="1"
         >
-          <stop offset="0%" stopColor="#ff8a95" />
-          <stop offset="13%" stopColor="#e65362" />
-          <stop offset="32%" stopColor="#ba273a" />
-          <stop offset="51%" stopColor="#811320" />
-          <stop offset="72%" stopColor="#ad1c30" />
-          <stop offset="100%" stopColor="#240508" />
+          <stop
+            offset="0%"
+            stopColor="#ff8a95"
+          />
+
+          <stop
+            offset="13%"
+            stopColor="#e65362"
+          />
+
+          <stop
+            offset="32%"
+            stopColor="#ba273a"
+          />
+
+          <stop
+            offset="51%"
+            stopColor="#811320"
+          />
+
+          <stop
+            offset="72%"
+            stopColor="#ad1c30"
+          />
+
+          <stop
+            offset="100%"
+            stopColor="#240508"
+          />
         </linearGradient>
 
         <linearGradient
@@ -450,10 +471,25 @@ function ProVNMark({
           x2="1"
           y2="0"
         >
-          <stop offset="0%" stopColor="#77101b" />
-          <stop offset="34%" stopColor="#df4355" />
-          <stop offset="57%" stopColor="#ff9ea7" />
-          <stop offset="100%" stopColor="#6e0b17" />
+          <stop
+            offset="0%"
+            stopColor="#77101b"
+          />
+
+          <stop
+            offset="34%"
+            stopColor="#df4355"
+          />
+
+          <stop
+            offset="57%"
+            stopColor="#ff9ea7"
+          />
+
+          <stop
+            offset="100%"
+            stopColor="#6e0b17"
+          />
         </linearGradient>
 
         <linearGradient
@@ -463,9 +499,20 @@ function ProVNMark({
           x2="1"
           y2="1"
         >
-          <stop offset="0%" stopColor="#ffc7cc" />
-          <stop offset="34%" stopColor="#ff5365" />
-          <stop offset="100%" stopColor="#680715" />
+          <stop
+            offset="0%"
+            stopColor="#ffc7cc"
+          />
+
+          <stop
+            offset="34%"
+            stopColor="#ff5365"
+          />
+
+          <stop
+            offset="100%"
+            stopColor="#680715"
+          />
         </linearGradient>
       </defs>
 
@@ -664,9 +711,11 @@ function ShieldIcon() {
 
 function ProfileActivePill() {
   return (
-    <span className="inline-flex items-center gap-2 rounded-full border border-[#5f242d]/75 bg-[#11080a]/80 px-3 py-[7px] text-[7px] font-semibold uppercase tracking-[0.15em] text-[#bd4958]">
+    <span className="profile-active-pill inline-flex items-center gap-2 rounded-full border border-[#5f242d]/75 bg-[#11080a]/80 px-3 py-[7px] text-[7px] font-semibold uppercase tracking-[0.15em] text-[#bd4958]">
+
       <span className="relative flex h-[13px] w-[13px] items-center justify-center">
-        <span className="absolute h-[9px] w-[9px] rounded-full bg-[#b52c40]/20" />
+
+        <span className="profile-active-ring absolute h-[10px] w-[10px] rounded-full border border-[#ba3346]/25" />
 
         <span className="relative h-[4px] w-[4px] rounded-full bg-[#e1495e] shadow-[0_0_8px_rgba(225,73,94,.55)]" />
       </span>
@@ -690,11 +739,12 @@ function Stat({
   accent?: boolean
 }) {
   return (
-    <div className="relative overflow-hidden border-r border-white/[0.05] px-5 py-5 last:border-r-0">
-      <div className="pointer-events-none absolute -right-8 -top-8 h-[90px] w-[90px] rounded-full bg-[#a51c34]/[0.05] blur-[30px]" />
+    <div className="group/stat relative overflow-hidden border-r border-white/[0.05] px-5 py-5 last:border-r-0">
+
+      <div className="pointer-events-none absolute -right-8 -top-8 h-[90px] w-[90px] rounded-full bg-[#a51c34]/[0.05] blur-[30px] transition-all duration-500 group-hover/stat:bg-[#b72039]/[0.09]" />
 
       <p
-        className={`relative text-[24px] font-black leading-none tracking-[-0.045em] ${
+        className={`relative text-[24px] font-black leading-none tracking-[-0.045em] transition-transform duration-300 group-hover/stat:-translate-y-[1px] ${
           accent
             ? 'text-[#e44a5f]'
             : 'text-[#efeded]'
@@ -735,12 +785,14 @@ function TrustRow({
         : 'text-zinc-600'
 
   return (
-    <div className="flex min-h-[70px] items-center rounded-[15px] border border-white/[0.05] bg-black/20 px-4 transition-colors duration-300 hover:border-white/[0.085] hover:bg-white/[0.015]">
-      <span className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[11px] border border-[#67232e]/65 bg-[#12080b] text-[#b94050]">
+    <div className="group/trust flex min-h-[70px] items-center rounded-[15px] border border-white/[0.05] bg-black/20 px-4 transition-all duration-300 hover:-translate-y-[1px] hover:border-[#56202a]/80 hover:bg-[#0d0608]">
+
+      <span className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[11px] border border-[#67232e]/65 bg-[#12080b] text-[#b94050] transition-all duration-300 group-hover/trust:scale-[1.05] group-hover/trust:border-[#8c2d3c] group-hover/trust:text-[#e24a5d]">
         {icon}
       </span>
 
       <div className="ml-4 min-w-0">
+
         <p className="text-[10px] font-medium text-zinc-300">
           {title}
         </p>
@@ -780,19 +832,20 @@ function RoadmapStep({
 }) {
   return (
     <div
-      className={`relative min-h-[150px] overflow-hidden rounded-[17px] border p-5 ${
+      className={`group/road relative min-h-[150px] overflow-hidden rounded-[17px] border p-5 transition-all duration-300 hover:-translate-y-[2px] ${
         complete
-          ? 'border-white/[0.055] bg-black/20'
+          ? 'border-white/[0.055] bg-black/20 hover:border-[#51202a]/70'
           : current
-            ? 'border-[#752936]/75 bg-[#14090c]'
-            : 'border-white/[0.045] bg-black/15'
+            ? 'border-[#752936]/75 bg-[#14090c] hover:border-[#a03545]'
+            : 'border-white/[0.045] bg-black/15 hover:border-white/[0.075]'
       }`}
     >
       {current && (
-        <div className="pointer-events-none absolute -right-8 -top-8 h-[100px] w-[100px] rounded-full bg-[#ad1831]/10 blur-[35px]" />
+        <div className="pointer-events-none absolute -right-8 -top-8 h-[100px] w-[100px] rounded-full bg-[#ad1831]/10 blur-[35px] transition-all duration-500 group-hover/road:bg-[#c3213b]/15" />
       )}
 
       <div className="relative flex items-center justify-between">
+
         <span
           className={`text-[8px] font-bold ${
             complete
@@ -864,10 +917,13 @@ function FeaturePanel({
       lift={8}
       className="group relative min-h-[250px] overflow-hidden rounded-[23px] border border-white/[0.052] bg-[#070708]/88 p-7 hover:border-[#71303b]/80"
     >
+
       <div className="pointer-events-none absolute -right-[75px] -top-[80px] h-[230px] w-[230px] rounded-full bg-[#96152c]/[0.06] blur-[70px]" />
 
       <div className="relative z-[3] flex h-full flex-col">
+
         <div className="flex items-center justify-between">
+
           <span className="provn-main-icon flex h-[45px] w-[45px] items-center justify-center rounded-[14px] border border-[#68242f]/70 bg-[#16090d] text-[#d34c5d]">
             {icon}
           </span>
@@ -926,6 +982,7 @@ function FeaturePanel({
 function ProfileRouteFallback() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#020203] text-white">
+
       <style>
         {`
           @media (pointer: fine) {
@@ -939,6 +996,7 @@ function ProfileRouteFallback() {
       </style>
 
       <div className="text-center">
+
         <div className="mx-auto h-[38px] w-[38px] animate-spin rounded-full border border-[#54202a] border-t-[#df4055]" />
 
         <p className="mt-5 text-[8px] uppercase tracking-[0.28em] text-zinc-700">
@@ -961,8 +1019,7 @@ function ProfileContent() {
 
   const supabase =
     useMemo(
-      () =>
-        createClient(),
+      () => createClient(),
       []
     )
 
@@ -1017,10 +1074,7 @@ function ProfileContent() {
     )
       .trim()
       .toLowerCase()
-      .replace(
-        /^@/,
-        ''
-      )
+      .replace(/^@/, '')
 
   /* =======================================================
      LOAD PROFILE
@@ -1094,10 +1148,6 @@ function ProfileContent() {
           id:
             user.id,
 
-          email:
-            user.email ??
-            null,
-
           emailVerified:
             Boolean(
               user.email_confirmed_at
@@ -1169,7 +1219,7 @@ function ProfileContent() {
   }, [])
 
   /* =======================================================
-     LOG OUT
+     LOGOUT
   ======================================================== */
 
   async function handleLogout() {
@@ -1198,15 +1248,13 @@ function ProfileContent() {
         return
       }
 
-      window.location.replace(
-        '/'
-      )
+      window.location.replace('/')
     } catch (
-      logoutError
+      error
     ) {
       console.error(
         'ProVN logout failed:',
-        logoutError
+        error
       )
 
       setLoggingOut(false)
@@ -1214,7 +1262,7 @@ function ProfileContent() {
   }
 
   /* =======================================================
-     DERIVED DATA
+     DERIVED
   ======================================================== */
 
   const ownProfile =
@@ -1243,10 +1291,7 @@ function ProfileContent() {
     displayName
       .split(/\s+/)
       .filter(Boolean)
-      .slice(
-        0,
-        2
-      )
+      .slice(0, 2)
       .map(
         part =>
           part[0]
@@ -1261,10 +1306,8 @@ function ProfileContent() {
       ? new Intl.DateTimeFormat(
           'en',
           {
-            month:
-              'short',
-            year:
-              'numeric',
+            month: 'short',
+            year: 'numeric',
           }
         ).format(
           new Date(
@@ -1299,6 +1342,7 @@ function ProfileContent() {
   ) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#020203] px-6 text-white">
+
         <style>
           {`
             @media (pointer: fine) {
@@ -1312,6 +1356,7 @@ function ProfileContent() {
         </style>
 
         <div className="max-w-[500px] text-center">
+
           <ProVNMark className="mx-auto h-[64px] w-[64px]" />
 
           <p className="mt-7 text-[8px] uppercase tracking-[0.32em] text-[#943847]">
@@ -1355,6 +1400,10 @@ function ProfileContent() {
             }
           }
 
+          /* ===============================================
+             CARD TILT
+          =============================================== */
+
           .provn-big-card {
             --card-rx: 0deg;
             --card-ry: 0deg;
@@ -1389,9 +1438,15 @@ function ProfileContent() {
               transform;
 
             transition:
-              transform 145ms cubic-bezier(.16,1,.3,1),
-              border-color 280ms ease,
-              box-shadow 280ms ease;
+              transform
+                145ms
+                cubic-bezier(.16,1,.3,1),
+              border-color
+                280ms
+                ease,
+              box-shadow
+                280ms
+                ease;
           }
 
           .provn-big-card:hover {
@@ -1401,23 +1456,12 @@ function ProfileContent() {
           }
 
           .provn-big-card-glare {
-            position:
-              absolute;
-
-            inset:
-              0;
-
-            z-index:
-              2;
-
-            border-radius:
-              inherit;
-
-            pointer-events:
-              none;
-
-            opacity:
-              0;
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            border-radius: inherit;
+            pointer-events: none;
+            opacity: 0;
 
             background:
               radial-gradient(
@@ -1431,14 +1475,56 @@ function ProfileContent() {
               );
 
             transition:
-              opacity 220ms ease;
+              opacity
+              220ms
+              ease;
           }
 
           .provn-big-card:hover
           .provn-big-card-glare {
-            opacity:
-              1;
+            opacity: 1;
           }
+
+          /* subtle metallic sheen */
+
+          .provn-card-sheen {
+            position: absolute;
+            z-index: 2;
+            pointer-events: none;
+
+            top: -50%;
+            left: -35%;
+
+            width: 20%;
+            height: 200%;
+
+            opacity: 0;
+
+            transform:
+              rotate(17deg);
+
+            background:
+              linear-gradient(
+                90deg,
+                transparent,
+                rgba(255,255,255,.035),
+                transparent
+              );
+
+            transition:
+              left 850ms cubic-bezier(.16,1,.3,1),
+              opacity 200ms ease;
+          }
+
+          .provn-big-card:hover
+          .provn-card-sheen {
+            left: 125%;
+            opacity: 1;
+          }
+
+          /* ===============================================
+             AVATAR
+          =============================================== */
 
           .provn-avatar-tilt {
             --avatar-rx: 0deg;
@@ -1446,8 +1532,7 @@ function ProfileContent() {
             --avatar-mx: 50%;
             --avatar-my: 50%;
 
-            position:
-              relative;
+            position: relative;
 
             transform:
               perspective(620px)
@@ -1475,16 +1560,17 @@ function ProfileContent() {
           .provn-avatar-tilt:hover {
             filter:
               drop-shadow(
-                0 30px 34px rgba(0,0,0,.36)
+                0 30px 34px
+                rgba(0,0,0,.36)
               )
               drop-shadow(
-                0 0 24px rgba(174,34,55,.12)
+                0 0 24px
+                rgba(174,34,55,.12)
               );
           }
 
           .provn-avatar-card {
-            position:
-              relative;
+            position: relative;
 
             transform:
               translateZ(0)
@@ -1563,23 +1649,12 @@ function ProfileContent() {
           }
 
           .provn-avatar-glare {
-            position:
-              absolute;
-
-            inset:
-              0;
-
-            z-index:
-              9;
-
-            pointer-events:
-              none;
-
-            border-radius:
-              32px;
-
-            opacity:
-              0;
+            position: absolute;
+            inset: 0;
+            z-index: 9;
+            pointer-events: none;
+            border-radius: 32px;
+            opacity: 0;
 
             background:
               radial-gradient(
@@ -1598,9 +1673,12 @@ function ProfileContent() {
 
           .provn-avatar-tilt:hover
           .provn-avatar-glare {
-            opacity:
-              1;
+            opacity: 1;
           }
+
+          /* ===============================================
+             IDENTITY
+          =============================================== */
 
           .provn-identity-tilt {
             --identity-rx: 0deg;
@@ -1608,8 +1686,7 @@ function ProfileContent() {
             --identity-mx: 50%;
             --identity-my: 50%;
 
-            position:
-              relative;
+            position: relative;
 
             transform:
               perspective(900px)
@@ -1642,23 +1719,12 @@ function ProfileContent() {
           }
 
           .provn-identity-glow {
-            position:
-              absolute;
-
-            inset:
-              -20px;
-
-            z-index:
-              0;
-
-            pointer-events:
-              none;
-
-            opacity:
-              0;
-
-            border-radius:
-              28px;
+            position: absolute;
+            inset: -20px;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0;
+            border-radius: 28px;
 
             background:
               radial-gradient(
@@ -1677,22 +1743,23 @@ function ProfileContent() {
 
           .provn-identity-tilt:hover
           .provn-identity-glow {
-            opacity:
-              1;
+            opacity: 1;
           }
 
-          .provn-identity-eyebrow {
-            position:
-              relative;
-
-            z-index:
-              3;
-
-            transform:
-              translateZ(0);
+          .provn-identity-eyebrow,
+          .provn-identity-name,
+          .provn-identity-meta {
+            position: relative;
+            z-index: 3;
+            transform: translateZ(0);
 
             transition:
-              transform 220ms cubic-bezier(.16,1,.3,1);
+              transform
+              240ms
+              cubic-bezier(.16,1,.3,1),
+              text-shadow
+              240ms
+              ease;
           }
 
           .provn-identity-tilt:hover
@@ -1700,21 +1767,6 @@ function ProfileContent() {
             transform:
               translateZ(30px)
               translateY(-1px);
-          }
-
-          .provn-identity-name {
-            position:
-              relative;
-
-            z-index:
-              3;
-
-            transform:
-              translateZ(0);
-
-            transition:
-              transform 240ms cubic-bezier(.16,1,.3,1),
-              text-shadow 240ms ease;
           }
 
           .provn-identity-tilt:hover
@@ -1726,25 +1778,15 @@ function ProfileContent() {
               0 18px 34px rgba(0,0,0,.20);
           }
 
-          .provn-identity-meta {
-            position:
-              relative;
-
-            z-index:
-              3;
-
-            transform:
-              translateZ(0);
-
-            transition:
-              transform 240ms cubic-bezier(.16,1,.3,1);
-          }
-
           .provn-identity-tilt:hover
           .provn-identity-meta {
             transform:
               translateZ(21px);
           }
+
+          /* ===============================================
+             FEATURE ICON
+          =============================================== */
 
           .provn-main-icon {
             transform:
@@ -1777,7 +1819,7 @@ function ProfileContent() {
           }
 
           /* ===============================================
-             PERMANENT NAV BUTTON GLOW
+             PERMANENT NAV GLOW
           =============================================== */
 
           .provn-nav-glow {
@@ -1803,6 +1845,72 @@ function ProfileContent() {
               0 12px 32px rgba(0,0,0,.30),
               0 0 28px rgba(196,45,65,.18);
           }
+
+          /* ===============================================
+             CTA SHEEN
+          =============================================== */
+
+          .provn-premium-cta {
+            position: relative;
+            overflow: hidden;
+          }
+
+          .provn-premium-cta::after {
+            content: "";
+            position: absolute;
+
+            top: -70%;
+            left: -45%;
+
+            width: 22%;
+            height: 230%;
+
+            transform: rotate(18deg);
+
+            background:
+              linear-gradient(
+                90deg,
+                transparent,
+                rgba(255,255,255,.11),
+                transparent
+              );
+
+            transition:
+              left 700ms cubic-bezier(.16,1,.3,1);
+          }
+
+          .provn-premium-cta:hover::after {
+            left: 130%;
+          }
+
+          /* ===============================================
+             REPUTATION METER
+          =============================================== */
+
+          .provn-reputation-fill {
+            transform-origin: left center;
+            animation:
+              reputationFill
+              1100ms
+              cubic-bezier(.16,1,.3,1)
+              both;
+          }
+
+          /* ===============================================
+             PROFILE ACTIVE
+          =============================================== */
+
+          .profile-active-ring {
+            animation:
+              profilePulse
+              2.4s
+              ease-in-out
+              infinite;
+          }
+
+          /* ===============================================
+             ANIMATIONS
+          =============================================== */
 
           @keyframes profileEntry {
             from {
@@ -1841,6 +1949,29 @@ function ProfileContent() {
             }
           }
 
+          @keyframes profilePulse {
+            0%,
+            100% {
+              opacity: .25;
+              transform: scale(.85);
+            }
+
+            50% {
+              opacity: .9;
+              transform: scale(1.3);
+            }
+          }
+
+          @keyframes reputationFill {
+            from {
+              transform: scaleX(0);
+            }
+
+            to {
+              transform: scaleX(1);
+            }
+          }
+
           @media (
             prefers-reduced-motion:
             reduce
@@ -1854,11 +1985,16 @@ function ProfileContent() {
             .provn-identity-eyebrow,
             .provn-identity-name,
             .provn-identity-meta,
-            .provn-main-icon {
+            .provn-main-icon,
+            .provn-reputation-fill,
+            .profile-active-ring {
               transform:
                 none !important;
 
               transition:
+                none !important;
+
+              animation:
                 none !important;
             }
           }
@@ -1895,18 +2031,14 @@ function ProfileContent() {
         />
 
         {/* =================================================
-            FIXED PROFILE NAVBAR
+            FIXED NAVBAR
         ================================================= */}
 
         <header className="fixed inset-x-0 top-0 z-[1000] border-b border-[#47131d]/45 bg-[#020203]/[0.94] shadow-[0_14px_50px_rgba(0,0,0,.34)] backdrop-blur-2xl">
 
-          {/* subtle red atmosphere */}
-
           <div className="pointer-events-none absolute right-[3%] top-[-45px] h-[100px] w-[340px] rounded-full bg-[#7f1227]/[0.065] blur-[55px]" />
 
           <div className="pointer-events-none absolute left-[1%] top-[-45px] h-[100px] w-[240px] rounded-full bg-[#751023]/[0.04] blur-[55px]" />
-
-          {/* bottom metallic line */}
 
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[#84293a]/40 to-transparent" />
 
@@ -1916,49 +2048,16 @@ function ProfileContent() {
 
             <div className="flex items-center gap-3">
 
-              {/* ===========================================
-                  PERMANENTLY GLOWING HOME BUTTON
-              ============================================ */}
+              {/* HOME */}
 
               <Link
                 href="/"
                 aria-label="Back to ProVN home"
-                className="
-                  provn-nav-glow
-                  group
-                  relative
-                  isolate
-                  inline-flex
-                  h-[42px]
-                  min-w-[102px]
-                  items-center
-                  justify-center
-                  gap-[9px]
-                  overflow-hidden
-                  rounded-full
-                  border
-                  border-[#7d2936]/90
-                  bg-[#13070a]/95
-                  px-5
-                  text-[8px]
-                  font-semibold
-                  uppercase
-                  tracking-[0.15em]
-                  text-[#eee8e9]
-                  hover:border-[#c03d50]
-                  hover:bg-[#1a090d]
-                  hover:text-white
-                "
+                className="provn-nav-glow group relative isolate inline-flex h-[42px] min-w-[102px] items-center justify-center gap-[9px] overflow-hidden rounded-full border border-[#7d2936]/90 bg-[#13070a]/95 px-5 text-[8px] font-semibold uppercase tracking-[0.15em] text-[#eee8e9] hover:border-[#c03d50] hover:bg-[#1a090d] hover:text-white"
               >
-                {/* permanent inner red light */}
-
                 <span className="pointer-events-none absolute -left-5 top-1/2 h-[55px] w-[55px] -translate-y-1/2 rounded-full bg-[#c12c43]/[0.11] blur-[20px]" />
 
-                {/* top shine */}
-
                 <span className="pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-[#ff8293]/20 to-transparent" />
-
-                {/* arrow */}
 
                 <span className="relative z-[2] text-[11px] text-[#df4a5e] drop-shadow-[0_0_8px_rgba(223,74,94,.35)] transition-transform duration-200 group-hover:-translate-x-[2px]">
                   ←
@@ -1969,9 +2068,7 @@ function ProfileContent() {
                 </span>
               </Link>
 
-              {/* ===========================================
-                  PERMANENTLY GLOWING ACCOUNT BUTTON
-              ============================================ */}
+              {/* ACCOUNT */}
 
               {ownProfile && (
                 <div
@@ -1980,46 +2077,15 @@ function ProfileContent() {
                 >
                   <button
                     type="button"
-
                     onClick={() =>
                       setAccountMenuOpen(
                         current =>
                           !current
                       )
                     }
-
-                    className="
-                      provn-nav-glow
-                      group
-                      relative
-                      isolate
-                      inline-flex
-                      h-[42px]
-                      min-w-[122px]
-                      items-center
-                      justify-center
-                      gap-[11px]
-                      overflow-hidden
-                      rounded-full
-                      border
-                      border-[#812b38]/90
-                      bg-[#14070a]/95
-                      px-5
-                      text-[8px]
-                      font-semibold
-                      uppercase
-                      tracking-[0.15em]
-                      text-[#f0e9ea]
-                      hover:border-[#c53f52]
-                      hover:bg-[#1c090e]
-                      hover:text-white
-                    "
+                    className="provn-nav-glow group relative isolate inline-flex h-[42px] min-w-[122px] items-center justify-center gap-[11px] overflow-hidden rounded-full border border-[#812b38]/90 bg-[#14070a]/95 px-5 text-[8px] font-semibold uppercase tracking-[0.15em] text-[#f0e9ea] hover:border-[#c53f52] hover:bg-[#1c090e] hover:text-white"
                   >
-                    {/* permanent ambient glow */}
-
                     <span className="pointer-events-none absolute -right-4 top-1/2 h-[58px] w-[58px] -translate-y-1/2 rounded-full bg-[#bb2941]/[0.10] blur-[20px]" />
-
-                    {/* metallic top highlight */}
 
                     <span className="pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-[#ff8797]/20 to-transparent" />
 
@@ -2040,6 +2106,7 @@ function ProfileContent() {
                     <div className="absolute right-0 top-[52px] z-[1100] w-[230px] overflow-hidden rounded-[17px] border border-[#5f202b]/80 bg-[#070708]/[0.985] p-2 shadow-[0_28px_90px_rgba(0,0,0,.78),0_0_35px_rgba(114,18,35,.10)] backdrop-blur-2xl">
 
                       <div className="px-3 pb-3 pt-2">
+
                         <p className="text-[7px] uppercase tracking-[0.19em] text-zinc-700">
                           ProVN Account
                         </p>
@@ -2051,8 +2118,8 @@ function ProfileContent() {
 
                       <div className="h-px bg-white/[0.05]" />
 
-                      <button
-                        type="button"
+                      <Link
+                        href="/profile/edit"
                         className="mt-2 flex h-[42px] w-full items-center rounded-[10px] px-3 text-left text-[9px] text-zinc-500 transition-all hover:bg-[#18090c] hover:text-zinc-200"
                       >
                         Edit Profile
@@ -2060,7 +2127,7 @@ function ProfileContent() {
                         <span className="ml-auto text-[#7e2d39]">
                           →
                         </span>
-                      </button>
+                      </Link>
 
                       <button
                         type="button"
@@ -2077,15 +2144,12 @@ function ProfileContent() {
 
                       <button
                         type="button"
-
                         disabled={
                           loggingOut
                         }
-
                         onClick={
                           handleLogout
                         }
-
                         className="flex h-[42px] w-full items-center rounded-[10px] px-3 text-left text-[9px] text-[#c34254] transition-all hover:bg-red-950/20 hover:text-[#f26074] disabled:opacity-50"
                       >
                         {loggingOut
@@ -2104,12 +2168,7 @@ function ProfileContent() {
           </div>
         </header>
 
-        {/* =================================================
-            FIXED NAVBAR SPACER
-
-            Navbar is 72px fixed.
-            This prevents page content hiding underneath it.
-        ================================================= */}
+        {/* NAVBAR SPACE */}
 
         <div
           aria-hidden="true"
@@ -2156,6 +2215,7 @@ function ProfileContent() {
               lift={6}
               className="relative overflow-hidden rounded-[30px] border border-[#5d222c]/65 bg-[#070708]/95 shadow-[0_42px_120px_rgba(0,0,0,.48)]"
             >
+
               <div className="pointer-events-none absolute inset-x-[8%] top-0 h-px bg-gradient-to-r from-transparent via-[#bc394b]/50 to-transparent" />
 
               <div className="pointer-events-none absolute -left-[100px] -top-[100px] h-[320px] w-[320px] rounded-full bg-[#8f1529]/[0.075] blur-[100px]" />
@@ -2251,7 +2311,7 @@ function ProfileContent() {
                         Reputation
                       </p>
 
-                      <span className="h-[5px] w-[5px] rounded-full bg-[#c63e50]" />
+                      <span className="h-[5px] w-[5px] rounded-full bg-[#c63e50] shadow-[0_0_8px_rgba(198,62,80,.4)]" />
                     </div>
 
                     <div className="mt-6 flex items-end gap-2">
@@ -2271,7 +2331,7 @@ function ProfileContent() {
 
                     <div className="mt-5 h-[3px] overflow-hidden rounded-full bg-white/[0.055]">
 
-                      <div className="h-full w-[33%] rounded-full bg-gradient-to-r from-[#9a192c] to-[#dc4055]" />
+                      <div className="provn-reputation-fill h-full w-[33%] rounded-full bg-gradient-to-r from-[#9a192c] via-[#c82840] to-[#e24b5f] shadow-[0_0_10px_rgba(211,47,69,.25)]" />
                     </div>
 
                     <p className="mt-3 text-[8px] leading-4 text-zinc-700">
@@ -2317,6 +2377,7 @@ function ProfileContent() {
               lift={7}
               className="relative mt-6 rounded-[25px] border border-white/[0.052] bg-[#070708]/84 p-6 sm:p-7 lg:p-8"
             >
+
               <div className="relative z-[3]">
 
                 <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
@@ -2337,16 +2398,16 @@ function ProfileContent() {
                   </div>
 
                   {ownProfile && (
-                    <button
-                      type="button"
-                      className="group inline-flex h-[47px] shrink-0 items-center justify-center gap-5 rounded-[12px] border border-[#b82c40] bg-gradient-to-r from-[#7e1020] via-[#a7192d] to-[#c4263b] px-7 text-[8px] font-bold uppercase tracking-[0.16em] text-white shadow-[0_15px_38px_rgba(109,11,28,.22)] transition-all duration-200 hover:-translate-y-[2px] hover:border-[#e54b5e] hover:shadow-[0_22px_48px_rgba(139,15,36,.28)]"
+                    <Link
+                      href="/profile/edit"
+                      className="provn-premium-cta group inline-flex h-[47px] shrink-0 items-center justify-center gap-5 rounded-[12px] border border-[#b82c40] bg-gradient-to-r from-[#7e1020] via-[#a7192d] to-[#c4263b] px-7 text-[8px] font-bold uppercase tracking-[0.16em] text-white shadow-[0_15px_38px_rgba(109,11,28,.22)] transition-all duration-200 hover:-translate-y-[2px] hover:border-[#e54b5e] hover:shadow-[0_22px_48px_rgba(139,15,36,.28)]"
                     >
                       Complete Profile
 
-                      <span className="transition-transform duration-200 group-hover:translate-x-1">
+                      <span className="relative z-[2] transition-transform duration-200 group-hover:translate-x-1">
                         <ArrowIcon />
                       </span>
-                    </button>
+                    </Link>
                   )}
                 </div>
 
@@ -2463,6 +2524,7 @@ function ProfileContent() {
                 lift={7}
                 className="relative overflow-hidden rounded-[23px] border border-[#61232d]/70 bg-gradient-to-br from-[#15090d] via-[#0a0809] to-[#060607] p-6 sm:p-7 lg:p-8"
               >
+
                 <div className="pointer-events-none absolute -right-[90px] -top-[90px] h-[280px] w-[280px] rounded-full bg-[#9e1730]/[0.085] blur-[85px]" />
 
                 <div className="relative z-[3]">
@@ -2525,11 +2587,13 @@ function ProfileContent() {
                   {ownProfile && (
                     <button
                       type="button"
-                      className="group mt-7 inline-flex h-[48px] items-center justify-center gap-5 rounded-[12px] border border-[#b82d41] bg-gradient-to-r from-[#801020] via-[#a7192d] to-[#c7263c] px-7 text-[8px] font-bold uppercase tracking-[0.17em] text-white shadow-[0_15px_38px_rgba(110,11,28,.22)] transition-all duration-200 hover:-translate-y-[2px] hover:border-[#e64b5e] hover:shadow-[0_22px_50px_rgba(140,15,37,.28)]"
+                      className="provn-premium-cta group mt-7 inline-flex h-[48px] items-center justify-center gap-5 rounded-[12px] border border-[#b82d41] bg-gradient-to-r from-[#801020] via-[#a7192d] to-[#c7263c] px-7 text-[8px] font-bold uppercase tracking-[0.17em] text-white shadow-[0_15px_38px_rgba(110,11,28,.22)] transition-all duration-200 hover:-translate-y-[2px] hover:border-[#e64b5e] hover:shadow-[0_22px_50px_rgba(140,15,37,.28)]"
                     >
-                      Add Your First Game
+                      <span className="relative z-[2]">
+                        Add Your First Game
+                      </span>
 
-                      <span className="transition-transform duration-200 group-hover:translate-x-1">
+                      <span className="relative z-[2] transition-transform duration-200 group-hover:translate-x-1">
                         <ArrowIcon />
                       </span>
                     </button>
