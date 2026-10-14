@@ -369,6 +369,31 @@ function EditIcon() {
   )
 }
 
+function SettingsIcon() {
+  return (
+    <svg
+      viewBox="0 0 20 20"
+      className="h-[12px] w-[12px]"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="10" cy="10" r="2.5" />
+      <path d="M10 2.8v1.4" />
+      <path d="M10 15.8v1.4" />
+      <path d="m4.9 4.9 1 1" />
+      <path d="m14.1 14.1 1 1" />
+      <path d="M2.8 10h1.4" />
+      <path d="M15.8 10h1.4" />
+      <path d="m4.9 15.1 1-1" />
+      <path d="m14.1 5.9 1-1" />
+    </svg>
+  )
+}
+
 function LogoutIcon() {
   return (
     <svg
@@ -1806,6 +1831,10 @@ function ProfileContent() {
 
                       <Link
                         href="/profile/edit"
+                        onClick={
+                          () =>
+                            setAccountOpen(false)
+                        }
                         className="flex h-[43px] items-center gap-3 rounded-[11px] px-3 text-[8px] text-zinc-400 transition hover:bg-[#15090c] hover:text-white"
                       >
                         <span className="text-[#b73b4d]">
@@ -1813,6 +1842,21 @@ function ProfileContent() {
                         </span>
 
                         Edit Profile
+                      </Link>
+
+                      <Link
+                        href="/account/settings"
+                        onClick={
+                          () =>
+                            setAccountOpen(false)
+                        }
+                        className="flex h-[43px] items-center gap-3 rounded-[11px] px-3 text-[8px] text-zinc-400 transition hover:bg-[#15090c] hover:text-white"
+                      >
+                        <span className="text-[#b73b4d]">
+                          <SettingsIcon />
+                        </span>
+
+                        Account Settings
                       </Link>
 
                       <div className="my-1 h-px bg-white/[0.045]" />

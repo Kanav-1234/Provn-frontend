@@ -30,21 +30,13 @@ type Profile = {
   display_name: string | null
   avatar_url: string | null
   bio: string | null
+  created_at: string | null
 }
 
 type LoadState =
   | 'loading'
   | 'ready'
   | 'error'
-
-const MAX_AVATAR_SIZE =
-  5 * 1024 * 1024
-
-const ALLOWED_AVATAR_TYPES = [
-  'image/jpeg',
-  'image/png',
-  'image/webp',
-]
 
 /* =========================================================
    CURSOR
@@ -101,15 +93,13 @@ const PROVN_CURSOR =
   )}") 1 1, auto`
 
 /* =========================================================
-   PREMIUM TILT ENGINE
+   TILT
 ========================================================= */
 
-function applyTilt(
+function tiltCard(
   event: ReactMouseEvent<HTMLElement>,
-  maxTilt: number,
-  lift: number,
-  scale: number,
-  depth: number
+  strength = 3.5,
+  lift = 6
 ) {
   const element =
     event.currentTarget
@@ -118,82 +108,49 @@ function applyTilt(
     element.getBoundingClientRect()
 
   const x =
-    (event.clientX - rect.left) /
+    (
+      event.clientX -
+      rect.left
+    ) /
     rect.width
 
   const y =
-    (event.clientY - rect.top) /
+    (
+      event.clientY -
+      rect.top
+    ) /
     rect.height
 
-  const normalizedX =
-    x - 0.5
-
-  const normalizedY =
-    y - 0.5
-
   const rotateY =
-    normalizedX *
-    maxTilt *
+    (
+      x -
+      0.5
+    ) *
+    strength *
     2
 
   const rotateX =
-    -normalizedY *
-    maxTilt *
+    -(
+      y -
+      0.5
+    ) *
+    strength *
     2
 
-  const shadowX =
-    -normalizedX * 24
-
-  const shadowY =
-    28 +
-    -normalizedY * 18
-
   element.style.transition =
-    'transform 85ms linear, border-color 220ms ease, box-shadow 220ms ease'
+    'transform 80ms linear, border-color 200ms ease, box-shadow 200ms ease'
+
+  element.style.transform =
+    `perspective(1300px) translateY(-${lift}px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`
 
   element.style.setProperty(
-    '--tilt-rx',
-    `${rotateX.toFixed(2)}deg`
+    '--mx',
+    `${x * 100}%`
   )
 
   element.style.setProperty(
-    '--tilt-ry',
-    `${rotateY.toFixed(2)}deg`
-  )
-
-  element.style.setProperty(
-    '--tilt-lift',
-    `-${lift}px`
-  )
-
-  element.style.setProperty(
-    '--tilt-scale',
-    String(scale)
-  )
-
-  element.style.setProperty(
-    '--tilt-mx',
-    `${(x * 100).toFixed(1)}%`
-  )
-
-  element.style.setProperty(
-    '--tilt-my',
-    `${(y * 100).toFixed(1)}%`
-  )
-
-  element.style.setProperty(
-    '--tilt-shadow-x',
-    `${shadowX.toFixed(1)}px`
-  )
-
-  element.style.setProperty(
-    '--tilt-shadow-y',
-    `${shadowY.toFixed(1)}px`
-  )
-
-  element.style.setProperty(
-    '--tilt-depth',
-    `${depth}px`
+    '--my',
+    `${y * 100}%`
   )
 }
 
@@ -204,163 +161,44 @@ function resetTilt(
     event.currentTarget
 
   element.style.transition =
-    'transform 520ms cubic-bezier(.16,1,.3,1), border-color 320ms ease, box-shadow 420ms ease'
+    'transform 520ms cubic-bezier(.16,1,.3,1), border-color 280ms ease, box-shadow 350ms ease'
 
-  element.style.setProperty(
-    '--tilt-rx',
-    '0deg'
-  )
-
-  element.style.setProperty(
-    '--tilt-ry',
-    '0deg'
-  )
-
-  element.style.setProperty(
-    '--tilt-lift',
-    '0px'
-  )
-
-  element.style.setProperty(
-    '--tilt-scale',
-    '1'
-  )
-
-  element.style.setProperty(
-    '--tilt-mx',
-    '50%'
-  )
-
-  element.style.setProperty(
-    '--tilt-my',
-    '50%'
-  )
-
-  element.style.setProperty(
-    '--tilt-shadow-x',
-    '0px'
-  )
-
-  element.style.setProperty(
-    '--tilt-shadow-y',
-    '28px'
-  )
-
-  element.style.setProperty(
-    '--tilt-depth',
-    '0px'
-  )
+  element.style.transform =
+    'perspective(1300px) translateY(0) rotateX(0deg) rotateY(0deg)'
 }
-
-/* =========================================================
-   MOTION PANELS
-========================================================= */
 
 function TiltPanel({
   children,
   className = '',
-  maxTilt = 4.6,
-  lift = 7,
-  scale = 1.006,
-  depth = 11,
+  strength = 3.5,
+  lift = 6,
 }: {
   children: ReactNode
   className?: string
-  maxTilt?: number
+  strength?: number
   lift?: number
-  scale?: number
-  depth?: number
 }) {
   return (
-    <div
+    <section
       onMouseMove={
         event =>
-          applyTilt(
+          tiltCard(
             event,
-            maxTilt,
-            lift,
-            scale,
-            depth
+            strength,
+            lift
           )
       }
       onMouseLeave={
         resetTilt
       }
-      className={`provn-motion-panel ${className}`}
+      className={`provn-tilt ${className}`}
     >
-      <span
-        aria-hidden="true"
-        className="provn-pointer-reflection"
-      />
+      <div className="provn-light" />
 
-      <span
-        aria-hidden="true"
-        className="provn-edge-response"
-      />
-
-      <span
-        aria-hidden="true"
-        className="provn-metal-sheen"
-      />
-
-      <div className="provn-panel-content">
+      <div className="relative z-[2]">
         {children}
       </div>
-    </div>
-  )
-}
-
-function TiltForm({
-  children,
-  className = '',
-  onSubmit,
-}: {
-  children: ReactNode
-  className?: string
-  onSubmit:
-    (
-      event: FormEvent<HTMLFormElement>
-    ) => void
-}) {
-  return (
-    <form
-      onSubmit={
-        onSubmit
-      }
-      onMouseMove={
-        event =>
-          applyTilt(
-            event,
-            2.5,
-            5,
-            1.002,
-            7
-          )
-      }
-      onMouseLeave={
-        resetTilt
-      }
-      className={`provn-motion-panel provn-form-motion ${className}`}
-    >
-      <span
-        aria-hidden="true"
-        className="provn-pointer-reflection"
-      />
-
-      <span
-        aria-hidden="true"
-        className="provn-edge-response"
-      />
-
-      <span
-        aria-hidden="true"
-        className="provn-metal-sheen"
-      />
-
-      <div className="provn-panel-content">
-        {children}
-      </div>
-    </form>
+    </section>
   )
 }
 
@@ -368,20 +206,16 @@ function TiltForm({
    LOGO
 ========================================================= */
 
-function ProVNMark({
-  className = 'h-[44px] w-[44px]',
-}: {
-  className?: string
-}) {
+function ProVNMark() {
   return (
     <svg
       viewBox="0 0 58 58"
+      className="h-[45px] w-[45px]"
       aria-hidden="true"
-      className={`${className} shrink-0 overflow-visible drop-shadow-[0_0_12px_rgba(226,32,57,.30)]`}
     >
       <defs>
         <linearGradient
-          id="edit-main"
+          id="profile-edit-logo"
           x1="0"
           y1="0"
           x2="0"
@@ -389,105 +223,44 @@ function ProVNMark({
         >
           <stop
             offset="0%"
-            stopColor="#ff8a95"
+            stopColor="#ff8795"
           />
-          <stop
-            offset="13%"
-            stopColor="#e65362"
-          />
-          <stop
-            offset="32%"
-            stopColor="#ba273a"
-          />
-          <stop
-            offset="51%"
-            stopColor="#811320"
-          />
-          <stop
-            offset="72%"
-            stopColor="#ad1c30"
-          />
-          <stop
-            offset="100%"
-            stopColor="#240508"
-          />
-        </linearGradient>
 
-        <linearGradient
-          id="edit-top"
-          x1="0"
-          y1="0"
-          x2="1"
-          y2="0"
-        >
           <stop
-            offset="0%"
-            stopColor="#77101b"
+            offset="22%"
+            stopColor="#dd4255"
           />
-          <stop
-            offset="34%"
-            stopColor="#df4355"
-          />
-          <stop
-            offset="57%"
-            stopColor="#ff9ea7"
-          />
-          <stop
-            offset="100%"
-            stopColor="#6e0b17"
-          />
-        </linearGradient>
 
-        <linearGradient
-          id="edit-edge"
-          x1="0"
-          y1="0"
-          x2="1"
-          y2="1"
-        >
           <stop
-            offset="0%"
-            stopColor="#ffc7cc"
+            offset="50%"
+            stopColor="#8b1727"
           />
+
           <stop
-            offset="34%"
-            stopColor="#ff5365"
+            offset="78%"
+            stopColor="#c8263c"
           />
+
           <stop
             offset="100%"
-            stopColor="#680715"
+            stopColor="#31060c"
           />
         </linearGradient>
       </defs>
 
       <path
-        d="M4.5 8.5 H39 L52 17.5 L44.5 20.5 H16.2 L8.7 15.3 Z"
-        fill="url(#edit-top)"
-        stroke="url(#edit-edge)"
-        strokeWidth=".8"
-        strokeLinejoin="round"
+        d="M4 8.5h35l13 9-8 3H16L8 15Z"
+        fill="url(#profile-edit-logo)"
       />
 
       <path
-        d="M11.2 21.5 H37.6 C46.5 21.5 52.5 26.3 52.5 33 C52.5 40.4 46.8 45.4 37.6 45.4 H26.4 V36.9 H37.1 C40.9 36.9 43.4 35.2 43.4 32.8 C43.4 30.3 40.9 28.6 37.1 28.6 H23.6 V43.5 L12 55 Z"
-        fill="url(#edit-main)"
-        stroke="url(#edit-edge)"
-        strokeWidth=".8"
-        strokeLinejoin="round"
+        d="M11 21h27c9 0 15 5 15 12s-6 12-15 12H26v-8h11c4 0 6-2 6-4s-2-4-6-4H24v15L12 55Z"
+        fill="url(#profile-edit-logo)"
       />
 
       <path
-        d="M11.8 29.2 L23.7 40.2 L23.7 49.3 L17.8 43.6 L11.8 38 Z"
-        fill="#070405"
-      />
-
-      <path
-        d="M7.2 10 H38.2 L47.2 16.3"
-        fill="none"
-        stroke="#ffd3d7"
-        strokeOpacity=".66"
-        strokeWidth="1"
-        strokeLinecap="round"
+        d="M12 29 24 40v9l-12-11Z"
+        fill="#080405"
       />
     </svg>
   )
@@ -497,23 +270,18 @@ function ProVNLogo() {
   return (
     <Link
       href="/"
-      aria-label="ProVN home"
-      className="group inline-flex items-center"
+      className="group flex items-center"
     >
-      <span className="relative">
-
-        <span className="pointer-events-none absolute inset-[7px] rounded-full bg-[#d1213c]/20 opacity-0 blur-[15px] transition-opacity duration-300 group-hover:opacity-100" />
-
+      <span className="drop-shadow-[0_0_13px_rgba(218,39,61,.26)] transition-transform duration-300 group-hover:scale-[1.04]">
         <ProVNMark />
       </span>
 
-      <span className="-ml-[3px] translate-y-[4px] text-[22px] font-black leading-none tracking-[-0.055em]">
-
-        <span className="text-[#f4f1f1]">
+      <span className="-ml-[4px] translate-y-[4px] text-[22px] font-black tracking-[-0.055em]">
+        <span className="text-[#f2eeee]">
           ro
         </span>
 
-        <span className="text-[#e51f3b]">
+        <span className="text-[#e21d38]">
           VN
         </span>
       </span>
@@ -525,17 +293,16 @@ function ProVNLogo() {
    ICONS
 ========================================================= */
 
-function ArrowLeftIcon() {
+function ArrowLeft() {
   return (
     <svg
       viewBox="0 0 20 20"
-      className="h-[13px] w-[13px]"
+      className="h-[12px] w-[12px]"
       fill="none"
       stroke="currentColor"
       strokeWidth="1.8"
       strokeLinecap="round"
       strokeLinejoin="round"
-      aria-hidden="true"
     >
       <path d="M16 10H5" />
       <path d="m9 6-4 4 4 4" />
@@ -543,17 +310,16 @@ function ArrowLeftIcon() {
   )
 }
 
-function ArrowRightIcon() {
+function ArrowRight() {
   return (
     <svg
       viewBox="0 0 20 20"
-      className="h-[13px] w-[13px]"
+      className="h-[12px] w-[12px]"
       fill="none"
       stroke="currentColor"
       strokeWidth="1.8"
       strokeLinecap="round"
       strokeLinejoin="round"
-      aria-hidden="true"
     >
       <path d="M4 10h11" />
       <path d="m11 6 4 4-4 4" />
@@ -571,7 +337,6 @@ function CheckIcon() {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      aria-hidden="true"
     >
       <path d="m4 10 3.5 3.5L16 5.5" />
     </svg>
@@ -586,9 +351,6 @@ function LockIcon() {
       fill="none"
       stroke="currentColor"
       strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
     >
       <rect
         x="4.5"
@@ -607,13 +369,12 @@ function ImageIcon() {
   return (
     <svg
       viewBox="0 0 24 24"
-      className="h-[18px] w-[18px]"
+      className="h-[15px] w-[15px]"
       fill="none"
       stroke="currentColor"
       strokeWidth="1.6"
       strokeLinecap="round"
       strokeLinejoin="round"
-      aria-hidden="true"
     >
       <rect
         x="3"
@@ -625,218 +386,73 @@ function ImageIcon() {
 
       <circle
         cx="9"
-        cy="10"
+        cy="9"
         r="2"
       />
 
-      <path d="m4 18 5-5 4 4 2-2 5 5" />
+      <path d="m5 18 5-5 3 3 2-2 4 4" />
     </svg>
   )
 }
 
-function GamepadIcon() {
+function GameIcon() {
   return (
     <svg
       viewBox="0 0 24 24"
-      className="h-[18px] w-[18px]"
+      className="h-[15px] w-[15px]"
       fill="none"
       stroke="currentColor"
       strokeWidth="1.6"
       strokeLinecap="round"
       strokeLinejoin="round"
-      aria-hidden="true"
     >
-      <path d="M8.5 8.5h7a5 5 0 0 1 4.7 3.3l1.1 3.2c.8 2.3-1.9 4.2-3.8 2.7l-2.1-1.7H8.6l-2.1 1.7C4.6 19.2 1.9 17.3 2.7 15l1.1-3.2a5 5 0 0 1 4.7-3.3Z" />
+      <path d="M8.5 8.5h7a5 5 0 0 1 4.7 3.3l1.1 3.2c.8 2.3-1.9 4.2-3.8 2.7L15.4 16H8.6l-2.1 1.7C4.6 19.2 1.9 17.3 2.7 15l1.1-3.2a5 5 0 0 1 4.7-3.3Z" />
 
-      <path d="M7 12v3" />
-      <path d="M5.5 13.5h3" />
-      <path d="M16.5 12.5h.01" />
-      <path d="M18 14h.01" />
-    </svg>
-  )
-}
+      <path d="M7 12v3M5.5 13.5h3" />
 
-function ShieldIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-[18px] w-[18px]"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M12 3 19 6v5c0 4.8-2.9 8.1-7 10-4.1-1.9-7-5.2-7-10V6l7-3Z" />
+      <path d="M16.5 12.5h.01M18 14h.01" />
     </svg>
   )
 }
 
 /* =========================================================
-   FOUNDATION ROW
+   FOUNDATION ITEM
 ========================================================= */
 
-function FoundationRow({
+function FoundationItem({
   icon,
   title,
   description,
-  complete,
+  state,
 }: {
   icon: ReactNode
   title: string
   description: string
-  complete: boolean
+  state: string
 }) {
   return (
-    <div className="flex min-h-[68px] items-center rounded-[15px] border border-white/[0.05] bg-black/20 px-4 transition-[border-color,background-color,box-shadow] duration-300 hover:border-[#59212b]/75 hover:bg-[#0c0608] hover:shadow-[0_10px_30px_rgba(0,0,0,.15)]">
+    <div className="group flex min-h-[73px] items-center rounded-[16px] border border-white/[0.05] bg-black/20 px-4 transition-all duration-300 hover:-translate-y-[2px] hover:border-[#5c202b]/70 hover:bg-[#0b0608]">
 
-      <span
-        className={`flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[11px] border ${
-          complete
-            ? 'border-[#6d2934]/75 bg-[#14090c] text-[#d14458]'
-            : 'border-white/[0.05] bg-black/25 text-zinc-700'
-        }`}
-      >
+      <span className="flex h-[36px] w-[36px] shrink-0 items-center justify-center rounded-[11px] border border-[#64232f]/75 bg-[#11070a] text-[#c63d51] transition group-hover:scale-[1.05]">
         {icon}
       </span>
 
-      <div className="ml-4 min-w-0">
+      <div className="ml-4">
 
-        <p className="text-[10px] font-medium text-zinc-300">
+        <p className="text-[10px] text-zinc-300">
           {title}
         </p>
 
-        <p className="mt-[4px] text-[8px] text-zinc-700">
+        <p className="mt-[4px] text-[7px] text-zinc-700">
           {description}
         </p>
       </div>
 
-      <span
-        className={`ml-auto shrink-0 pl-4 text-[7px] font-semibold uppercase tracking-[0.15em] ${
-          complete
-            ? 'text-[#bd4051]'
-            : 'text-zinc-700'
-        }`}
-      >
-        {complete
-          ? 'Added'
-          : 'Missing'}
+      <span className="ml-auto pl-4 text-[7px] font-semibold uppercase tracking-[0.14em] text-[#c63d51]">
+        {state}
       </span>
     </div>
   )
-}
-
-/* =========================================================
-   TRUST ROW
-========================================================= */
-
-function TrustRow({
-  icon,
-  title,
-  status,
-  statusTone = 'muted',
-}: {
-  icon: ReactNode
-  title: string
-  status: string
-  statusTone?: 'green' | 'accent' | 'muted'
-}) {
-  const tone =
-    statusTone === 'green'
-      ? 'text-emerald-500'
-      : statusTone === 'accent'
-        ? 'text-[#bd4051]'
-        : 'text-zinc-700'
-
-  return (
-    <div className="flex min-h-[58px] items-center border-b border-white/[0.045] py-3 last:border-b-0">
-
-      <span className="flex h-[30px] w-[30px] items-center justify-center rounded-[10px] border border-[#57202a]/65 bg-[#10070a] text-[#a83a49]">
-        {icon}
-      </span>
-
-      <span className="ml-3 text-[9px] text-zinc-400">
-        {title}
-      </span>
-
-      <span
-        className={`ml-auto text-[7px] font-semibold uppercase tracking-[0.14em] ${tone}`}
-      >
-        {status}
-      </span>
-    </div>
-  )
-}
-
-/* =========================================================
-   STORAGE HELPERS
-========================================================= */
-
-function getAvatarExtension(
-  type: string
-) {
-  if (
-    type === 'image/png'
-  ) {
-    return 'png'
-  }
-
-  if (
-    type === 'image/webp'
-  ) {
-    return 'webp'
-  }
-
-  return 'jpg'
-}
-
-function extractAvatarStoragePath(
-  url: string | null,
-  userId: string
-) {
-  if (!url) {
-    return null
-  }
-
-  try {
-    const parsed =
-      new URL(url)
-
-    const marker =
-      '/storage/v1/object/public/avatars/'
-
-    const index =
-      parsed.pathname.indexOf(
-        marker
-      )
-
-    if (
-      index === -1
-    ) {
-      return null
-    }
-
-    const path =
-      decodeURIComponent(
-        parsed.pathname.slice(
-          index +
-          marker.length
-        )
-      )
-
-    if (
-      !path.startsWith(
-        `${userId}/`
-      )
-    ) {
-      return null
-    }
-
-    return path
-  } catch {
-    return null
-  }
 }
 
 /* =========================================================
@@ -846,12 +462,18 @@ function extractAvatarStoragePath(
 export default function EditProfilePage() {
   const supabase =
     useMemo(
-      () => createClient(),
+      () =>
+        createClient(),
       []
     )
 
   const fileInputRef =
     useRef<HTMLInputElement | null>(
+      null
+    )
+
+  const objectUrlRef =
+    useRef<string | null>(
       null
     )
 
@@ -872,22 +494,8 @@ export default function EditProfilePage() {
     )
 
   const [
-    userId,
-    setUserId,
-  ] =
-    useState<string | null>(
-      null
-    )
-
-  const [
     displayName,
     setDisplayName,
-  ] =
-    useState('')
-
-  const [
-    bio,
-    setBio,
   ] =
     useState('')
 
@@ -898,10 +506,32 @@ export default function EditProfilePage() {
     useState('')
 
   const [
+    bio,
+    setBio,
+  ] =
+    useState('')
+
+  const [
     originalBio,
     setOriginalBio,
   ] =
     useState('')
+
+  const [
+    previewUrl,
+    setPreviewUrl,
+  ] =
+    useState<string | null>(
+      null
+    )
+
+  const [
+    selectedPhoto,
+    setSelectedPhoto,
+  ] =
+    useState<File | null>(
+      null
+    )
 
   const [
     emailVerified,
@@ -910,262 +540,215 @@ export default function EditProfilePage() {
     useState(false)
 
   const [
-    avatarFile,
-    setAvatarFile,
-  ] =
-    useState<File | null>(
-      null
-    )
-
-  const [
-    avatarPreviewUrl,
-    setAvatarPreviewUrl,
-  ] =
-    useState<string | null>(
-      null
-    )
-
-  const [
     saving,
     setSaving,
   ] =
     useState(false)
 
   const [
-    uploadingAvatar,
-    setUploadingAvatar,
+    saveMessage,
+    setSaveMessage,
   ] =
-    useState(false)
+    useState<string | null>(
+      null
+    )
 
   const [
-    saved,
-    setSaved,
-  ] =
-    useState(false)
-
-  const [
-    errorMessage,
-    setErrorMessage,
+    saveError,
+    setSaveError,
   ] =
     useState<string | null>(
       null
     )
 
   /* =======================================================
-     BLOB CLEANUP
+     LOAD
   ======================================================== */
 
   useEffect(() => {
-    return () => {
-      if (
-        avatarPreviewUrl?.startsWith(
-          'blob:'
-        )
-      ) {
-        URL.revokeObjectURL(
-          avatarPreviewUrl
-        )
-      }
-    }
-  }, [
-    avatarPreviewUrl,
-  ])
+    let active =
+      true
 
-  /* =======================================================
-     LOAD PROFILE
-  ======================================================== */
+    async function load() {
+      try {
+        const {
+          data:
+            userResult,
 
-  useEffect(() => {
-    let active = true
+          error:
+            userError,
+        } =
+          await supabase
+            .auth
+            .getUser()
 
-    async function loadProfile() {
-      const {
-        data: userResult,
-        error: userError,
-      } =
-        await supabase
-          .auth
-          .getUser()
+        if (
+          !active
+        ) {
+          return
+        }
 
-      if (!active) {
-        return
-      }
-
-      if (
-        userError ||
-        !userResult.user
-      ) {
-        window.location.replace(
-          '/login'
-        )
-
-        return
-      }
-
-      const user =
-        userResult.user
-
-      setUserId(
-        user.id
-      )
-
-      const {
-        data: profileResult,
-        error: profileError,
-      } =
-        await supabase
-          .from('profiles')
-          .select(
-            'id, username, display_name, avatar_url, bio'
+        if (
+          userError ||
+          !userResult.user
+        ) {
+          window.location.replace(
+            '/login'
           )
-          .eq(
-            'id',
-            user.id
+
+          return
+        }
+
+        const user =
+          userResult.user
+
+        const {
+          data:
+            profileResult,
+
+          error:
+            profileError,
+        } =
+          await supabase
+            .from(
+              'profiles'
+            )
+            .select(
+              'id, username, display_name, avatar_url, bio, created_at'
+            )
+            .eq(
+              'id',
+              user.id
+            )
+            .maybeSingle()
+
+        if (
+          !active
+        ) {
+          return
+        }
+
+        if (
+          profileError ||
+          !profileResult
+        ) {
+          setLoadState(
+            'error'
           )
-          .maybeSingle()
 
-      if (!active) {
-        return
-      }
+          return
+        }
 
-      if (
-        profileError ||
-        !profileResult
-      ) {
-        console.error(
-          'Could not load profile:',
-          profileError
+        const signupName =
+          typeof user
+            .user_metadata
+            ?.full_name ===
+          'string'
+            ? user
+                .user_metadata
+                .full_name
+                .trim()
+            : ''
+
+        const initialName =
+          profileResult
+            .display_name
+            ?.trim() ||
+          signupName ||
+          ''
+
+        const initialBio =
+          profileResult.bio ||
+          ''
+
+        setProfile(
+          profileResult
+        )
+
+        setDisplayName(
+          initialName
+        )
+
+        setOriginalDisplayName(
+          initialName
+        )
+
+        setBio(
+          initialBio
+        )
+
+        setOriginalBio(
+          initialBio
+        )
+
+        setPreviewUrl(
+          profileResult
+            .avatar_url
+        )
+
+        setEmailVerified(
+          Boolean(
+            user
+              .email_confirmed_at
+          )
         )
 
         setLoadState(
-          'error'
+          'ready'
         )
-
-        return
+      } catch {
+        if (
+          active
+        ) {
+          setLoadState(
+            'error'
+          )
+        }
       }
-
-      const metadataName =
-        typeof user
-          .user_metadata
-          ?.full_name ===
-        'string'
-          ? user
-              .user_metadata
-              .full_name
-              .trim()
-          : ''
-
-      const initialName =
-        profileResult
-          .display_name
-          ?.trim() ||
-        metadataName ||
-        profileResult.username
-
-      const initialBio =
-        profileResult
-          .bio
-          ?.trim() ||
-        ''
-
-      setProfile(
-        profileResult
-      )
-
-      setDisplayName(
-        initialName
-      )
-
-      setOriginalDisplayName(
-        initialName
-      )
-
-      setBio(
-        initialBio
-      )
-
-      setOriginalBio(
-        initialBio
-      )
-
-      setEmailVerified(
-        Boolean(
-          user.email_confirmed_at
-        )
-      )
-
-      setLoadState(
-        'ready'
-      )
     }
 
-    void loadProfile()
+    void load()
 
     return () => {
-      active = false
+      active =
+        false
+
+      if (
+        objectUrlRef.current
+      ) {
+        URL.revokeObjectURL(
+          objectUrlRef.current
+        )
+      }
     }
   }, [
     supabase,
   ])
 
   /* =======================================================
-     DERIVED STATE
+     DERIVED
   ======================================================== */
 
-  const cleanDisplayName =
-    displayName.trim()
+  const profileHref =
+    profile
+      ? `/profiles/${encodeURIComponent(
+          profile.username
+        )}`
+      : '/'
 
-  const cleanBio =
-    bio.trim()
-
-  const currentAvatarUrl =
-    avatarPreviewUrl ||
-    profile?.avatar_url ||
-    null
-
-  const avatarChanged =
-    Boolean(
-      avatarFile
-    )
-
-  const dirty =
-    cleanDisplayName !==
-      originalDisplayName.trim() ||
-    cleanBio !==
-      originalBio.trim() ||
-    avatarChanged
-
-  const nameAdded =
-    Boolean(
-      cleanDisplayName
-    )
-
-  const bioAdded =
-    Boolean(
-      cleanBio
-    )
-
-  const avatarAdded =
-    Boolean(
-      currentAvatarUrl
-    )
-
-  const foundationCount =
-    [
-      nameAdded,
-      bioAdded,
-      avatarAdded,
-    ].filter(Boolean).length
+  const displayPreview =
+    displayName.trim() ||
+    profile?.username ||
+    'Player'
 
   const initials =
-    (
-      cleanDisplayName ||
-      profile?.username ||
-      'P'
-    )
+    displayPreview
       .split(/\s+/)
       .filter(Boolean)
-      .slice(0, 2)
+      .slice(
+        0,
+        2
+      )
       .map(
         part =>
           part[0]
@@ -1174,46 +757,87 @@ export default function EditProfilePage() {
       .join('') ||
     'P'
 
-  const profileHref =
-    profile?.username
-      ? `/profiles/${encodeURIComponent(
-          profile.username
-        )}`
-      : '/'
+  const dirty =
+    displayName.trim() !==
+      originalDisplayName.trim() ||
+    bio.trim() !==
+      originalBio.trim() ||
+    selectedPhoto !==
+      null
+
+  const profileComplete =
+    [
+      Boolean(
+        displayName.trim()
+      ),
+
+      Boolean(
+        bio.trim()
+      ),
+
+      Boolean(
+        previewUrl
+      ),
+    ].filter(
+      Boolean
+    ).length
 
   /* =======================================================
-     CLICK AVATAR
+     CHOOSE PHOTO
   ======================================================== */
 
-  function openAvatarPicker() {
+  function choosePhoto() {
+    if (
+      saving
+    ) {
+      return
+    }
+
     fileInputRef
       .current
       ?.click()
   }
 
-  function handleAvatarInput(
+  function handlePhotoChange(
     event:
       ChangeEvent<HTMLInputElement>
   ) {
     const file =
-      event.target.files?.[0]
+      event
+        .target
+        .files?.[0]
 
-    event.target.value = ''
+    event.target.value =
+      ''
 
-    if (!file) {
+    if (
+      !file
+    ) {
       return
     }
 
-    setSaved(false)
-    setErrorMessage(null)
+    setSaveError(
+      null
+    )
+
+    setSaveMessage(
+      null
+    )
+
+    const allowed =
+      [
+        'image/jpeg',
+        'image/png',
+        'image/webp',
+      ]
 
     if (
-      !ALLOWED_AVATAR_TYPES.includes(
+      !allowed.includes(
         file.type
       )
     ) {
-      setErrorMessage(
-        'Use a JPEG, PNG or WebP profile image.'
+      setSaveError(
+        'Choose a JPG, PNG or WEBP image.'
       )
 
       return
@@ -1221,34 +845,94 @@ export default function EditProfilePage() {
 
     if (
       file.size >
-      MAX_AVATAR_SIZE
+      5 * 1024 * 1024
     ) {
-      setErrorMessage(
-        'Profile images must be 5 MB or smaller.'
+      setSaveError(
+        'Profile image must be 5 MB or smaller.'
       )
 
       return
     }
 
-    const previewUrl =
+    if (
+      objectUrlRef.current
+    ) {
+      URL.revokeObjectURL(
+        objectUrlRef.current
+      )
+    }
+
+    const objectUrl =
       URL.createObjectURL(
         file
       )
 
-    setAvatarFile(
+    objectUrlRef.current =
+      objectUrl
+
+    setSelectedPhoto(
       file
     )
 
-    setAvatarPreviewUrl(
-      previewUrl
+    setPreviewUrl(
+      objectUrl
     )
   }
 
   /* =======================================================
-     SAVE
+     CANCEL
   ======================================================== */
 
-  async function handleSubmit(
+  function cancelChanges() {
+    if (
+      saving
+    ) {
+      return
+    }
+
+    if (
+      objectUrlRef.current
+    ) {
+      URL.revokeObjectURL(
+        objectUrlRef.current
+      )
+
+      objectUrlRef.current =
+        null
+    }
+
+    setDisplayName(
+      originalDisplayName
+    )
+
+    setBio(
+      originalBio
+    )
+
+    setSelectedPhoto(
+      null
+    )
+
+    setPreviewUrl(
+      profile
+        ?.avatar_url ??
+        null
+    )
+
+    setSaveError(
+      null
+    )
+
+    setSaveMessage(
+      null
+    )
+  }
+
+  /* =======================================================
+     SAVE ALL PROFILE CHANGES
+  ======================================================== */
+
+  async function saveProfile(
     event:
       FormEvent<HTMLFormElement>
   ) {
@@ -1256,30 +940,23 @@ export default function EditProfilePage() {
 
     if (
       saving ||
-      !profile ||
-      !userId
+      !dirty ||
+      !profile
     ) {
       return
     }
 
-    setSaved(false)
-    setErrorMessage(null)
+    const cleanDisplayName =
+      displayName.trim()
+
+    const cleanBio =
+      bio.trim()
 
     if (
-      cleanDisplayName &&
-      cleanDisplayName.length < 2
+      cleanDisplayName.length >
+      50
     ) {
-      setErrorMessage(
-        'Display name must be at least 2 characters.'
-      )
-
-      return
-    }
-
-    if (
-      cleanDisplayName.length > 50
-    ) {
-      setErrorMessage(
+      setSaveError(
         'Display name cannot exceed 50 characters.'
       )
 
@@ -1287,289 +964,257 @@ export default function EditProfilePage() {
     }
 
     if (
-      cleanBio.length > 240
+      cleanBio.length >
+      240
     ) {
-      setErrorMessage(
+      setSaveError(
         'Bio cannot exceed 240 characters.'
       )
 
       return
     }
 
-    setSaving(true)
+    setSaving(
+      true
+    )
 
-    let uploadedPath:
-      string | null =
+    setSaveError(
       null
+    )
 
-    const previousAvatarUrl =
-      profile.avatar_url
+    setSaveMessage(
+      null
+    )
 
     try {
-      let newAvatarUrl:
-        string | undefined =
-        undefined
+      /* =========================================
+         CURRENT SUPABASE SESSION
+      ========================================= */
 
-      /* ===============================================
-         UPLOAD IMAGE
-      =============================================== */
+      const {
+        data:
+          sessionResult,
+
+        error:
+          sessionError,
+      } =
+        await supabase
+          .auth
+          .getSession()
 
       if (
-        avatarFile
+        sessionError
       ) {
-        setUploadingAvatar(
-          true
+        throw new Error(
+          sessionError.message
         )
+      }
 
-        const extension =
-          getAvatarExtension(
-            avatarFile.type
-          )
+      let session =
+        sessionResult.session
 
-        uploadedPath =
-          `${userId}/avatar-${Date.now()}.${extension}`
+      /* =========================================
+         REFRESH IF NECESSARY
+      ========================================= */
 
-        const {
-          error:
-            uploadError,
-        } =
-          await supabase
-            .storage
-            .from(
-              'avatars'
-            )
-            .upload(
-              uploadedPath,
-              avatarFile,
-              {
-                contentType:
-                  avatarFile.type,
-
-                cacheControl:
-                  '3600',
-
-                upsert:
-                  false,
-              }
-            )
-
-        if (
-          uploadError
-        ) {
-          throw new Error(
-            uploadError.message ||
-            'Could not upload profile image.'
-          )
-        }
-
+      if (
+        !session
+          ?.access_token
+      ) {
         const {
           data:
-            publicUrlResult,
+            refreshResult,
+
+          error:
+            refreshError,
         } =
-          supabase
-            .storage
-            .from(
-              'avatars'
-            )
-            .getPublicUrl(
-              uploadedPath
-            )
+          await supabase
+            .auth
+            .refreshSession()
 
         if (
-          !publicUrlResult
-            .publicUrl
+          refreshError ||
+          !refreshResult
+            .session
+            ?.access_token
         ) {
           throw new Error(
-            'Could not create profile image URL.'
+            'Your login session expired. Please sign in again.'
           )
         }
 
-        newAvatarUrl =
-          publicUrlResult
-            .publicUrl
+        session =
+          refreshResult.session
       }
 
-      /* ===============================================
-         PROFILE UPDATE
-      =============================================== */
+      const accessToken =
+        session.access_token
 
-      const payload: {
-        displayName: string
-        bio: string
-        avatarUrl?: string
-      } = {
-        displayName:
-          cleanDisplayName,
+      /* =========================================
+         PROFILE FORM DATA
+      ========================================= */
 
-        bio:
-          cleanBio,
-      }
+      const formData =
+        new FormData()
+
+      formData.append(
+        'displayName',
+        cleanDisplayName
+      )
+
+      formData.append(
+        'bio',
+        cleanBio
+      )
 
       if (
-        newAvatarUrl
+        selectedPhoto
       ) {
-        payload.avatarUrl =
-          newAvatarUrl
+        formData.append(
+          'avatar',
+          selectedPhoto
+        )
       }
 
-      const response =
+      /* =========================================
+         SAVE
+      ========================================= */
+
+      const saveResponse =
         await fetch(
           '/api/profile/update',
           {
-            method: 'POST',
+            method:
+              'POST',
 
             headers: {
-              'Content-Type':
-                'application/json',
+              Authorization:
+                `Bearer ${accessToken}`,
             },
 
             body:
-              JSON.stringify(
-                payload
-              ),
+              formData,
+
+            credentials:
+              'same-origin',
+
+            cache:
+              'no-store',
           }
         )
 
       const result =
-        await response.json()
+        await saveResponse
+          .json()
+          .catch(
+            () => ({})
+          )
 
       if (
-        !response.ok ||
+        !saveResponse.ok ||
         !result.ok
       ) {
         throw new Error(
-          result.error ||
-            'Could not save profile changes.'
+          typeof result.error ===
+            'string'
+            ? result.error
+            : 'Could not save profile changes.'
         )
       }
 
-      const updatedProfile =
-        result.profile as Profile
-
-      /* ===============================================
-         CLEAN OLD AVATAR
-      =============================================== */
+      const saved =
+        result.profile as
+          Profile | undefined
 
       if (
-        avatarFile &&
-        previousAvatarUrl &&
-        previousAvatarUrl !==
-          updatedProfile.avatar_url
+        !saved
       ) {
-        const oldPath =
-          extractAvatarStoragePath(
-            previousAvatarUrl,
-            userId
-          )
-
-        if (
-          oldPath
-        ) {
-          const {
-            error:
-              deleteError,
-          } =
-            await supabase
-              .storage
-              .from(
-                'avatars'
-              )
-              .remove([
-                oldPath,
-              ])
-
-          if (
-            deleteError
-          ) {
-            console.warn(
-              'Old avatar cleanup failed:',
-              deleteError
-            )
-          }
-        }
+        throw new Error(
+          'Profile was saved but no updated profile was returned.'
+        )
       }
 
-      /* ===============================================
-         LOCAL STATE
-      =============================================== */
+      /* =========================================
+         CLEAN TEMPORARY PREVIEW URL
+      ========================================= */
+
+      if (
+        objectUrlRef.current
+      ) {
+        URL.revokeObjectURL(
+          objectUrlRef.current
+        )
+
+        objectUrlRef.current =
+          null
+      }
+
+      /* =========================================
+         SAVED DATABASE STATE
+      ========================================= */
 
       setProfile(
-        current =>
-          current
-            ? {
-                ...current,
-                ...updatedProfile,
-              }
-            : updatedProfile
+        saved
       )
 
-      const updatedName =
-        updatedProfile
-          .display_name ??
+      const finalName =
+        saved
+          .display_name ||
         ''
 
-      const updatedBio =
-        updatedProfile
-          .bio ??
+      const finalBio =
+        saved.bio ||
         ''
 
       setDisplayName(
-        updatedName
-      )
-
-      setBio(
-        updatedBio
+        finalName
       )
 
       setOriginalDisplayName(
-        updatedName
+        finalName
+      )
+
+      setBio(
+        finalBio
       )
 
       setOriginalBio(
-        updatedBio
+        finalBio
       )
 
-      setAvatarFile(
+      setSelectedPhoto(
         null
       )
 
-      setAvatarPreviewUrl(
-        null
+      setPreviewUrl(
+        saved.avatar_url
       )
 
-      setSaved(
-        true
-      )
-
-      window.setTimeout(
-        () =>
-          setSaved(false),
-        2600
+      setSaveMessage(
+        'Profile saved successfully. Your public identity is now updated.'
       )
     } catch (
       error
     ) {
-      if (
-        uploadedPath
-      ) {
-        await supabase
-          .storage
-          .from(
-            'avatars'
-          )
-          .remove([
-            uploadedPath,
-          ])
-      }
+      /*
+        Do NOT console.error here.
 
-      setErrorMessage(
-        error instanceof Error
+        Next.js development overlay treats console errors
+        as a red development error screen.
+
+        We show the error cleanly inside the ProVN UI instead.
+      */
+
+      setSaveError(
+        error instanceof
+          Error
           ? error.message
           : 'Could not save profile changes.'
       )
     } finally {
-      setSaving(false)
-      setUploadingAvatar(false)
+      setSaving(
+        false
+      )
     }
   }
 
@@ -1598,9 +1243,9 @@ export default function EditProfilePage() {
 
         <div className="text-center">
 
-          <div className="mx-auto h-[38px] w-[38px] animate-spin rounded-full border border-[#54202a] border-t-[#df4055]" />
+          <div className="mx-auto h-[38px] w-[38px] animate-spin rounded-full border border-[#55202a] border-t-[#dc3e54]" />
 
-          <p className="mt-5 text-[8px] uppercase tracking-[0.28em] text-zinc-700">
+          <p className="mt-5 text-[7px] uppercase tracking-[0.26em] text-zinc-700">
             Loading Identity Studio
           </p>
         </div>
@@ -1620,19 +1265,19 @@ export default function EditProfilePage() {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#020203] px-6 text-white">
 
-        <div className="max-w-[520px] text-center">
+        <div className="text-center">
 
-          <p className="text-[8px] uppercase tracking-[0.3em] text-[#a63a49]">
+          <p className="text-[7px] uppercase tracking-[0.26em] text-[#9b3544]">
             ProVN Identity
           </p>
 
-          <h1 className="mt-4 text-[38px] font-black tracking-[-0.05em]">
-            We couldn&apos;t load your profile.
+          <h1 className="mt-5 text-[40px] font-black">
+            Profile unavailable.
           </h1>
 
           <Link
             href="/"
-            className="mt-8 inline-flex h-[46px] items-center rounded-full border border-[#752633] bg-[#12070a] px-7 text-[9px] font-semibold uppercase tracking-[0.15em] text-zinc-300"
+            className="mt-8 inline-flex h-[45px] items-center rounded-full border border-[#6d2430] bg-[#11070a] px-7 text-[8px] uppercase tracking-[0.15em]"
           >
             Return Home
           </Link>
@@ -1652,507 +1297,235 @@ export default function EditProfilePage() {
               cursor: ${PROVN_CURSOR} !important;
             }
 
-            input,
-            textarea,
+            input[data-writing-field="true"],
+            textarea[data-writing-field="true"],
             [contenteditable="true"] {
               cursor: text !important;
             }
+
+            button,
+            a,
+            [role="button"] {
+              cursor: ${PROVN_CURSOR} !important;
+            }
           }
 
-          .provn-motion-panel {
-            --tilt-rx: 0deg;
-            --tilt-ry: 0deg;
-            --tilt-lift: 0px;
-            --tilt-scale: 1;
-            --tilt-mx: 50%;
-            --tilt-my: 50%;
-            --tilt-shadow-x: 0px;
-            --tilt-shadow-y: 28px;
-            --tilt-depth: 0px;
+          html,
+          body {
+            background: #020203;
+          }
+
+          .provn-tilt {
+            --mx: 50%;
+            --my: 50%;
 
             position: relative;
+            isolation: isolate;
 
             transform:
-              perspective(1150px)
-              translate3d(
-                0,
-                var(--tilt-lift),
-                0
-              )
-              rotateX(
-                var(--tilt-rx)
-              )
-              rotateY(
-                var(--tilt-ry)
-              )
-              scale(
-                var(--tilt-scale)
-              );
+              perspective(1300px)
+              rotateX(0deg)
+              rotateY(0deg);
 
             transform-style:
               preserve-3d;
-
-            isolation:
-              isolate;
 
             will-change:
               transform;
 
-            box-shadow:
-              var(--tilt-shadow-x)
-              var(--tilt-shadow-y)
-              76px
-              rgba(0,0,0,.22);
-          }
-
-          .provn-motion-panel:hover {
-            border-color:
-              rgba(117,41,54,.74);
-
-            box-shadow:
-              var(--tilt-shadow-x)
-              var(--tilt-shadow-y)
-              78px
-              rgba(0,0,0,.38),
-              0 0 40px
-              rgba(145,22,43,.075);
-          }
-
-          .provn-panel-content {
-            position: relative;
-
-            z-index: 5;
-
-            transform:
-              translateZ(
-                var(--tilt-depth)
-              );
-
-            transform-style:
-              preserve-3d;
-
             transition:
               transform
-              220ms
-              cubic-bezier(.16,1,.3,1);
+              520ms
+              cubic-bezier(.16,1,.3,1),
+              border-color
+              280ms ease,
+              box-shadow
+              350ms ease;
           }
 
-          .provn-pointer-reflection {
+          .provn-tilt:hover {
+            border-color:
+              rgba(112,38,51,.82);
+
+            box-shadow:
+              0 34px 90px
+              rgba(0,0,0,.30),
+              0 0 42px
+              rgba(153,23,43,.06);
+          }
+
+          .provn-light {
             position: absolute;
             inset: 0;
-            z-index: 2;
+
             pointer-events: none;
+
             border-radius: inherit;
+
             opacity: 0;
 
             background:
               radial-gradient(
-                circle
-                at
-                var(--tilt-mx)
-                var(--tilt-my),
-                rgba(255,255,255,.075),
-                rgba(255,255,255,.026) 18%,
-                rgba(190,42,63,.018) 32%,
-                transparent 53%
+                circle at
+                var(--mx)
+                var(--my),
+                rgba(255,255,255,.055),
+                rgba(196,43,64,.025) 22%,
+                transparent 50%
               );
 
             transition:
-              opacity
-              220ms
-              ease;
+              opacity 220ms ease;
           }
 
-          .provn-motion-panel:hover
-          .provn-pointer-reflection {
+          .provn-tilt:hover
+          .provn-light {
             opacity: 1;
           }
 
-          .provn-edge-response {
-            position: absolute;
-            inset: 0;
-            z-index: 3;
-            pointer-events: none;
-            border-radius: inherit;
-            opacity: 0;
-
-            box-shadow:
-              inset 0 1px 0
-              rgba(255,255,255,.065);
-
+          .input-premium {
             transition:
-              opacity
-              220ms
-              ease;
-          }
-
-          .provn-motion-panel:hover
-          .provn-edge-response {
-            opacity: 1;
-          }
-
-          .provn-metal-sheen {
-            position: absolute;
-
-            z-index: 4;
-
-            pointer-events: none;
-
-            top: -80%;
-            left: -42%;
-
-            width: 18%;
-            height: 260%;
-
-            opacity: 0;
-
-            transform:
-              rotate(18deg);
-
-            background:
-              linear-gradient(
-                90deg,
-                transparent,
-                rgba(255,255,255,.038),
-                rgba(255,255,255,.073),
-                rgba(255,255,255,.018),
-                transparent
-              );
-          }
-
-          .provn-motion-panel:hover
-          .provn-metal-sheen {
-            animation:
-              provnSheenPass
-              900ms
-              cubic-bezier(.16,1,.3,1)
-              1
-              both;
-          }
-
-          /* CLICKABLE AVATAR */
-
-          .provn-avatar-button {
-            position: relative;
-
-            transform:
-              translateZ(0)
-              scale(1);
-
-            transform-style:
-              preserve-3d;
-
-            transition:
-              transform
-                300ms
-                cubic-bezier(.16,1,.3,1),
-              border-color
-                260ms ease,
-              box-shadow
-                260ms ease;
-          }
-
-          .provn-preview-panel:hover
-          .provn-avatar-button {
-            transform:
-              translateZ(50px)
-              rotate(-2.3deg)
-              scale(1.045);
-
-            border-color:
-              rgba(207,62,82,.88);
-
-            box-shadow:
-              0 30px 65px
-              rgba(0,0,0,.46),
-              0 0 42px
-              rgba(175,31,52,.16);
-          }
-
-          .provn-avatar-button:hover {
-            transform:
-              translateZ(58px)
-              rotate(-2.3deg)
-              scale(1.065)
-              !important;
-          }
-
-          .provn-avatar-overlay {
-            position: absolute;
-
-            inset: 0;
-
-            display: flex;
-
-            align-items: center;
-            justify-content: center;
-
-            border-radius: inherit;
-
-            background:
-              linear-gradient(
-                180deg,
-                rgba(2,2,3,.08),
-                rgba(2,2,3,.82)
-              );
-
-            backdrop-filter:
-              blur(2px);
-
-            opacity: 0;
-
-            transition:
-              opacity
-              220ms ease;
-          }
-
-          .provn-avatar-button:hover
-          .provn-avatar-overlay {
-            opacity: 1;
-          }
-
-          .provn-avatar-overlay-text {
-            transform:
-              translateY(7px);
-
-            opacity: 0;
-
-            transition:
-              transform
-                260ms
-                cubic-bezier(.16,1,.3,1),
-              opacity
-                220ms ease;
-          }
-
-          .provn-avatar-button:hover
-          .provn-avatar-overlay-text {
-            transform:
-              translateY(0);
-
-            opacity: 1;
-          }
-
-          .provn-avatar-ring {
-            position: absolute;
-
-            inset: 7px;
-
-            border-radius: 23px;
-
-            border:
-              1px solid
-              rgba(255,255,255,.035);
-
-            pointer-events: none;
-          }
-
-          .provn-avatar-dot {
-            position: absolute;
-
-            right: 9px;
-            bottom: 9px;
-
-            width: 6px;
-            height: 6px;
-
-            border-radius: 999px;
-
-            background:
-              #db4055;
-
-            box-shadow:
-              0 0 11px
-              rgba(219,64,85,.58);
-
-            transition:
-              transform 250ms ease;
-          }
-
-          .provn-avatar-button:hover
-          .provn-avatar-dot {
-            transform:
-              scale(1.3);
-          }
-
-          .provn-preview-name {
-            transition:
-              transform
-                300ms
-                cubic-bezier(.16,1,.3,1),
-              text-shadow
-                300ms ease;
-          }
-
-          .provn-preview-panel:hover
-          .provn-preview-name {
-            transform:
-              translateZ(29px);
-
-            text-shadow:
-              0 16px 30px
-              rgba(0,0,0,.22);
-          }
-
-          /* FIELDS */
-
-          .provn-edit-field {
-            transition:
+              transform 220ms ease,
               border-color 220ms ease,
-              background-color 220ms ease,
               box-shadow 220ms ease,
-              transform 220ms ease;
+              background-color 220ms ease;
           }
 
-          .provn-edit-field:hover {
+          .input-premium:hover {
             border-color:
-              rgba(104,38,49,.75);
+              rgba(102,35,48,.72);
           }
 
-          .provn-edit-field:focus {
+          .input-premium:focus {
+            transform:
+              translateY(-1px);
+
             border-color:
-              rgba(186,55,74,.78);
+              rgba(194,56,75,.86);
 
             background:
-              rgba(15,6,9,.94);
+              #090607;
 
             box-shadow:
               0 0 0 3px
-              rgba(157,29,48,.07),
-              0 0 34px
-              rgba(130,18,37,.075);
-
-            transform:
-              translateY(-1px);
+              rgba(158,28,48,.07),
+              0 0 29px
+              rgba(145,20,41,.06);
           }
 
-          /* NAV */
-
-          .provn-nav-glow {
-            box-shadow:
-              inset 0 1px 0
-              rgba(255,255,255,.045),
-              0 8px 26px
-              rgba(0,0,0,.24),
-              0 0 18px
-              rgba(169,35,53,.11);
-
+          .photo-button {
             transition:
-              transform 220ms
+              transform
+              330ms
               cubic-bezier(.16,1,.3,1),
-              border-color 220ms ease,
-              background-color 220ms ease,
-              box-shadow 220ms ease;
+              border-color
+              240ms ease,
+              box-shadow
+              300ms ease;
           }
 
-          .provn-nav-glow:hover {
+          .photo-button:hover {
             transform:
-              translateY(-2px);
+              translateY(-4px)
+              scale(1.025);
+
+            border-color:
+              rgba(218,65,85,.92);
 
             box-shadow:
-              inset 0 1px 0
-              rgba(255,255,255,.07),
-              0 12px 32px
-              rgba(0,0,0,.30),
-              0 0 28px
-              rgba(196,45,65,.18);
+              0 23px 50px
+              rgba(0,0,0,.36),
+              0 0 34px
+              rgba(178,31,51,.12);
           }
 
-          /* SAVE */
-
-          .provn-save-button {
+          .save-button {
             position: relative;
-
             overflow: hidden;
           }
 
-          .provn-save-button::after {
+          .save-button::after {
             content: "";
 
             position: absolute;
 
-            top: -70%;
-            left: -45%;
+            top: -100%;
+            left: -35%;
 
-            width: 22%;
-            height: 230%;
+            width: 16%;
+            height: 300%;
 
             transform:
-              rotate(18deg);
+              rotate(19deg);
 
             background:
               linear-gradient(
                 90deg,
                 transparent,
-                rgba(255,255,255,.12),
+                rgba(255,255,255,.16),
                 transparent
               );
 
             transition:
               left
-              700ms
+              760ms
               cubic-bezier(.16,1,.3,1);
           }
 
-          .provn-save-button:not(:disabled):hover::after {
-            left: 130%;
+          .save-button:not(:disabled):hover::after {
+            left: 125%;
           }
 
-          @keyframes provnSheenPass {
-            0% {
-              left: -42%;
-              opacity: 0;
-            }
+          .back-button {
+            box-shadow:
+              inset 0 1px 0
+              rgba(255,255,255,.04),
+              0 0 20px
+              rgba(157,28,46,.09);
 
-            12% {
-              opacity: 1;
-            }
-
-            72% {
-              opacity: .72;
-            }
-
-            100% {
-              left: 128%;
-              opacity: 0;
-            }
+            transition:
+              transform 220ms ease,
+              box-shadow 220ms ease,
+              border-color 220ms ease;
           }
 
-          @keyframes editorEntry {
+          .back-button:hover {
+            transform:
+              translateY(-2px);
+
+            border-color:
+              rgba(188,55,72,.88);
+
+            box-shadow:
+              0 10px 30px
+              rgba(0,0,0,.30),
+              0 0 30px
+              rgba(182,38,57,.16);
+          }
+
+          .page-entry {
+            animation:
+              pageEntry
+              540ms
+              cubic-bezier(.16,1,.3,1)
+              both;
+          }
+
+          @keyframes pageEntry {
             from {
               opacity: 0;
-
               transform:
-                translateY(14px)
-                scale(.994);
-
+                translateY(14px);
               filter:
                 blur(4px);
             }
 
             to {
               opacity: 1;
-
-              transform:
-                translateY(0)
-                scale(1);
-
-              filter:
-                blur(0);
-            }
-          }
-
-          @keyframes successIn {
-            from {
-              opacity: 0;
-              transform:
-                translateY(5px);
-            }
-
-            to {
-              opacity: 1;
               transform:
                 translateY(0);
+              filter:
+                blur(0);
             }
           }
 
@@ -2160,33 +1533,21 @@ export default function EditProfilePage() {
             prefers-reduced-motion:
             reduce
           ) {
-            .provn-motion-panel,
-            .provn-panel-content,
-            .provn-avatar-button,
-            .provn-preview-name {
-              transform:
+            .provn-tilt,
+            .photo-button,
+            .page-entry {
+              animation:
                 none !important;
 
-              animation:
+              transition:
+                none !important;
+
+              transform:
                 none !important;
             }
           }
         `}
       </style>
-
-      {/* HIDDEN AVATAR FILE INPUT */}
-
-      <input
-        ref={
-          fileInputRef
-        }
-        type="file"
-        accept="image/jpeg,image/png,image/webp"
-        onChange={
-          handleAvatarInput
-        }
-        className="hidden"
-      />
 
       <main className="relative min-h-screen overflow-x-clip bg-[#020203] text-white">
 
@@ -2196,36 +1557,36 @@ export default function EditProfilePage() {
           className="pointer-events-none fixed inset-0"
           style={{
             background:
-              'radial-gradient(circle at 10% 8%,rgba(116,8,29,.13),transparent 29%),radial-gradient(circle at 91% 17%,rgba(94,7,24,.08),transparent 28%),radial-gradient(circle at 50% 110%,rgba(70,5,18,.09),transparent 43%),#020203',
+              'radial-gradient(circle at 6% 8%,rgba(111,8,28,.11),transparent 29%),radial-gradient(circle at 93% 14%,rgba(91,6,24,.08),transparent 27%),#020203',
           }}
         />
 
         <div
-          className="pointer-events-none fixed inset-0 opacity-[0.05]"
+          className="pointer-events-none fixed inset-0 opacity-[0.04]"
           style={{
             backgroundImage:
-              'linear-gradient(rgba(255,255,255,.021) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.021) 1px,transparent 1px)',
+              'linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px)',
 
             backgroundSize:
-              '78px 78px',
+              '90px 90px',
           }}
         />
 
         {/* HEADER */}
 
-        <header className="fixed inset-x-0 top-0 z-[1000] border-b border-[#47131d]/45 bg-[#020203]/[0.94] shadow-[0_14px_50px_rgba(0,0,0,.34)] backdrop-blur-2xl">
+        <header className="sticky top-0 z-[1000] border-b border-[#43131b]/50 bg-[#020203]/[0.96] backdrop-blur-xl">
 
-          <div className="mx-auto flex h-[72px] max-w-[1450px] items-center justify-between px-5 sm:px-7 lg:px-10">
+          <div className="mx-auto flex h-[78px] max-w-[1450px] items-center justify-between px-6 lg:px-10">
 
             <div className="flex items-center gap-5">
 
               <ProVNLogo />
 
-              <div className="hidden h-[25px] w-px bg-white/[0.055] sm:block" />
+              <div className="hidden h-[27px] w-px bg-white/[0.055] sm:block" />
 
               <div className="hidden sm:block">
 
-                <p className="text-[7px] font-semibold uppercase tracking-[0.25em] text-[#8f3542]">
+                <p className="text-[7px] font-semibold uppercase tracking-[0.25em] text-[#963644]">
                   Identity Studio
                 </p>
 
@@ -2239,10 +1600,10 @@ export default function EditProfilePage() {
               href={
                 profileHref
               }
-              className="provn-nav-glow group inline-flex h-[42px] min-w-[142px] items-center justify-center gap-[10px] rounded-full border border-[#7d2936]/90 bg-[#13070a]/95 px-5 text-[8px] font-semibold uppercase tracking-[0.15em] text-[#eee8e9]"
+              className="back-button inline-flex h-[43px] min-w-[145px] items-center justify-center gap-3 rounded-full border border-[#722631]/80 bg-[#10070a]/90 px-5 text-[7px] font-semibold uppercase tracking-[0.16em] text-zinc-300"
             >
-              <span className="text-[#df4a5e]">
-                <ArrowLeftIcon />
+              <span className="text-[#ce4153]">
+                <ArrowLeft />
               </span>
 
               Back to Profile
@@ -2250,37 +1611,30 @@ export default function EditProfilePage() {
           </div>
         </header>
 
-        <div className="h-[72px]" />
-
         {/* CONTENT */}
 
-        <div className="relative z-10 mx-auto max-w-[1320px] px-5 pb-20 pt-10 sm:px-7 lg:px-10 lg:pt-14">
+        <div className="page-entry relative z-10 mx-auto max-w-[1320px] px-6 pb-24 pt-10 lg:px-10">
 
-          <div className="animate-[editorEntry_.6s_cubic-bezier(.16,1,.3,1)_both]">
+          <div className="mb-8">
 
-            {/* PAGE TITLE */}
+            <h1 className="text-[48px] font-black leading-[.96] tracking-[-0.055em] sm:text-[60px]">
+              Shape your identity.
+            </h1>
 
-            <div className="mb-8">
+            <p className="mt-6 max-w-[760px] text-[11px] leading-6 text-zinc-600">
+              Customize how your ProVN profile appears publicly.
+              Your display name, bio and profile picture are published
+              together when you save.
+            </p>
+          </div>
 
-              <div className="flex items-center gap-3">
+          <form
+            onSubmit={
+              saveProfile
+            }
+          >
 
-                <span className="h-px w-9 bg-[#8c3040]" />
-
-                <p className="text-[7px] font-semibold uppercase tracking-[0.31em] text-[#983745]">
-                  Profile Configuration
-                </p>
-              </div>
-
-              <h1 className="mt-5 text-[45px] font-black tracking-[-0.055em] text-[#f4f0f1] sm:text-[58px]">
-                Shape your identity.
-              </h1>
-
-              <p className="mt-5 max-w-[680px] text-[12px] leading-6 text-zinc-600">
-                Customize how your ProVN profile appears publicly. Profile details are separate from game verification, proof and reputation.
-              </p>
-            </div>
-
-            <div className="grid gap-6 lg:grid-cols-[.72fr_1.28fr]">
+            <div className="grid gap-6 lg:grid-cols-[430px_1fr]">
 
               {/* LEFT */}
 
@@ -2289,181 +1643,202 @@ export default function EditProfilePage() {
                 {/* LIVE PREVIEW */}
 
                 <TiltPanel
-                  maxTilt={8}
-                  lift={11}
-                  scale={1.01}
-                  depth={17}
-                  className="provn-preview-panel relative overflow-hidden rounded-[27px] border border-[#5d222c]/65 bg-[#070708]/95 p-7"
+                  strength={4.2}
+                  lift={7}
+                  className="overflow-hidden rounded-[27px] border border-[#64232f]/75 bg-[#070708]/95 p-6"
                 >
 
                   <div className="flex items-center justify-between">
 
-                    <p className="text-[7px] uppercase tracking-[0.27em] text-[#9c3947]">
+                    <p className="text-[7px] font-semibold uppercase tracking-[0.25em] text-[#9c3746]">
                       Live Identity Preview
                     </p>
 
-                    <span className="rounded-full border border-[#5c202b]/65 bg-[#10070a] px-3 py-[6px] text-[7px] uppercase tracking-[0.14em] text-[#9f3a48]">
+                    <span className="rounded-full border border-[#59202a]/70 bg-[#11070a] px-3 py-[6px] text-[7px] uppercase tracking-[0.14em] text-[#993644]">
                       Public
                     </span>
                   </div>
 
-                  <div className="mt-8 flex items-center gap-5">
-
-                    {/* CLICK THIS AVATAR DIRECTLY */}
+                  <div className="mt-9 flex items-center gap-5">
 
                     <button
                       type="button"
                       onClick={
-                        openAvatarPicker
+                        choosePhoto
                       }
-                      aria-label="Change profile picture"
-                      className="provn-avatar-button group relative flex h-[110px] w-[110px] shrink-0 items-center justify-center overflow-hidden rounded-[29px] border border-[#782b38]/85 bg-gradient-to-br from-[#42121c] via-[#18090d] to-[#070708] text-left"
+                      disabled={
+                        saving
+                      }
+                      className="photo-button group relative flex h-[126px] w-[126px] shrink-0 items-center justify-center overflow-hidden rounded-[31px] border border-[#792c39]/90 bg-gradient-to-br from-[#43121c] via-[#19090e] to-[#070708]"
                     >
 
-                      <span className="provn-avatar-ring" />
-
-                      {currentAvatarUrl ? (
+                      {previewUrl ? (
                         <img
                           src={
-                            currentAvatarUrl
+                            previewUrl
                           }
-                          alt={
-                            cleanDisplayName ||
-                            profile.username
-                          }
-                          className="h-full w-full object-cover"
+                          alt="Profile preview"
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
                         />
                       ) : (
-                        <span className="text-[32px] font-black tracking-[-0.055em] text-[#e15163]">
+                        <span className="text-[34px] font-black tracking-[-0.055em] text-[#e35163]">
                           {initials}
                         </span>
                       )}
 
-                      <span className="provn-avatar-overlay">
+                      <span className="pointer-events-none absolute inset-[6px] rounded-[25px] border border-white/[0.04]" />
 
-                        <span className="provn-avatar-overlay-text text-center">
+                      <span className="pointer-events-none absolute inset-0 flex items-end justify-center bg-gradient-to-t from-black/[0.82] via-transparent to-transparent pb-3 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
 
-                          <span className="block text-[7px] font-bold uppercase tracking-[0.18em] text-white">
-                            Change
-                          </span>
-
-                          <span className="mt-[4px] block text-[6px] uppercase tracking-[0.14em] text-zinc-500">
-                            Profile Photo
-                          </span>
+                        <span className="text-[6px] font-semibold uppercase tracking-[0.15em] text-white">
+                          Change Photo
                         </span>
                       </span>
-
-                      <span className="provn-avatar-dot" />
                     </button>
+
+                    <input
+                      ref={
+                        fileInputRef
+                      }
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={
+                        handlePhotoChange
+                      }
+                      className="hidden"
+                    />
 
                     <div className="min-w-0">
 
-                      <p className="text-[7px] uppercase tracking-[0.25em] text-[#913541]">
+                      <p className="text-[7px] uppercase tracking-[0.24em] text-[#963644]">
                         ProVN Identity
                       </p>
 
-                      <h2 className="provn-preview-name mt-3 truncate text-[28px] font-black tracking-[-0.045em]">
-                        {cleanDisplayName ||
-                          profile.username}
+                      <h2 className="mt-5 truncate text-[28px] font-black tracking-[-0.045em]">
+                        {displayPreview}
                       </h2>
 
-                      <p className="mt-2 text-[11px] font-semibold text-[#d54256]">
+                      <p className="mt-3 truncate text-[11px] font-semibold text-[#d94055]">
                         @{profile.username}
                       </p>
                     </div>
                   </div>
 
-                  <p className="mt-7 text-[10px] leading-5 text-zinc-600">
-                    {cleanBio ||
+                  <p className="mt-7 min-h-[46px] text-[9px] leading-5 text-zinc-600">
+                    {bio.trim() ||
                       'Add a short bio to describe your gaming identity.'}
                   </p>
 
-                  <div className="mt-6 flex items-center justify-between border-t border-white/[0.05] pt-5">
+                  <div className="mt-6 border-t border-white/[0.045] pt-5">
 
-                    <p className="text-[7px] uppercase tracking-[0.14em] text-zinc-800">
-                      {avatarFile
-                        ? 'New profile photo selected'
-                        : profile.avatar_url
-                          ? 'Click photo to replace'
-                          : 'Click initials to add photo'}
-                    </p>
+                    <div className="flex items-center justify-between">
 
-                    {avatarFile && (
-                      <span className="text-[7px] font-semibold uppercase tracking-[0.14em] text-[#bd4051]">
-                        Save to publish
-                      </span>
-                    )}
+                      <span
+                        className={`h-[6px] w-[6px] rounded-full ${
+                          selectedPhoto
+                            ? 'bg-[#dd4055] shadow-[0_0_9px_rgba(221,64,85,.45)]'
+                            : 'bg-zinc-800'
+                        }`}
+                      />
+
+                      <p className="ml-3 mr-auto text-[7px] uppercase tracking-[0.15em] text-zinc-700">
+                        {selectedPhoto
+                          ? 'New profile photo ready to save'
+                          : previewUrl
+                            ? 'Current published profile photo'
+                            : 'No profile photo added'}
+                      </p>
+
+                      <button
+                        type="button"
+                        onClick={
+                          choosePhoto
+                        }
+                        disabled={
+                          saving
+                        }
+                        className="text-[7px] font-semibold uppercase tracking-[0.14em] text-[#a83849] transition hover:text-[#e14a60] disabled:opacity-40"
+                      >
+                        Change
+                      </button>
+                    </div>
                   </div>
                 </TiltPanel>
 
                 {/* FOUNDATION */}
 
                 <TiltPanel
-                  maxTilt={4.7}
-                  lift={7}
-                  scale={1.006}
-                  depth={11}
-                  className="rounded-[24px] border border-white/[0.052] bg-[#070708]/88 p-6"
+                  strength={4}
+                  lift={6}
+                  className="rounded-[26px] border border-white/[0.05] bg-[#070708]/92 p-6"
                 >
 
                   <div className="flex items-start justify-between">
 
                     <div>
 
-                      <p className="text-[7px] uppercase tracking-[0.27em] text-[#913541]">
+                      <p className="text-[7px] uppercase tracking-[0.24em] text-[#963644]">
                         Profile Foundation
                       </p>
 
-                      <h3 className="mt-3 text-[22px] font-bold tracking-[-0.035em]">
+                      <h2 className="mt-4 text-[23px] font-bold tracking-[-0.04em]">
                         Identity details.
-                      </h3>
+                      </h2>
 
-                      <p className="mt-2 text-[9px] text-zinc-700">
+                      <p className="mt-3 text-[8px] text-zinc-700">
                         Profile completeness is not verification.
                       </p>
                     </div>
 
-                    <span className="rounded-full border border-[#61222c]/70 bg-[#11080a] px-3 py-[7px] text-[7px] text-[#a93c4b]">
-                      {foundationCount} / 3
+                    <span className="rounded-full border border-[#64232f]/75 bg-[#11070a] px-3 py-[7px] text-[7px] text-[#c23d50]">
+                      {profileComplete}/3
                     </span>
                   </div>
 
-                  <div className="mt-6 space-y-3">
+                  <div className="mt-7 space-y-3">
 
-                    <FoundationRow
+                    <FoundationItem
                       icon={
                         <CheckIcon />
                       }
                       title="Display Name"
                       description="Your public profile name."
-                      complete={
-                        nameAdded
+                      state={
+                        displayName.trim()
+                          ? 'Added'
+                          : 'Missing'
                       }
                     />
 
-                    <FoundationRow
+                    <FoundationItem
                       icon={
                         <CheckIcon />
                       }
                       title="Bio"
                       description="Your short public identity statement."
-                      complete={
-                        bioAdded
+                      state={
+                        bio.trim()
+                          ? 'Added'
+                          : 'Missing'
                       }
                     />
 
-                    <FoundationRow
+                    <FoundationItem
                       icon={
                         <ImageIcon />
                       }
                       title="Profile Image"
                       description={
-                        avatarFile
+                        selectedPhoto
                           ? 'New image selected and ready to publish.'
-                          : 'Your visual identity across ProVN.'
+                          : 'Your public ProVN portrait.'
                       }
-                      complete={
-                        avatarAdded
+                      state={
+                        selectedPhoto
+                          ? 'Unsaved'
+                          : previewUrl
+                            ? 'Added'
+                            : 'Missing'
                       }
                     />
                   </div>
@@ -2472,212 +1847,230 @@ export default function EditProfilePage() {
                 {/* TRUST */}
 
                 <TiltPanel
-                  maxTilt={4.7}
-                  lift={7}
-                  scale={1.006}
-                  depth={11}
-                  className="rounded-[24px] border border-white/[0.052] bg-[#070708]/88 p-6"
+                  strength={4}
+                  lift={6}
+                  className="rounded-[26px] border border-white/[0.05] bg-[#070708]/92 p-6"
                 >
 
-                  <div className="flex items-center justify-between">
+                  <p className="text-[7px] uppercase tracking-[0.24em] text-[#963644]">
+                    Trust Status
+                  </p>
 
-                    <div>
+                  <h2 className="mt-4 text-[23px] font-bold tracking-[-0.04em]">
+                    Verification layers.
+                  </h2>
 
-                      <p className="text-[7px] uppercase tracking-[0.27em] text-[#913541]">
-                        Trust Status
-                      </p>
+                  <div className="mt-7">
 
-                      <h3 className="mt-3 text-[21px] font-bold tracking-[-0.035em]">
-                        Verification layers.
-                      </h3>
+                    <div className="flex min-h-[57px] items-center border-b border-white/[0.045]">
+
+                      <span className="flex h-[32px] w-[32px] items-center justify-center rounded-[10px] border border-[#60232d]/70 bg-[#11070a] text-[#c83e52]">
+                        <CheckIcon />
+                      </span>
+
+                      <span className="ml-4 text-[8px] text-zinc-400">
+                        Email Ownership
+                      </span>
+
+                      <span
+                        className={`ml-auto text-[7px] font-semibold uppercase tracking-[0.13em] ${
+                          emailVerified
+                            ? 'text-emerald-500'
+                            : 'text-zinc-700'
+                        }`}
+                      >
+                        {emailVerified
+                          ? 'Verified'
+                          : 'Pending'}
+                      </span>
                     </div>
 
-                    <span className="flex h-[38px] w-[38px] items-center justify-center rounded-[12px] border border-[#57202a]/70 text-[#b43e4d]">
-                      <ShieldIcon />
-                    </span>
-                  </div>
+                    <div className="flex min-h-[57px] items-center">
 
-                  <div className="mt-5">
+                      <span className="flex h-[32px] w-[32px] items-center justify-center rounded-[10px] border border-[#60232d]/70 bg-[#11070a] text-[#a53747]">
+                        <GameIcon />
+                      </span>
 
-                    <TrustRow
-                      icon={
-                        <CheckIcon />
-                      }
-                      title="Email Ownership"
-                      status={
-                        emailVerified
-                          ? 'Verified'
-                          : 'Pending'
-                      }
-                      statusTone={
-                        emailVerified
-                          ? 'green'
-                          : 'muted'
-                      }
-                    />
+                      <span className="ml-4 text-[8px] text-zinc-400">
+                        Game Identity
+                      </span>
 
-                    <TrustRow
-                      icon={
-                        <GamepadIcon />
-                      }
-                      title="Game Identity"
-                      status="Not Connected"
-                    />
-
-                    <TrustRow
-                      icon={
-                        <LockIcon />
-                      }
-                      title="Verified Proof"
-                      status="Locked"
-                    />
+                      <span className="ml-auto text-[7px] uppercase tracking-[0.13em] text-zinc-700">
+                        Not Connected
+                      </span>
+                    </div>
                   </div>
                 </TiltPanel>
               </div>
 
-              {/* RIGHT FORM */}
+              {/* RIGHT */}
 
-              <TiltForm
-                onSubmit={
-                  handleSubmit
-                }
-                className="relative overflow-hidden rounded-[28px] border border-[#5d202b]/70 bg-[#070708]/95 shadow-[0_40px_110px_rgba(0,0,0,.40)]"
+              <TiltPanel
+                strength={2.2}
+                lift={4}
+                className="h-fit overflow-hidden rounded-[28px] border border-[#60222e]/70 bg-[#070708]/95 p-7 sm:p-9"
               >
 
-                <div className="px-6 py-7 sm:px-8 lg:px-9 lg:py-9">
+                <div>
 
-                  <div className="border-b border-white/[0.05] pb-7">
+                  <p className="text-[7px] uppercase tracking-[0.25em] text-[#963644]">
+                    Public Profile
+                  </p>
 
-                    <p className="text-[7px] uppercase tracking-[0.28em] text-[#963744]">
-                      Public Profile
-                    </p>
+                  <h2 className="mt-5 text-[32px] font-black tracking-[-0.045em]">
+                    Profile details.
+                  </h2>
 
-                    <h2 className="mt-3 text-[31px] font-black tracking-[-0.045em]">
-                      Profile details.
-                    </h2>
+                  <p className="mt-5 text-[9px] leading-5 text-zinc-700">
+                    Everything edited here is published together when you press Save Changes.
+                  </p>
+                </div>
 
-                    <p className="mt-3 text-[10px] leading-5 text-zinc-700">
-                      These fields control what other players see on your public ProVN profile.
-                    </p>
+                {/* USERNAME */}
+
+                <div className="mt-12">
+
+                  <div className="flex items-center justify-between">
+
+                    <label className="text-[7px] font-semibold uppercase tracking-[0.17em] text-zinc-600">
+                      Username
+                    </label>
+
+                    <span className="flex items-center gap-2 text-[6px] uppercase tracking-[0.13em] text-zinc-700">
+
+                      <LockIcon />
+
+                      Locked
+                    </span>
                   </div>
 
-                  {/* USERNAME */}
+                  <div className="mt-3 flex h-[57px] items-center rounded-[14px] border border-white/[0.055] bg-black/25 px-4">
 
-                  <div className="mt-8">
+                    <span className="mr-2 text-[18px] text-[#b63449]">
+                      @
+                    </span>
 
-                    <div className="flex items-center justify-between">
+                    <span className="text-[11px] text-zinc-600">
+                      {profile.username}
+                    </span>
+                  </div>
+                </div>
 
-                      <label className="text-[8px] font-semibold uppercase tracking-[0.17em] text-zinc-500">
-                        Username
-                      </label>
+                {/* DISPLAY NAME */}
 
-                      <span className="flex items-center gap-2 text-[7px] uppercase tracking-[0.13em] text-zinc-700">
+                <div className="mt-8">
 
-                        <LockIcon />
+                  <div className="flex items-center justify-between">
 
-                        Locked
-                      </span>
-                    </div>
+                    <label
+                      htmlFor="displayName"
+                      className="text-[7px] font-semibold uppercase tracking-[0.17em] text-zinc-600"
+                    >
+                      Display Name
+                    </label>
 
-                    <div className="mt-3 flex h-[54px] items-center rounded-[14px] border border-white/[0.055] bg-black/25 px-4">
-
-                      <span className="text-[#a33a49]">
-                        @
-                      </span>
-
-                      <span className="ml-1 text-[12px] text-zinc-500">
-                        {profile.username}
-                      </span>
-                    </div>
+                    <span className="text-[6px] text-zinc-800">
+                      {displayName.length}/50
+                    </span>
                   </div>
 
-                  {/* DISPLAY NAME */}
+                  <input
+                    id="displayName"
+                    data-writing-field="true"
+                    value={
+                      displayName
+                    }
+                    maxLength={50}
+                    disabled={
+                      saving
+                    }
+                    onChange={
+                      event => {
+                        setDisplayName(
+                          event.target.value
+                        )
 
-                  <div className="mt-8">
+                        setSaveMessage(
+                          null
+                        )
 
-                    <div className="flex items-center justify-between">
-
-                      <label
-                        htmlFor="displayName"
-                        className="text-[8px] font-semibold uppercase tracking-[0.17em] text-zinc-500"
-                      >
-                        Display Name
-                      </label>
-
-                      <span className="text-[7px] text-zinc-700">
-                        {displayName.length}/50
-                      </span>
-                    </div>
-
-                    <input
-                      id="displayName"
-                      type="text"
-                      maxLength={50}
-                      value={
-                        displayName
+                        setSaveError(
+                          null
+                        )
                       }
-                      onChange={
-                        event => {
-                          setDisplayName(
-                            event.target.value
-                          )
+                    }
+                    placeholder="Your public name"
+                    className="input-premium mt-3 h-[57px] w-full rounded-[14px] border border-white/[0.065] bg-black/25 px-4 text-[11px] text-zinc-200 outline-none placeholder:text-zinc-800 disabled:opacity-50"
+                  />
+                </div>
 
-                          setSaved(false)
-                        }
-                      }
-                      className="provn-edit-field mt-3 h-[56px] w-full rounded-[15px] border border-white/[0.065] bg-black/25 px-4 text-[12px] text-zinc-200 outline-none"
-                    />
+                {/* BIO */}
+
+                <div className="mt-8">
+
+                  <div className="flex items-center justify-between">
+
+                    <label
+                      htmlFor="profileBio"
+                      className="text-[7px] font-semibold uppercase tracking-[0.17em] text-zinc-600"
+                    >
+                      Bio
+                    </label>
+
+                    <span className="text-[6px] text-zinc-800">
+                      {bio.length}/240
+                    </span>
                   </div>
 
-                  {/* BIO */}
+                  <textarea
+                    id="profileBio"
+                    data-writing-field="true"
+                    value={
+                      bio
+                    }
+                    maxLength={240}
+                    disabled={
+                      saving
+                    }
+                    onChange={
+                      event => {
+                        setBio(
+                          event.target.value
+                        )
 
-                  <div className="mt-8">
+                        setSaveMessage(
+                          null
+                        )
 
-                    <div className="flex items-center justify-between">
-
-                      <label
-                        htmlFor="bio"
-                        className="text-[8px] font-semibold uppercase tracking-[0.17em] text-zinc-500"
-                      >
-                        Bio
-                      </label>
-
-                      <span className="text-[7px] text-zinc-700">
-                        {bio.length}/240
-                      </span>
-                    </div>
-
-                    <textarea
-                      id="bio"
-                      maxLength={240}
-                      rows={7}
-                      value={
-                        bio
+                        setSaveError(
+                          null
+                        )
                       }
-                      onChange={
-                        event => {
-                          setBio(
-                            event.target.value
-                          )
+                    }
+                    placeholder="Describe your gaming identity..."
+                    className="input-premium mt-3 min-h-[185px] w-full resize-none rounded-[15px] border border-white/[0.065] bg-black/25 px-4 py-4 text-[11px] leading-6 text-zinc-200 outline-none placeholder:text-zinc-800 disabled:opacity-50"
+                  />
+                </div>
 
-                          setSaved(false)
-                        }
-                      }
-                      className="provn-edit-field mt-3 min-h-[185px] w-full resize-none rounded-[15px] border border-white/[0.065] bg-black/25 p-4 text-[12px] leading-6 text-zinc-200 outline-none"
-                    />
-                  </div>
+                {/* STATUS */}
 
-                  {/* STATUS */}
+                <div className="mt-8 border-t border-white/[0.045] pt-7">
 
-                  <div className="mt-8 grid gap-3 border-t border-white/[0.05] pt-7 sm:grid-cols-2">
+                  <div className="grid gap-3 sm:grid-cols-2">
 
                     <div className="rounded-[16px] border border-white/[0.05] bg-black/20 p-4">
 
-                      <p className="text-[7px] uppercase tracking-[0.16em] text-zinc-700">
+                      <p className="text-[7px] uppercase tracking-[0.15em] text-zinc-700">
                         Email Ownership
                       </p>
 
-                      <p className="mt-3 text-[10px] font-semibold text-emerald-500">
+                      <p
+                        className={`mt-3 text-[10px] font-semibold ${
+                          emailVerified
+                            ? 'text-emerald-500'
+                            : 'text-zinc-600'
+                        }`}
+                      >
                         {emailVerified
                           ? 'Verified'
                           : 'Pending'}
@@ -2686,7 +2079,7 @@ export default function EditProfilePage() {
 
                     <div className="rounded-[16px] border border-white/[0.05] bg-black/20 p-4">
 
-                      <p className="text-[7px] uppercase tracking-[0.16em] text-zinc-700">
+                      <p className="text-[7px] uppercase tracking-[0.15em] text-zinc-700">
                         Game Identity
                       </p>
 
@@ -2695,85 +2088,116 @@ export default function EditProfilePage() {
                       </p>
                     </div>
                   </div>
+                </div>
 
-                  {/* ERROR */}
+                {/* PHOTO PENDING */}
 
-                  {errorMessage && (
-                    <div className="mt-7 rounded-[15px] border border-red-900/45 bg-red-950/10 px-4 py-4 text-[9px] text-[#db596b]">
-                      {errorMessage}
+                {selectedPhoto && (
+                  <div className="mt-6 flex items-center rounded-[13px] border border-[#632330]/70 bg-[#11070a]/65 px-4 py-4">
+
+                    <span className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-[10px] border border-[#712733] bg-[#17090d] text-[#d34256]">
+                      <ImageIcon />
+                    </span>
+
+                    <div className="ml-4 min-w-0">
+
+                      <p className="text-[8px] font-semibold text-zinc-300">
+                        New profile photo selected
+                      </p>
+
+                      <p className="mt-[4px] truncate text-[7px] text-zinc-700">
+                        {selectedPhoto.name}
+                      </p>
                     </div>
-                  )}
 
-                  {/* SUCCESS */}
+                    <span className="ml-auto pl-4 text-[6px] font-semibold uppercase tracking-[0.14em] text-[#b83b4d]">
+                      Save Pending
+                    </span>
+                  </div>
+                )}
 
-                  {saved && (
-                    <div className="mt-7 flex animate-[successIn_.3s_ease_both] items-center gap-3 rounded-[15px] border border-emerald-900/30 bg-emerald-950/[0.07] px-4 py-4 text-[9px] text-emerald-500">
+                {/* ERROR */}
 
-                      <CheckIcon />
+                {saveError && (
+                  <div className="mt-6 rounded-[13px] border border-red-900/40 bg-red-950/[0.09] px-4 py-4 text-[8px] leading-5 text-[#df5669]">
+                    {saveError}
+                  </div>
+                )}
 
-                      Profile changes saved successfully.
-                    </div>
-                  )}
+                {/* SUCCESS */}
 
-                  {/* ACTIONS */}
+                {saveMessage && (
+                  <div className="mt-6 rounded-[13px] border border-emerald-900/30 bg-emerald-950/[0.06] px-4 py-4 text-[8px] leading-5 text-emerald-500">
+                    {saveMessage}
+                  </div>
+                )}
 
-                  <div className="mt-8 flex flex-col gap-4 border-t border-white/[0.05] pt-7 sm:flex-row sm:items-center">
+                {/* SAVE */}
 
-                    <button
-                      type="submit"
+                <div className="mt-8 flex flex-wrap items-center gap-4 border-t border-white/[0.045] pt-7">
 
-                      /* IMPORTANT FIX:
-                         only disabled while saving.
-                         No !dirty here.
-                      */
+                  <button
+                    type="submit"
+                    disabled={
+                      saving ||
+                      !dirty
+                    }
+                    className="save-button group inline-flex h-[52px] min-w-[210px] items-center justify-center gap-8 rounded-[13px] border border-[#dc4156] bg-gradient-to-r from-[#911228] to-[#cf2841] px-7 text-[8px] font-bold uppercase tracking-[0.16em] text-white shadow-[0_18px_45px_rgba(117,10,31,.22)] transition-all duration-200 hover:-translate-y-[2px] hover:border-[#fb6174] hover:shadow-[0_22px_55px_rgba(146,17,41,.28)] disabled:translate-y-0 disabled:border-white/[0.055] disabled:bg-none disabled:bg-[#0a0a0c] disabled:text-zinc-700 disabled:shadow-none"
+                  >
 
-                      disabled={
-                        saving
-                      }
+                    <span className="relative z-[2]">
+                      {saving
+                        ? 'Saving Profile...'
+                        : 'Save Changes'}
+                    </span>
 
-                      className="provn-save-button group inline-flex h-[52px] min-w-[205px] items-center justify-center gap-5 rounded-[13px] border border-[#c33348] bg-gradient-to-r from-[#801020] via-[#a9192e] to-[#c9283e] px-7 text-[8px] font-bold uppercase tracking-[0.17em] text-white shadow-[0_16px_42px_rgba(109,11,28,.24)] transition-all hover:-translate-y-[2px] hover:border-[#ec5266] hover:shadow-[0_22px_52px_rgba(139,15,37,.30)] disabled:translate-y-0 disabled:cursor-not-allowed disabled:border-white/[0.05] disabled:bg-none disabled:bg-[#101011] disabled:text-zinc-700 disabled:shadow-none"
-                    >
-                      <span className="relative z-[2]">
-
-                        {uploadingAvatar
-                          ? 'Uploading Photo...'
-                          : saving
-                            ? 'Saving...'
-                            : 'Save Changes'}
+                    {!saving && (
+                      <span className="relative z-[2] transition-transform duration-200 group-hover:translate-x-1">
+                        <ArrowRight />
                       </span>
+                    )}
+                  </button>
 
-                      {!saving && (
-                        <span className="relative z-[2] transition-transform duration-200 group-hover:translate-x-1">
-                          <ArrowRightIcon />
-                        </span>
-                      )}
-                    </button>
+                  <button
+                    type="button"
+                    disabled={
+                      saving ||
+                      !dirty
+                    }
+                    onClick={
+                      cancelChanges
+                    }
+                    className="h-[52px] min-w-[105px] rounded-[13px] border border-white/[0.055] bg-black/20 px-5 text-[7px] font-semibold uppercase tracking-[0.14em] text-zinc-600 transition hover:border-[#63232e]/75 hover:text-zinc-300 disabled:opacity-25"
+                  >
+                    Cancel
+                  </button>
 
-                    <Link
-                      href={
-                        profileHref
-                      }
-                      className="inline-flex h-[52px] items-center justify-center rounded-[13px] border border-white/[0.055] bg-black/20 px-7 text-[8px] font-semibold uppercase tracking-[0.15em] text-zinc-600 transition hover:border-[#64232d] hover:text-zinc-300"
-                    >
-                      Cancel
-                    </Link>
+                  <div className="ml-auto flex items-center gap-3">
 
                     <span
-                      className={`sm:ml-auto text-[7px] uppercase tracking-[0.13em] ${
+                      className={`h-[6px] w-[6px] rounded-full ${
                         dirty
-                          ? 'text-[#953542]'
-                          : 'text-zinc-800'
+                          ? 'bg-[#d23d52] shadow-[0_0_9px_rgba(210,61,82,.45)]'
+                          : 'bg-emerald-500'
+                      }`}
+                    />
+
+                    <span
+                      className={`text-[7px] font-semibold uppercase tracking-[0.13em] ${
+                        dirty
+                          ? 'text-[#a83849]'
+                          : 'text-zinc-700'
                       }`}
                     >
                       {dirty
-                        ? 'Unsaved changes'
-                        : 'All changes saved'}
+                        ? 'Unsaved Changes'
+                        : 'Profile Saved'}
                     </span>
                   </div>
                 </div>
-              </TiltForm>
+              </TiltPanel>
             </div>
-          </div>
+          </form>
         </div>
       </main>
     </>
