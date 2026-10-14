@@ -1,26 +1,15 @@
 'use client'
 
 import Link from 'next/link'
-
-import {
-  useEffect,
-  useMemo,
-  useState,
-} from 'react'
-
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type {
+  ClipboardEvent,
   FormEvent,
+  KeyboardEvent,
   MouseEvent as ReactMouseEvent,
   ReactNode,
 } from 'react'
-
-import {
-  createClient,
-} from '@/lib/supabase/client'
-
-/* =========================================================
-   TYPES
-========================================================= */
+import { createClient } from '@/lib/supabase/client'
 
 type Profile = {
   id: string
@@ -31,14 +20,10 @@ type Profile = {
   created_at: string | null
 }
 
-type LoadState =
-  | 'loading'
-  | 'ready'
-  | 'error'
-
-/* =========================================================
-   CURSOR
-========================================================= */
+type LoadState = 'loading' | 'ready' | 'error'
+type EmailStage = 'form' | 'otp' | 'success'
+type VerifyResult = { ok: boolean; message?: string }
+type OtpPhase = 'entry' | 'orbit' | 'success'
 
 const provnCursorSvg = `
 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="17" viewBox="0 0 25 29">
@@ -82,8 +67,7 @@ const provnCursorSvg = `
     stroke-width=".9"
     stroke-linecap="round"
   />
-</svg>
-`
+</svg>`
 
 const PROVN_CURSOR =
   `url("data:image/svg+xml,${encodeURIComponent(
@@ -91,7 +75,7 @@ const PROVN_CURSOR =
   )}") 1 1, auto`
 
 /* =========================================================
-   PREMIUM 3D CARD ENGINE
+   PREMIUM CARD MOTION
 ========================================================= */
 
 function handlePremiumTilt(
@@ -100,11 +84,8 @@ function handlePremiumTilt(
   lift = 7,
   depth = 12
 ) {
-  const element =
-    event.currentTarget
-
-  const rect =
-    element.getBoundingClientRect()
+  const element = event.currentTarget
+  const rect = element.getBoundingClientRect()
 
   const x =
     (event.clientX - rect.left) /
@@ -114,33 +95,17 @@ function handlePremiumTilt(
     (event.clientY - rect.top) /
     rect.height
 
-  const normalizedX =
-    x - 0.5
-
-  const normalizedY =
-    y - 0.5
-
-  const rotateY =
-    normalizedX *
-    maxTilt *
-    2
-
-  const rotateX =
-    -normalizedY *
-    maxTilt *
-    2
-
   element.style.transition =
     'transform 80ms linear, border-color 220ms ease, box-shadow 220ms ease'
 
   element.style.setProperty(
     '--settings-rx',
-    `${rotateX.toFixed(2)}deg`
+    `${(-(y - 0.5) * maxTilt * 2).toFixed(2)}deg`
   )
 
   element.style.setProperty(
     '--settings-ry',
-    `${rotateY.toFixed(2)}deg`
+    `${((x - 0.5) * maxTilt * 2).toFixed(2)}deg`
   )
 
   element.style.setProperty(
@@ -167,8 +132,7 @@ function handlePremiumTilt(
 function resetPremiumTilt(
   event: ReactMouseEvent<HTMLElement>
 ) {
-  const element =
-    event.currentTarget
+  const element = event.currentTarget
 
   element.style.transition =
     'transform 560ms cubic-bezier(.16,1,.3,1), border-color 320ms ease, box-shadow 440ms ease'
@@ -219,18 +183,15 @@ function PremiumPanel({
 }) {
   return (
     <section
-      onMouseMove={
-        event =>
-          handlePremiumTilt(
-            event,
-            maxTilt,
-            lift,
-            depth
-          )
+      onMouseMove={event =>
+        handlePremiumTilt(
+          event,
+          maxTilt,
+          lift,
+          depth
+        )
       }
-      onMouseLeave={
-        resetPremiumTilt
-      }
+      onMouseLeave={resetPremiumTilt}
       className={`settings-premium-panel ${className}`}
     >
       <span
@@ -274,12 +235,35 @@ function ProVNMark() {
           x2="0"
           y2="1"
         >
-          <stop offset="0%" stopColor="#ff8a95" />
-          <stop offset="15%" stopColor="#e65362" />
-          <stop offset="35%" stopColor="#b92438" />
-          <stop offset="55%" stopColor="#76101d" />
-          <stop offset="77%" stopColor="#ad1c30" />
-          <stop offset="100%" stopColor="#260508" />
+          <stop
+            offset="0%"
+            stopColor="#ff8a95"
+          />
+
+          <stop
+            offset="15%"
+            stopColor="#e65362"
+          />
+
+          <stop
+            offset="35%"
+            stopColor="#b92438"
+          />
+
+          <stop
+            offset="55%"
+            stopColor="#76101d"
+          />
+
+          <stop
+            offset="77%"
+            stopColor="#ad1c30"
+          />
+
+          <stop
+            offset="100%"
+            stopColor="#260508"
+          />
         </linearGradient>
 
         <linearGradient
@@ -289,10 +273,25 @@ function ProVNMark() {
           x2="1"
           y2="0"
         >
-          <stop offset="0%" stopColor="#76101b" />
-          <stop offset="38%" stopColor="#e34a5b" />
-          <stop offset="58%" stopColor="#ff9ba5" />
-          <stop offset="100%" stopColor="#670913" />
+          <stop
+            offset="0%"
+            stopColor="#76101b"
+          />
+
+          <stop
+            offset="38%"
+            stopColor="#e34a5b"
+          />
+
+          <stop
+            offset="58%"
+            stopColor="#ff9ba5"
+          />
+
+          <stop
+            offset="100%"
+            stopColor="#670913"
+          />
         </linearGradient>
       </defs>
 
@@ -351,7 +350,6 @@ function ArrowLeftIcon() {
       strokeWidth="1.8"
       strokeLinecap="round"
       strokeLinejoin="round"
-      aria-hidden="true"
     >
       <path d="M16 10H5" />
       <path d="m9 6-4 4 4 4" />
@@ -369,7 +367,6 @@ function ArrowRightIcon() {
       strokeWidth="1.8"
       strokeLinecap="round"
       strokeLinejoin="round"
-      aria-hidden="true"
     >
       <path d="M4 10h11" />
       <path d="m11 6 4 4-4 4" />
@@ -387,7 +384,6 @@ function CheckIcon() {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      aria-hidden="true"
     >
       <path d="m4 10 3.5 3.5L16 5.5" />
     </svg>
@@ -404,7 +400,6 @@ function LockIcon() {
       strokeWidth="1.6"
       strokeLinecap="round"
       strokeLinejoin="round"
-      aria-hidden="true"
     >
       <rect
         x="4.5"
@@ -429,7 +424,6 @@ function MailIcon() {
       strokeWidth="1.6"
       strokeLinecap="round"
       strokeLinejoin="round"
-      aria-hidden="true"
     >
       <rect
         x="3"
@@ -454,7 +448,6 @@ function KeyIcon() {
       strokeWidth="1.6"
       strokeLinecap="round"
       strokeLinejoin="round"
-      aria-hidden="true"
     >
       <circle
         cx="8"
@@ -479,7 +472,6 @@ function DevicesIcon() {
       strokeWidth="1.6"
       strokeLinecap="round"
       strokeLinejoin="round"
-      aria-hidden="true"
     >
       <rect
         x="3"
@@ -512,7 +504,6 @@ function UserIcon() {
       strokeWidth="1.6"
       strokeLinecap="round"
       strokeLinejoin="round"
-      aria-hidden="true"
     >
       <circle
         cx="12"
@@ -535,7 +526,6 @@ function ShieldIcon() {
       strokeWidth="1.6"
       strokeLinecap="round"
       strokeLinejoin="round"
-      aria-hidden="true"
     >
       <path d="M12 3 19 6v5c0 4.8-2.9 8.1-7 10-4.1-1.9-7-5.2-7-10V6l7-3Z" />
     </svg>
@@ -552,7 +542,6 @@ function TrashIcon() {
       strokeWidth="1.6"
       strokeLinecap="round"
       strokeLinejoin="round"
-      aria-hidden="true"
     >
       <path d="M4 7h16" />
       <path d="M9 3h6l1 4H8l1-4Z" />
@@ -573,7 +562,6 @@ function CopyIcon() {
       strokeWidth="1.6"
       strokeLinecap="round"
       strokeLinejoin="round"
-      aria-hidden="true"
     >
       <rect
         x="6"
@@ -589,7 +577,7 @@ function CopyIcon() {
 }
 
 /* =========================================================
-   COMPONENTS
+   SMALL COMPONENTS
 ========================================================= */
 
 function SectionHeading({
@@ -605,7 +593,6 @@ function SectionHeading({
 }) {
   return (
     <div className="flex gap-4">
-
       <span className="flex h-[45px] w-[45px] shrink-0 items-center justify-center rounded-[14px] border border-[#64232e]/70 bg-[#12070a] text-[#cc4054] shadow-[0_0_22px_rgba(153,25,45,.08)]">
         {icon}
       </span>
@@ -632,10 +619,7 @@ function StatusPill({
   tone = 'default',
 }: {
   children: ReactNode
-  tone?:
-    | 'default'
-    | 'good'
-    | 'locked'
+  tone?: 'default' | 'good' | 'locked'
 }) {
   const className =
     tone === 'good'
@@ -666,13 +650,1155 @@ function passwordIsStrong(
 }
 
 /* =========================================================
+   EMAIL OTP — SAME MOTION LANGUAGE AS SIGNUP
+========================================================= */
+
+const OTP_LENGTH = 6
+
+const OTP_ORBIT = [
+  { x: 0, y: -96, r: 0 },
+  { x: 84, y: -48, r: 5 },
+  { x: 84, y: 48, r: -5 },
+  { x: 0, y: 96, r: 2 },
+  { x: -84, y: 48, r: -4 },
+  { x: -84, y: -48, r: 4 },
+]
+
+function wait(ms: number) {
+  return new Promise<void>(
+    resolve =>
+      window.setTimeout(
+        resolve,
+        ms
+      )
+  )
+}
+
+function maskEmail(
+  email: string
+) {
+  const [local, domain] =
+    email.split('@')
+
+  if (!domain) {
+    return email
+  }
+
+  if (local.length <= 2) {
+    return `${local[0] ?? ''}***@${domain}`
+  }
+
+  return `${local.slice(
+    0,
+    2
+  )}${'*'.repeat(
+    Math.min(
+      5,
+      Math.max(
+        2,
+        local.length - 3
+      )
+    )
+  )}${local.slice(-1)}@${domain}`
+}
+
+function BigVerifiedCheck() {
+  return (
+    <svg
+      viewBox="0 0 32 32"
+      className="h-[35px] w-[35px]"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="m7 16 6 6L26 9" />
+    </svg>
+  )
+}
+
+function EmailOtpVerification({
+  email,
+  onVerify,
+  onResend,
+  onVerified,
+}: {
+  email: string
+  onVerify:
+    (
+      token: string
+    ) =>
+      Promise<VerifyResult>
+  onResend:
+    () =>
+      Promise<VerifyResult>
+  onVerified:
+    () => void
+}) {
+  const [
+    digits,
+    setDigits,
+  ] =
+    useState<string[]>(
+      Array(
+        OTP_LENGTH
+      ).fill('')
+    )
+
+  const [
+    phase,
+    setPhase,
+  ] =
+    useState<OtpPhase>(
+      'entry'
+    )
+
+  const [
+    error,
+    setError,
+  ] =
+    useState('')
+
+  const [
+    notice,
+    setNotice,
+  ] =
+    useState('')
+
+  const [
+    resendSeconds,
+    setResendSeconds,
+  ] =
+    useState(60)
+
+  const [
+    resending,
+    setResending,
+  ] =
+    useState(false)
+
+  const [
+    shake,
+    setShake,
+  ] =
+    useState(false)
+
+  const inputs =
+    useRef<
+      Array<
+        HTMLInputElement |
+        null
+      >
+    >([])
+
+  const verificationStarted =
+    useRef(false)
+
+  const token =
+    digits.join('')
+
+  useEffect(() => {
+    const timer =
+      window.setTimeout(
+        () =>
+          inputs.current[0]
+            ?.focus(),
+        350
+      )
+
+    return () =>
+      window.clearTimeout(
+        timer
+      )
+  }, [])
+
+  useEffect(() => {
+    if (
+      resendSeconds <= 0
+    ) {
+      return
+    }
+
+    const timer =
+      window.setInterval(
+        () => {
+          setResendSeconds(
+            value =>
+              Math.max(
+                0,
+                value - 1
+              )
+          )
+        },
+        1000
+      )
+
+    return () =>
+      window.clearInterval(
+        timer
+      )
+  }, [
+    resendSeconds,
+  ])
+
+  useEffect(() => {
+    if (
+      token.length !==
+        OTP_LENGTH ||
+      phase !== 'entry' ||
+      verificationStarted.current
+    ) {
+      return
+    }
+
+    verificationStarted.current =
+      true
+
+    void verify(
+      token
+    )
+  }, [
+    token,
+    phase,
+  ])
+
+  async function verify(
+    completeToken: string
+  ) {
+    setError('')
+    setNotice('')
+
+    setPhase(
+      'orbit'
+    )
+
+    await wait(
+      760
+    )
+
+    const result =
+      await onVerify(
+        completeToken
+      )
+
+    if (!result.ok) {
+      setPhase(
+        'entry'
+      )
+
+      verificationStarted.current =
+        false
+
+      setDigits(
+        Array(
+          OTP_LENGTH
+        ).fill('')
+      )
+
+      setError(
+        result.message ||
+          'That verification code is invalid or expired.'
+      )
+
+      setShake(true)
+
+      window.setTimeout(
+        () =>
+          setShake(
+            false
+          ),
+        460
+      )
+
+      window.setTimeout(
+        () =>
+          inputs.current[0]
+            ?.focus(),
+        200
+      )
+
+      return
+    }
+
+    await wait(
+      320
+    )
+
+    setPhase(
+      'success'
+    )
+
+    await wait(
+      1850
+    )
+
+    onVerified()
+  }
+
+  function distribute(
+    startIndex: number,
+    rawValue: string
+  ) {
+    const clean =
+      rawValue
+        .replace(
+          /\D/g,
+          ''
+        )
+        .slice(
+          0,
+          OTP_LENGTH
+        )
+
+    if (!clean) {
+      return
+    }
+
+    const next = [
+      ...digits,
+    ]
+
+    let target =
+      startIndex
+
+    for (
+      let index = 0;
+      index <
+        clean.length &&
+      target <
+        OTP_LENGTH;
+      index += 1
+    ) {
+      next[target] =
+        clean[index]
+
+      target += 1
+    }
+
+    setDigits(next)
+    setError('')
+    setNotice('')
+
+    const firstEmpty =
+      next.findIndex(
+        value =>
+          !value
+      )
+
+    if (
+      firstEmpty >= 0
+    ) {
+      inputs.current[
+        firstEmpty
+      ]?.focus()
+    } else {
+      inputs.current[
+        OTP_LENGTH - 1
+      ]?.focus()
+    }
+  }
+
+  function handleChange(
+    index: number,
+    value: string
+  ) {
+    if (
+      phase !== 'entry'
+    ) {
+      return
+    }
+
+    const clean =
+      value.replace(
+        /\D/g,
+        ''
+      )
+
+    if (
+      clean.length > 1
+    ) {
+      distribute(
+        index,
+        clean
+      )
+
+      return
+    }
+
+    const next = [
+      ...digits,
+    ]
+
+    next[index] =
+      clean.slice(-1)
+
+    setDigits(next)
+    setError('')
+    setNotice('')
+
+    if (
+      clean &&
+      index <
+        OTP_LENGTH - 1
+    ) {
+      inputs.current[
+        index + 1
+      ]?.focus()
+    }
+  }
+
+  function handleKeyDown(
+    index: number,
+    event:
+      KeyboardEvent<HTMLInputElement>
+  ) {
+    if (
+      phase !== 'entry'
+    ) {
+      return
+    }
+
+    if (
+      event.key ===
+      'Backspace'
+    ) {
+      if (
+        digits[index]
+      ) {
+        const next = [
+          ...digits,
+        ]
+
+        next[index] =
+          ''
+
+        setDigits(next)
+
+        return
+      }
+
+      if (
+        index > 0
+      ) {
+        const next = [
+          ...digits,
+        ]
+
+        next[
+          index - 1
+        ] = ''
+
+        setDigits(next)
+
+        inputs.current[
+          index - 1
+        ]?.focus()
+      }
+
+      return
+    }
+
+    if (
+      event.key ===
+        'ArrowLeft' &&
+      index > 0
+    ) {
+      inputs.current[
+        index - 1
+      ]?.focus()
+    }
+
+    if (
+      event.key ===
+        'ArrowRight' &&
+      index <
+        OTP_LENGTH - 1
+    ) {
+      inputs.current[
+        index + 1
+      ]?.focus()
+    }
+  }
+
+  function handlePaste(
+    event:
+      ClipboardEvent<HTMLDivElement>
+  ) {
+    if (
+      phase !== 'entry'
+    ) {
+      return
+    }
+
+    const pasted =
+      event
+        .clipboardData
+        .getData(
+          'text'
+        )
+        .replace(
+          /\D/g,
+          ''
+        )
+        .slice(
+          0,
+          OTP_LENGTH
+        )
+
+    if (!pasted) {
+      return
+    }
+
+    event.preventDefault()
+
+    const next =
+      Array(
+        OTP_LENGTH
+      ).fill('')
+
+    pasted
+      .split('')
+      .forEach(
+        (
+          digit,
+          index
+        ) => {
+          next[index] =
+            digit
+        }
+      )
+
+    setDigits(next)
+    setError('')
+    setNotice('')
+
+    const empty =
+      next.findIndex(
+        value =>
+          !value
+      )
+
+    if (
+      empty >= 0
+    ) {
+      inputs.current[
+        empty
+      ]?.focus()
+    } else {
+      inputs.current[
+        OTP_LENGTH - 1
+      ]?.focus()
+    }
+  }
+
+  async function resend() {
+    if (
+      resendSeconds > 0 ||
+      resending ||
+      phase !== 'entry'
+    ) {
+      return
+    }
+
+    setResending(true)
+    setError('')
+    setNotice('')
+
+    const result =
+      await onResend()
+
+    setResending(false)
+
+    if (!result.ok) {
+      setError(
+        result.message ||
+          'Could not send another code.'
+      )
+
+      return
+    }
+
+    verificationStarted.current =
+      false
+
+    setDigits(
+      Array(
+        OTP_LENGTH
+      ).fill('')
+    )
+
+    setResendSeconds(
+      60
+    )
+
+    setNotice(
+      'A fresh verification code has been sent.'
+    )
+
+    window.setTimeout(
+      () =>
+        inputs.current[0]
+          ?.focus(),
+      120
+    )
+  }
+
+  return (
+    <div className="relative z-10 mx-auto w-full max-w-[620px]">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-[8px] uppercase tracking-[0.34em] text-[#a23b4a]">
+            PROVN / EMAIL VERIFY
+          </p>
+
+          <div className="mt-[7px] flex items-center gap-2">
+            <span className="h-[5px] w-[5px] animate-pulse rounded-full bg-[#df3048] shadow-[0_0_9px_rgba(223,48,72,.85)]" />
+
+            <span className="text-[7px] uppercase tracking-[0.22em] text-zinc-700">
+              SECURE EMAIL NODE ACTIVE
+            </span>
+          </div>
+        </div>
+
+        <span className="hidden rounded-full border border-[#682531]/70 bg-[#12080a] px-3 py-[7px] text-[7px] uppercase tracking-[0.19em] text-[#9b4450] sm:inline-flex">
+          EMAIL OTP
+        </span>
+      </div>
+
+      <h3 className="mt-5 text-[30px] font-black leading-[0.96] tracking-[-0.05em] sm:text-[36px]">
+        Verify New{' '}
+        <span className="text-[#dc3048]">
+          Email.
+        </span>
+      </h3>
+
+      <p className="mt-3 max-w-[520px] text-[10px] leading-5 text-zinc-600">
+        Enter the six-digit code sent to{' '}
+        <span className="font-medium text-zinc-300">
+          {maskEmail(
+            email
+          )}
+        </span>
+        .
+      </p>
+
+      <div
+        onPaste={
+          handlePaste
+        }
+        className={`
+          relative mt-7
+          h-[360px]
+          overflow-hidden
+          rounded-[24px]
+          border
+          border-white/[0.06]
+          bg-[#050506]/95
+          shadow-[inset_0_1px_0_rgba(255,255,255,.025),0_25px_80px_rgba(0,0,0,.28)]
+          ${
+            shake
+              ? 'animate-[provnEmailOtpShake_.44s_ease]'
+              : ''
+          }
+        `}
+      >
+        <div
+          className="pointer-events-none absolute inset-0 transition-all duration-700"
+          style={{
+            background:
+              phase ===
+              'success'
+                ? 'radial-gradient(circle at 50% 50%, rgba(16,185,129,.16), transparent 40%)'
+                : 'radial-gradient(circle at 50% 50%, rgba(186,27,54,.18), transparent 43%)',
+          }}
+        />
+
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.065]"
+          style={{
+            backgroundImage:
+              'linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px), linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px)',
+
+            backgroundSize:
+              '38px 38px',
+          }}
+        />
+
+        <div
+          className={`
+            pointer-events-none
+            absolute
+            left-1/2
+            top-1/2
+            h-[248px]
+            w-[248px]
+            -translate-x-1/2
+            -translate-y-1/2
+            rounded-full
+            border
+            transition-all
+            duration-700
+            ${
+              phase ===
+              'entry'
+                ? 'scale-[.45] border-transparent opacity-0'
+                : phase ===
+                    'orbit'
+                  ? 'scale-100 border-[#8e293a]/40 opacity-100'
+                  : 'scale-[.18] border-emerald-500/15 opacity-0'
+            }
+          `}
+        />
+
+        <div
+          className={`
+            pointer-events-none
+            absolute
+            left-1/2
+            top-1/2
+            h-[190px]
+            w-[190px]
+            -translate-x-1/2
+            -translate-y-1/2
+            rounded-full
+            border
+            transition-all
+            duration-700
+            ${
+              phase ===
+              'entry'
+                ? 'scale-[.4] border-transparent opacity-0'
+                : phase ===
+                    'orbit'
+                  ? 'scale-100 border-[#a82f41]/25 opacity-100'
+                  : 'scale-[.12] border-transparent opacity-0'
+            }
+          `}
+        />
+
+        <div
+          className={`
+            pointer-events-none
+            absolute
+            left-1/2
+            top-1/2
+            h-[248px]
+            w-[248px]
+            -translate-x-1/2
+            -translate-y-1/2
+            rounded-full
+            transition-opacity
+            duration-300
+            ${
+              phase ===
+              'orbit'
+                ? 'animate-[spin_1.2s_linear_infinite] opacity-100'
+                : 'opacity-0'
+            }
+          `}
+        >
+          <span className="absolute left-1/2 top-[-5px] h-[9px] w-[9px] -translate-x-1/2 rounded-full bg-[#f23a54] shadow-[0_0_23px_rgba(242,58,84,.95)]" />
+
+          <span className="absolute bottom-[17px] right-[17px] h-[5px] w-[5px] rounded-full bg-[#a72c40] shadow-[0_0_12px_rgba(167,44,64,.8)]" />
+        </div>
+
+        <div
+          className={`
+            pointer-events-none
+            absolute
+            left-[8%]
+            right-[8%]
+            h-px
+            bg-gradient-to-r
+            from-transparent
+            via-[#cf3048]/60
+            to-transparent
+            ${
+              phase ===
+              'orbit'
+                ? 'animate-[provnEmailScan_1.4s_ease-in-out_infinite] opacity-100'
+                : 'opacity-0'
+            }
+          `}
+        />
+
+        <div
+          className={`
+            pointer-events-none
+            absolute
+            left-1/2
+            top-1/2
+            flex
+            h-[64px]
+            w-[64px]
+            -translate-x-1/2
+            -translate-y-1/2
+            items-center
+            justify-center
+            rounded-full
+            border
+            border-[#922c3d]/40
+            bg-[#090608]
+            shadow-[0_0_40px_rgba(166,29,51,.16)]
+            transition-all
+            duration-500
+            ${
+              phase ===
+              'orbit'
+                ? 'scale-100 opacity-100'
+                : 'scale-[.42] opacity-0'
+            }
+          `}
+        >
+          <div className="scale-[.62]">
+            <ProVNMark />
+          </div>
+        </div>
+
+        <div
+          className={`
+            absolute
+            left-0
+            right-0
+            top-7
+            text-center
+            transition-all
+            duration-300
+            ${
+              phase ===
+              'success'
+                ? '-translate-y-2 opacity-0'
+                : 'translate-y-0 opacity-100'
+            }
+          `}
+        >
+          <p className="text-[7px] uppercase tracking-[0.31em] text-zinc-700">
+            {phase ===
+            'orbit'
+              ? 'VERIFYING EMAIL OWNERSHIP'
+              : 'ENTER SECURITY CODE'}
+          </p>
+        </div>
+
+        <div className="absolute left-1/2 top-1/2 h-0 w-0">
+          {digits.map(
+            (
+              digit,
+              index
+            ) => {
+              const rowX =
+                (
+                  index -
+                  2.5
+                ) *
+                60
+
+              let x =
+                rowX
+
+              let y = 0
+              let rotation =
+                0
+
+              let scale =
+                1
+
+              let opacity =
+                1
+
+              if (
+                phase ===
+                'orbit'
+              ) {
+                x =
+                  OTP_ORBIT[
+                    index
+                  ].x
+
+                y =
+                  OTP_ORBIT[
+                    index
+                  ].y
+
+                rotation =
+                  OTP_ORBIT[
+                    index
+                  ].r
+
+                scale =
+                  0.96
+              }
+
+              if (
+                phase ===
+                'success'
+              ) {
+                x = 0
+                y = 0
+
+                rotation =
+                  index %
+                    2 ===
+                  0
+                    ? 80
+                    : -80
+
+                scale =
+                  0.03
+
+                opacity =
+                  0
+              }
+
+              return (
+                <div
+                  key={
+                    index
+                  }
+                  className="absolute left-0 top-0"
+                  style={{
+                    transform: `
+                      translate(-50%, -50%)
+                      translate3d(${x}px, ${y}px, 0)
+                      rotate(${rotation}deg)
+                      scale(${scale})
+                    `,
+
+                    opacity,
+
+                    transition:
+                      `transform 800ms cubic-bezier(.16,1,.3,1) ${
+                        index *
+                        38
+                      }ms,
+                      opacity 300ms ease ${
+                        phase ===
+                        'success'
+                          ? index *
+                            22
+                          : 0
+                      }ms`,
+                  }}
+                >
+                  <input
+                    ref={
+                      element => {
+                        inputs.current[
+                          index
+                        ] =
+                          element
+                      }
+                    }
+                    data-writing-field="true"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    autoComplete={
+                      index ===
+                      0
+                        ? 'one-time-code'
+                        : 'off'
+                    }
+                    maxLength={
+                      index ===
+                      0
+                        ? OTP_LENGTH
+                        : 1
+                    }
+                    value={
+                      digit
+                    }
+                    disabled={
+                      phase !==
+                      'entry'
+                    }
+                    onChange={
+                      event =>
+                        handleChange(
+                          index,
+                          event
+                            .target
+                            .value
+                        )
+                    }
+                    onKeyDown={
+                      event =>
+                        handleKeyDown(
+                          index,
+                          event
+                        )
+                    }
+                    aria-label={`Email OTP digit ${
+                      index +
+                      1
+                    }`}
+                    className={`
+                      h-[53px]
+                      w-[53px]
+                      rounded-[14px]
+                      border
+                      bg-[#101014]
+                      text-center
+                      text-[20px]
+                      font-bold
+                      text-white
+                      outline-none
+                      transition-[border-color,background-color,box-shadow,transform]
+                      duration-150
+                      ${
+                        digit
+                          ? 'border-[#87313e] bg-[#120a0d] shadow-[0_0_21px_rgba(190,39,61,.10)]'
+                          : 'border-white/[0.085]'
+                      }
+                      focus:-translate-y-[1px]
+                      focus:border-[#dc3c51]
+                      focus:bg-[#130b0e]
+                      focus:shadow-[0_0_0_3px_rgba(207,46,68,.08),0_0_25px_rgba(137,16,34,.12)]
+                    `}
+                  />
+                </div>
+              )
+            }
+          )}
+
+          <div
+            className="pointer-events-none absolute left-0 top-0 flex flex-col items-center"
+            style={{
+              transform:
+                phase ===
+                'success'
+                  ? 'translate(-50%, -50%) scale(1)'
+                  : 'translate(-50%, -50%) scale(.4)',
+
+              opacity:
+                phase ===
+                'success'
+                  ? 1
+                  : 0,
+
+              transition:
+                'transform 820ms cubic-bezier(.16,1,.3,1) 220ms, opacity 430ms ease 230ms',
+            }}
+          >
+            <div className="relative flex h-[112px] w-[112px] items-center justify-center rounded-[32px] border border-emerald-500/35 bg-[#06100c] text-emerald-400 shadow-[0_0_74px_rgba(16,185,129,.15),inset_0_0_32px_rgba(16,185,129,.06)]">
+              <div className="absolute -inset-[10px] animate-[provnEmailVerifiedPulse_1.45s_ease-out_infinite] rounded-[38px] border border-emerald-500/15" />
+
+              <div className="absolute -inset-[24px] rounded-[49px] border border-emerald-500/[0.045]" />
+
+              <BigVerifiedCheck />
+            </div>
+
+            <p className="mt-6 whitespace-nowrap text-[9px] font-bold uppercase tracking-[0.30em] text-emerald-400">
+              Email Verified
+            </p>
+
+            <p className="mt-2 whitespace-nowrap text-[8px] uppercase tracking-[0.21em] text-zinc-700">
+              Ownership Updated
+            </p>
+          </div>
+        </div>
+
+        <div
+          className={`
+            absolute
+            bottom-7
+            left-0
+            right-0
+            text-center
+            transition-opacity
+            duration-300
+            ${
+              phase ===
+              'success'
+                ? 'opacity-0'
+                : 'opacity-100'
+            }
+          `}
+        >
+          {phase ===
+          'entry' ? (
+            <p className="text-[8px] text-zinc-700">
+              Type or paste your six-digit verification code.
+            </p>
+          ) : (
+            <div className="flex items-center justify-center gap-2">
+              <span className="h-[4px] w-[4px] animate-pulse rounded-full bg-[#da3048]" />
+
+              <p className="text-[7px] uppercase tracking-[0.24em] text-[#87333f]">
+                Matching secure email signature
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {error && (
+        <div className="mt-4 rounded-[12px] border border-red-900/55 bg-red-950/20 px-4 py-3 text-[9px] leading-5 text-red-300">
+          {error}
+        </div>
+      )}
+
+      {notice &&
+        !error && (
+          <div className="mt-4 rounded-[12px] border border-emerald-900/35 bg-emerald-950/10 px-4 py-3 text-[9px] leading-5 text-emerald-400">
+            {notice}
+          </div>
+        )}
+
+      <div
+        className={`
+          mt-5
+          flex
+          items-center
+          justify-center
+          gap-2
+          transition-opacity
+          ${
+            phase ===
+            'entry'
+              ? 'opacity-100'
+              : 'pointer-events-none opacity-0'
+          }
+        `}
+      >
+        <span className="text-[9px] text-zinc-700">
+          Didn&apos;t receive it?
+        </span>
+
+        <button
+          type="button"
+          disabled={
+            resendSeconds >
+              0 ||
+            resending
+          }
+          onClick={
+            resend
+          }
+          className="text-[9px] font-semibold text-[#bb4253] transition-colors hover:text-[#ec6073] disabled:text-zinc-700"
+        >
+          {resending
+            ? 'Sending...'
+            : resendSeconds >
+                0
+              ? `Resend in ${resendSeconds}s`
+              : 'Resend code'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+/* =========================================================
    PAGE
 ========================================================= */
 
 export default function AccountSettingsPage() {
   const supabase =
     useMemo(
-      () => createClient(),
+      () =>
+        createClient(),
       []
     )
 
@@ -723,20 +1849,27 @@ export default function AccountSettingsPage() {
     useState(false)
 
   const [
-    emailMessage,
-    setEmailMessage,
-  ] =
-    useState<string | null>(
-      null
-    )
-
-  const [
     emailError,
     setEmailError,
   ] =
-    useState<string | null>(
+    useState<
+      string |
       null
+    >(null)
+
+  const [
+    emailStage,
+    setEmailStage,
+  ] =
+    useState<EmailStage>(
+      'form'
     )
+
+  const [
+    pendingEmail,
+    setPendingEmail,
+  ] =
+    useState('')
 
   const [
     currentPassword,
@@ -766,17 +1899,19 @@ export default function AccountSettingsPage() {
     passwordMessage,
     setPasswordMessage,
   ] =
-    useState<string | null>(
+    useState<
+      string |
       null
-    )
+    >(null)
 
   const [
     passwordError,
     setPasswordError,
   ] =
-    useState<string | null>(
+    useState<
+      string |
       null
-    )
+    >(null)
 
   const [
     sessionsSaving,
@@ -788,9 +1923,10 @@ export default function AccountSettingsPage() {
     sessionMessage,
     setSessionMessage,
   ] =
-    useState<string | null>(
+    useState<
+      string |
       null
-    )
+    >(null)
 
   const [
     deleteOpen,
@@ -820,9 +1956,10 @@ export default function AccountSettingsPage() {
     deleteError,
     setDeleteError,
   ] =
-    useState<string | null>(
+    useState<
+      string |
       null
-    )
+    >(null)
 
   const [
     copied,
@@ -831,16 +1968,19 @@ export default function AccountSettingsPage() {
     useState(false)
 
   /* =======================================================
-     LOAD
+     LOAD ACCOUNT
   ======================================================== */
 
   useEffect(() => {
-    let active = true
+    let active =
+      true
 
     async function load() {
       const {
-        data: userResult,
-        error: userError,
+        data:
+          userResult,
+        error:
+          userError,
       } =
         await supabase
           .auth
@@ -854,9 +1994,11 @@ export default function AccountSettingsPage() {
         userError ||
         !userResult.user
       ) {
-        window.location.replace(
-          '/login'
-        )
+        window
+          .location
+          .replace(
+            '/login'
+          )
 
         return
       }
@@ -865,11 +2007,16 @@ export default function AccountSettingsPage() {
         userResult.user
 
       const {
-        data: profileResult,
-        error: profileError,
+        data:
+          profileResult,
+
+        error:
+          profileError,
       } =
         await supabase
-          .from('profiles')
+          .from(
+            'profiles'
+          )
           .select(
             'id, username, display_name, avatar_url, bio, created_at'
           )
@@ -904,12 +2051,14 @@ export default function AccountSettingsPage() {
       )
 
       setCurrentEmail(
-        user.email || ''
+        user.email ||
+          ''
       )
 
       setEmailVerified(
         Boolean(
-          user.email_confirmed_at
+          user
+            .email_confirmed_at
         )
       )
 
@@ -921,28 +2070,29 @@ export default function AccountSettingsPage() {
     void load()
 
     return () => {
-      active = false
+      active =
+        false
     }
   }, [
     supabase,
   ])
 
-  /* =======================================================
-     DERIVED
-  ======================================================== */
-
   const displayName =
     profile
       ?.display_name
       ?.trim() ||
-    profile?.username ||
+    profile
+      ?.username ||
     'Player'
 
   const initials =
     displayName
       .split(/\s+/)
       .filter(Boolean)
-      .slice(0, 2)
+      .slice(
+        0,
+        2
+      )
       .map(
         item =>
           item[0]
@@ -952,7 +2102,8 @@ export default function AccountSettingsPage() {
     'P'
 
   const profileHref =
-    profile?.username
+    profile
+      ?.username
       ? `/profiles/${encodeURIComponent(
           profile.username
         )}`
@@ -973,17 +2124,22 @@ export default function AccountSettingsPage() {
       : ''
 
   const joined =
-    profile?.created_at
+    profile
+      ?.created_at
       ? new Intl.DateTimeFormat(
           'en-US',
           {
-            month: 'short',
-            year: 'numeric',
+            month:
+              'short',
+
+            year:
+              'numeric',
           }
         )
           .format(
             new Date(
-              profile.created_at
+              profile
+                .created_at
             )
           )
           .toUpperCase()
@@ -996,13 +2152,17 @@ export default function AccountSettingsPage() {
   async function reauthenticate(
     password: string
   ) {
-    if (!currentEmail) {
+    if (
+      !currentEmail
+    ) {
       throw new Error(
         'No email is available for this account.'
       )
     }
 
-    if (!password) {
+    if (
+      !password
+    ) {
       throw new Error(
         'Enter your current password.'
       )
@@ -1020,7 +2180,9 @@ export default function AccountSettingsPage() {
           password,
         })
 
-    if (error) {
+    if (
+      error
+    ) {
       throw new Error(
         'Current password is incorrect.'
       )
@@ -1028,28 +2190,34 @@ export default function AccountSettingsPage() {
   }
 
   /* =======================================================
-     CHANGE EMAIL
+     START EMAIL CHANGE
   ======================================================== */
 
   async function handleEmailChange(
     event:
       FormEvent<HTMLFormElement>
   ) {
-    event.preventDefault()
+    event
+      .preventDefault()
 
-    if (emailSaving) {
+    if (
+      emailSaving
+    ) {
       return
     }
 
-    setEmailError(null)
-    setEmailMessage(null)
+    setEmailError(
+      null
+    )
 
     const email =
       newEmail
         .trim()
         .toLowerCase()
 
-    if (!email) {
+    if (
+      !email
+    ) {
       setEmailError(
         'Enter your new email address.'
       )
@@ -1082,7 +2250,9 @@ export default function AccountSettingsPage() {
       return
     }
 
-    setEmailSaving(true)
+    setEmailSaving(
+      true
+    )
 
     try {
       await reauthenticate(
@@ -1098,45 +2268,246 @@ export default function AccountSettingsPage() {
             email,
           })
 
-      if (error) {
+      if (
+        error
+      ) {
         throw error
       }
 
-      setNewEmail('')
-      setEmailPassword('')
+      setPendingEmail(
+        email
+      )
 
-      setEmailMessage(
-        'Verification requested. Check the email confirmation messages sent by ProVN. Your sign-in email remains unchanged until the verification process is completed.'
+      setEmailPassword(
+        ''
+      )
+
+      setNewEmail(
+        ''
+      )
+
+      setEmailStage(
+        'otp'
       )
     } catch (
       error
     ) {
       setEmailError(
-        error instanceof Error
+        error instanceof
+        Error
           ? error.message
           : 'Could not change email.'
       )
     } finally {
-      setEmailSaving(false)
+      setEmailSaving(
+        false
+      )
     }
   }
 
   /* =======================================================
-     CHANGE PASSWORD
+     VERIFY EMAIL OTP
+  ======================================================== */
+
+  async function verifyEmailOtp(
+    token: string
+  ): Promise<VerifyResult> {
+    if (
+      !pendingEmail
+    ) {
+      return {
+        ok: false,
+
+        message:
+          'No pending email change was found.',
+      }
+    }
+
+    try {
+      const {
+        data,
+        error,
+      } =
+        await supabase
+          .auth
+          .verifyOtp({
+            email:
+              pendingEmail,
+
+            token,
+
+            type:
+              'email_change',
+          })
+
+      if (
+        error
+      ) {
+        return {
+          ok: false,
+
+          message:
+            error.message ||
+            'That verification code is invalid or expired.',
+        }
+      }
+
+      const refreshedUser =
+        data.user ||
+        (
+          await supabase
+            .auth
+            .getUser()
+        ).data.user
+
+      setCurrentEmail(
+        refreshedUser
+          ?.email ||
+        pendingEmail
+      )
+
+      setEmailVerified(
+        Boolean(
+          refreshedUser
+            ?.email_confirmed_at
+        )
+      )
+
+      return {
+        ok: true,
+      }
+    } catch (
+      error
+    ) {
+      return {
+        ok: false,
+
+        message:
+          error instanceof
+          Error
+            ? error.message
+            : 'Could not verify the email code.',
+      }
+    }
+  }
+
+  async function resendEmailOtp():
+    Promise<VerifyResult> {
+    if (
+      !pendingEmail
+    ) {
+      return {
+        ok: false,
+
+        message:
+          'No pending email change was found.',
+      }
+    }
+
+    try {
+      const {
+        error,
+      } =
+        await supabase
+          .auth
+          .resend({
+            type:
+              'email_change',
+
+            email:
+              pendingEmail,
+          })
+
+      if (
+        error
+      ) {
+        return {
+          ok: false,
+
+          message:
+            error.message ||
+            'Could not resend the verification code.',
+        }
+      }
+
+      return {
+        ok: true,
+      }
+    } catch (
+      error
+    ) {
+      return {
+        ok: false,
+
+        message:
+          error instanceof
+          Error
+            ? error.message
+            : 'Could not resend the verification code.',
+      }
+    }
+  }
+
+  function finishEmailVerification() {
+    setPendingEmail(
+      ''
+    )
+
+    setEmailError(
+      null
+    )
+
+    setEmailStage(
+      'success'
+    )
+  }
+
+  function resetEmailChange() {
+    setPendingEmail(
+      ''
+    )
+
+    setNewEmail(
+      ''
+    )
+
+    setEmailPassword(
+      ''
+    )
+
+    setEmailError(
+      null
+    )
+
+    setEmailStage(
+      'form'
+    )
+  }
+
+  /* =======================================================
+     PASSWORD
   ======================================================== */
 
   async function handlePasswordChange(
     event:
       FormEvent<HTMLFormElement>
   ) {
-    event.preventDefault()
+    event
+      .preventDefault()
 
-    if (passwordSaving) {
+    if (
+      passwordSaving
+    ) {
       return
     }
 
-    setPasswordError(null)
-    setPasswordMessage(null)
+    setPasswordError(
+      null
+    )
+
+    setPasswordMessage(
+      null
+    )
 
     if (
       !passwordIsStrong(
@@ -1172,7 +2543,9 @@ export default function AccountSettingsPage() {
       return
     }
 
-    setPasswordSaving(true)
+    setPasswordSaving(
+      true
+    )
 
     try {
       await reauthenticate(
@@ -1189,13 +2562,23 @@ export default function AccountSettingsPage() {
               newPassword,
           })
 
-      if (error) {
+      if (
+        error
+      ) {
         throw error
       }
 
-      setCurrentPassword('')
-      setNewPassword('')
-      setConfirmPassword('')
+      setCurrentPassword(
+        ''
+      )
+
+      setNewPassword(
+        ''
+      )
+
+      setConfirmPassword(
+        ''
+      )
 
       setPasswordMessage(
         'Password updated successfully.'
@@ -1204,26 +2587,36 @@ export default function AccountSettingsPage() {
       error
     ) {
       setPasswordError(
-        error instanceof Error
+        error instanceof
+        Error
           ? error.message
           : 'Could not update password.'
       )
     } finally {
-      setPasswordSaving(false)
+      setPasswordSaving(
+        false
+      )
     }
   }
 
   /* =======================================================
-     SESSION CONTROL
+     SESSION
   ======================================================== */
 
   async function handleSignOutOthers() {
-    if (sessionsSaving) {
+    if (
+      sessionsSaving
+    ) {
       return
     }
 
-    setSessionsSaving(true)
-    setSessionMessage(null)
+    setSessionsSaving(
+      true
+    )
+
+    setSessionMessage(
+      null
+    )
 
     try {
       const {
@@ -1232,10 +2625,13 @@ export default function AccountSettingsPage() {
         await supabase
           .auth
           .signOut({
-            scope: 'others',
+            scope:
+              'others',
           })
 
-      if (error) {
+      if (
+        error
+      ) {
         throw error
       }
 
@@ -1247,7 +2643,9 @@ export default function AccountSettingsPage() {
         'Could not sign out other sessions.'
       )
     } finally {
-      setSessionsSaving(false)
+      setSessionsSaving(
+        false
+      )
     }
   }
 
@@ -1256,9 +2654,9 @@ export default function AccountSettingsPage() {
       .auth
       .signOut()
 
-    window.location.replace(
-      '/'
-    )
+    window
+      .location
+      .replace('/')
   }
 
   /* =======================================================
@@ -1269,7 +2667,8 @@ export default function AccountSettingsPage() {
     event:
       FormEvent<HTMLFormElement>
   ) {
-    event.preventDefault()
+    event
+      .preventDefault()
 
     if (
       deleting ||
@@ -1278,13 +2677,16 @@ export default function AccountSettingsPage() {
       return
     }
 
-    setDeleteError(null)
+    setDeleteError(
+      null
+    )
 
     if (
       deleteUsername
         .trim()
         .toLowerCase() !==
-      profile.username
+      profile
+        .username
         .trim()
         .toLowerCase()
     ) {
@@ -1295,7 +2697,9 @@ export default function AccountSettingsPage() {
       return
     }
 
-    setDeleting(true)
+    setDeleting(
+      true
+    )
 
     try {
       await reauthenticate(
@@ -1323,7 +2727,8 @@ export default function AccountSettingsPage() {
         )
 
       const result =
-        await response.json()
+        await response
+          .json()
 
       if (
         !response.ok ||
@@ -1331,32 +2736,33 @@ export default function AccountSettingsPage() {
       ) {
         throw new Error(
           result.error ||
-            'Could not delete account.'
+          'Could not delete account.'
         )
       }
 
-      window.location.replace(
-        '/'
-      )
+      window
+        .location
+        .replace('/')
     } catch (
       error
     ) {
       setDeleteError(
-        error instanceof Error
+        error instanceof
+        Error
           ? error.message
           : 'Could not delete account.'
       )
 
-      setDeleting(false)
+      setDeleting(
+        false
+      )
     }
   }
 
-  /* =======================================================
-     COPY ID
-  ======================================================== */
-
   async function copyProfileId() {
-    if (!profileCode) {
+    if (
+      !profileCode
+    ) {
       return
     }
 
@@ -1367,15 +2773,20 @@ export default function AccountSettingsPage() {
           `PVN ${profileCode}`
         )
 
-      setCopied(true)
-
-      window.setTimeout(
-        () =>
-          setCopied(false),
-        1400
+      setCopied(
+        true
       )
+
+      window
+        .setTimeout(
+          () =>
+            setCopied(
+              false
+            ),
+          1400
+        )
     } catch {
-      // Clipboard unavailable.
+      //
     }
   }
 
@@ -1389,7 +2800,6 @@ export default function AccountSettingsPage() {
   ) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#020203] text-white">
-
         <style>
           {`
             @media (pointer: fine) {
@@ -1403,7 +2813,6 @@ export default function AccountSettingsPage() {
         </style>
 
         <div className="text-center">
-
           <div className="mx-auto h-[38px] w-[38px] animate-spin rounded-full border border-[#55202a] border-t-[#dc3e54]" />
 
           <p className="mt-5 text-[7px] uppercase tracking-[0.26em] text-zinc-700">
@@ -1414,10 +2823,6 @@ export default function AccountSettingsPage() {
     )
   }
 
-  /* =======================================================
-     ERROR
-  ======================================================== */
-
   if (
     loadState ===
       'error' ||
@@ -1425,7 +2830,6 @@ export default function AccountSettingsPage() {
   ) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#020203] px-6 text-center text-white">
-
         <div>
           <p className="text-[7px] uppercase tracking-[0.28em] text-[#a13847]">
             ProVN Account
@@ -1468,10 +2872,6 @@ export default function AccountSettingsPage() {
             background: #020203;
           }
 
-          /* ===============================================
-             PREMIUM BIG RECTANGLE MOTION
-          =============================================== */
-
           .settings-premium-panel {
             --settings-rx: 0deg;
             --settings-ry: 0deg;
@@ -1481,7 +2881,6 @@ export default function AccountSettingsPage() {
             --settings-depth: 0px;
 
             position: relative;
-
             isolation: isolate;
 
             transform:
@@ -1522,7 +2921,6 @@ export default function AccountSettingsPage() {
 
           .settings-panel-content {
             position: relative;
-
             z-index: 4;
 
             transform:
@@ -1538,15 +2936,10 @@ export default function AccountSettingsPage() {
 
           .settings-pointer-light {
             position: absolute;
-
             inset: 0;
-
             pointer-events: none;
-
             z-index: 2;
-
             border-radius: inherit;
-
             opacity: 0;
 
             background:
@@ -1571,15 +2964,10 @@ export default function AccountSettingsPage() {
 
           .settings-edge-light {
             position: absolute;
-
             inset: 0;
-
             z-index: 3;
-
             pointer-events: none;
-
             border-radius: inherit;
-
             opacity: 0;
 
             box-shadow:
@@ -1599,21 +2987,14 @@ export default function AccountSettingsPage() {
 
           .settings-sheen {
             position: absolute;
-
             z-index: 3;
-
             pointer-events: none;
-
             top: -90%;
             left: -45%;
-
             height: 280%;
             width: 15%;
-
             opacity: 0;
-
-            transform:
-              rotate(17deg);
+            transform: rotate(17deg);
 
             background:
               linear-gradient(
@@ -1635,10 +3016,6 @@ export default function AccountSettingsPage() {
               1
               both;
           }
-
-          /* ===============================================
-             FIELDS
-          =============================================== */
 
           .settings-field {
             transition:
@@ -1670,10 +3047,6 @@ export default function AccountSettingsPage() {
               rgba(128,18,37,.07);
           }
 
-          /* ===============================================
-             BUTTON SHEEN
-          =============================================== */
-
           .settings-button {
             position: relative;
             overflow: hidden;
@@ -1683,10 +3056,8 @@ export default function AccountSettingsPage() {
             content: "";
 
             position: absolute;
-
             top: -80%;
             left: -42%;
-
             width: 18%;
             height: 260%;
 
@@ -1711,10 +3082,6 @@ export default function AccountSettingsPage() {
             left: 128%;
           }
 
-          /* ===============================================
-             HEADER BUTTON
-          =============================================== */
-
           .always-glow {
             box-shadow:
               inset 0 1px 0
@@ -1723,8 +3090,7 @@ export default function AccountSettingsPage() {
               rgba(157,28,46,.09);
 
             transition:
-              transform
-              220ms
+              transform 220ms
               cubic-bezier(.16,1,.3,1),
               border-color 220ms ease,
               box-shadow 220ms ease;
@@ -1792,6 +3158,66 @@ export default function AccountSettingsPage() {
             }
           }
 
+          @keyframes provnEmailVerifiedPulse {
+            0% {
+              opacity: .75;
+              transform: scale(.90);
+            }
+
+            70%,
+            100% {
+              opacity: 0;
+              transform: scale(1.20);
+            }
+          }
+
+          @keyframes provnEmailOtpShake {
+            0%,
+            100% {
+              transform: translateX(0);
+            }
+
+            20% {
+              transform: translateX(-5px);
+            }
+
+            40% {
+              transform: translateX(5px);
+            }
+
+            60% {
+              transform: translateX(-3px);
+            }
+
+            80% {
+              transform: translateX(3px);
+            }
+          }
+
+          @keyframes provnEmailScan {
+            0% {
+              top: 20%;
+              opacity: 0;
+            }
+
+            18% {
+              opacity: .8;
+            }
+
+            50% {
+              opacity: .45;
+            }
+
+            82% {
+              opacity: .8;
+            }
+
+            100% {
+              top: 80%;
+              opacity: 0;
+            }
+          }
+
           @media (
             prefers-reduced-motion:
             reduce
@@ -1812,9 +3238,6 @@ export default function AccountSettingsPage() {
       </style>
 
       <main className="relative min-h-screen overflow-x-clip bg-[#020203] text-white">
-
-        {/* BACKGROUND */}
-
         <div
           className="pointer-events-none fixed inset-0"
           style={{
@@ -1837,17 +3260,13 @@ export default function AccountSettingsPage() {
         {/* HEADER */}
 
         <header className="sticky top-0 z-[1000] border-b border-[#43131b]/50 bg-[#020203]/[0.96] shadow-[0_12px_40px_rgba(0,0,0,.25)] backdrop-blur-xl">
-
           <div className="mx-auto flex h-[78px] max-w-[1450px] items-center justify-between px-6 lg:px-10">
-
             <div className="flex items-center gap-5">
-
               <ProVNLogo />
 
               <div className="hidden h-[27px] w-px bg-white/[0.055] sm:block" />
 
               <div className="hidden sm:block">
-
                 <p className="text-[7px] font-semibold uppercase tracking-[0.25em] text-[#963644]">
                   Account Control
                 </p>
@@ -1873,14 +3292,11 @@ export default function AccountSettingsPage() {
           </div>
         </header>
 
-        {/* MAIN */}
+        {/* CONTENT */}
 
         <div className="settings-entry relative z-10 mx-auto max-w-[1320px] px-6 pb-24 pt-12 lg:px-10 lg:pt-14">
-
           <div className="mb-9">
-
             <div className="flex items-center gap-3">
-
               <span className="h-px w-[34px] bg-[#7d2937]" />
 
               <p className="text-[7px] font-semibold uppercase tracking-[0.28em] text-[#963644]">
@@ -1899,12 +3315,9 @@ export default function AccountSettingsPage() {
 
           <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
 
-            {/* =================================================
-                LEFT
-            ================================================= */}
+            {/* LEFT */}
 
             <div className="space-y-6">
-
               <PremiumPanel
                 maxTilt={5}
                 lift={8}
@@ -1916,13 +3329,13 @@ export default function AccountSettingsPage() {
                 </p>
 
                 <div className="mt-6 flex items-center gap-4">
-
                   <div className="relative flex h-[78px] w-[78px] shrink-0 items-center justify-center overflow-hidden rounded-[22px] border border-[#722733]/85 bg-gradient-to-br from-[#40121b] via-[#17090d] to-[#070708]">
-
-                    {profile.avatar_url ? (
+                    {profile
+                      .avatar_url ? (
                       <img
                         src={
-                          profile.avatar_url
+                          profile
+                            .avatar_url
                         }
                         alt={
                           displayName
@@ -1939,7 +3352,6 @@ export default function AccountSettingsPage() {
                   </div>
 
                   <div className="min-w-0">
-
                     <h2 className="truncate text-[18px] font-bold tracking-[-0.03em]">
                       {displayName}
                     </h2>
@@ -1957,9 +3369,7 @@ export default function AccountSettingsPage() {
                 </div>
 
                 <div className="mt-6 border-t border-white/[0.05] pt-5">
-
                   <div className="flex items-center justify-between">
-
                     <div>
                       <p className="text-[6px] uppercase tracking-[0.18em] text-zinc-800">
                         ProVN ID
@@ -1987,7 +3397,6 @@ export default function AccountSettingsPage() {
 
                   {joined && (
                     <div className="mt-5 flex items-center justify-between">
-
                       <span className="text-[7px] uppercase tracking-[0.15em] text-zinc-800">
                         Account Since
                       </span>
@@ -2007,7 +3416,6 @@ export default function AccountSettingsPage() {
                 className="rounded-[25px] border border-white/[0.05] bg-[#070708]/88 p-6"
               >
                 <div className="flex items-center justify-between">
-
                   <p className="text-[7px] uppercase tracking-[0.25em] text-[#963644]">
                     Identity Rules
                   </p>
@@ -2018,14 +3426,12 @@ export default function AccountSettingsPage() {
                 </div>
 
                 <div className="mt-6 space-y-5">
-
                   <div>
                     <p className="text-[8px] font-medium text-zinc-400">
                       Username
                     </p>
 
                     <div className="mt-2 flex items-center justify-between">
-
                       <p className="text-[10px] font-semibold text-zinc-300">
                         @{profile.username}
                       </p>
@@ -2048,7 +3454,6 @@ export default function AccountSettingsPage() {
                     </p>
 
                     <div className="mt-2">
-
                       <StatusPill
                         tone={
                           emailVerified
@@ -2070,13 +3475,11 @@ export default function AccountSettingsPage() {
               </PremiumPanel>
             </div>
 
-            {/* =================================================
-                RIGHT
-            ================================================= */}
+            {/* RIGHT */}
 
             <div className="space-y-6">
 
-              {/* ACCOUNT */}
+              {/* LOGIN IDENTITY */}
 
               <PremiumPanel
                 maxTilt={3}
@@ -2094,15 +3497,12 @@ export default function AccountSettingsPage() {
                 />
 
                 <div className="mt-8 grid gap-3 sm:grid-cols-2">
-
                   <div className="rounded-[16px] border border-white/[0.05] bg-black/20 p-5">
-
                     <p className="text-[7px] uppercase tracking-[0.16em] text-zinc-700">
                       Username
                     </p>
 
                     <div className="mt-3 flex items-center justify-between">
-
                       <p className="text-[11px] font-semibold text-zinc-300">
                         @{profile.username}
                       </p>
@@ -2114,13 +3514,11 @@ export default function AccountSettingsPage() {
                   </div>
 
                   <div className="rounded-[16px] border border-white/[0.05] bg-black/20 p-5">
-
                     <p className="text-[7px] uppercase tracking-[0.16em] text-zinc-700">
                       Email
                     </p>
 
                     <div className="mt-3 flex items-center justify-between gap-4">
-
                       <p className="truncate text-[11px] font-semibold text-zinc-300">
                         {currentEmail}
                       </p>
@@ -2148,131 +3546,222 @@ export default function AccountSettingsPage() {
                     <MailIcon />
                   }
                   eyebrow="Email Security"
-                  title="Change email address."
-                  description="Your password is required first. Supabase will then start the secure email-change verification process."
+                  title={
+                    emailStage ===
+                    'otp'
+                      ? 'Verify new email.'
+                      : emailStage ===
+                          'success'
+                        ? 'Email updated.'
+                        : 'Change email address.'
+                  }
+                  description={
+                    emailStage ===
+                    'otp'
+                      ? 'Complete the same six-digit ProVN verification flow used when an identity is created.'
+                      : emailStage ===
+                          'success'
+                        ? 'Your verified sign-in email has been updated successfully.'
+                        : 'Your password is required first. ProVN then sends a six-digit verification code to the new email address.'
+                  }
                 />
 
-                <div className="mt-6 rounded-[16px] border border-[#55212a]/55 bg-[#10070a]/55 p-4">
+                {emailStage ===
+                  'form' && (
+                  <>
+                    <div className="mt-6 rounded-[16px] border border-[#55212a]/55 bg-[#10070a]/55 p-4">
+                      <div className="flex items-start gap-3">
+                        <span className="mt-[1px] flex h-[24px] w-[24px] shrink-0 items-center justify-center rounded-full border border-[#672631]/70 text-[#bf3c4e]">
+                          <ShieldIcon />
+                        </span>
 
-                  <div className="flex items-start gap-3">
+                        <div>
+                          <p className="text-[8px] font-semibold text-zinc-400">
+                            Protected email change
+                          </p>
 
-                    <span className="mt-[1px] flex h-[24px] w-[24px] shrink-0 items-center justify-center rounded-full border border-[#672631]/70 text-[#bf3c4e]">
-                      <ShieldIcon />
-                    </span>
+                          <p className="mt-2 text-[7px] leading-4 text-zinc-700">
+                            Your current password is checked first. Your sign-in email changes only after the six-digit code sent to the new address is verified.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
 
-                    <div>
-                      <p className="text-[8px] font-semibold text-zinc-400">
-                        Secure email change
-                      </p>
+                    <form
+                      onSubmit={
+                        handleEmailChange
+                      }
+                      className="mt-7"
+                    >
+                      <div className="grid gap-5 sm:grid-cols-2">
+                        <div>
+                          <label
+                            htmlFor="newEmail"
+                            className="text-[7px] font-semibold uppercase tracking-[0.17em] text-zinc-600"
+                          >
+                            New Email
+                          </label>
 
-                      <p className="mt-2 text-[7px] leading-4 text-zinc-700">
-                        Your current login email will not be replaced immediately. Complete the confirmation requested by your ProVN authentication emails first.
-                      </p>
+                          <input
+                            id="newEmail"
+                            type="email"
+                            autoComplete="email"
+                            data-writing-field="true"
+                            value={
+                              newEmail
+                            }
+                            onChange={
+                              event => {
+                                setNewEmail(
+                                  event
+                                    .target
+                                    .value
+                                )
+
+                                setEmailError(
+                                  null
+                                )
+                              }
+                            }
+                            placeholder="new@email.com"
+                            className="settings-field mt-3 h-[53px] w-full rounded-[14px] border border-white/[0.065] bg-black/25 px-4 text-[11px] text-zinc-200 outline-none placeholder:text-zinc-800"
+                          />
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="emailPassword"
+                            className="text-[7px] font-semibold uppercase tracking-[0.17em] text-zinc-600"
+                          >
+                            Current Password
+                          </label>
+
+                          <input
+                            id="emailPassword"
+                            type="password"
+                            autoComplete="current-password"
+                            data-writing-field="true"
+                            value={
+                              emailPassword
+                            }
+                            onChange={
+                              event => {
+                                setEmailPassword(
+                                  event
+                                    .target
+                                    .value
+                                )
+
+                                setEmailError(
+                                  null
+                                )
+                              }
+                            }
+                            placeholder="••••••••"
+                            className="settings-field mt-3 h-[53px] w-full rounded-[14px] border border-white/[0.065] bg-black/25 px-4 text-[11px] text-zinc-200 outline-none placeholder:text-zinc-800"
+                          />
+                        </div>
+                      </div>
+
+                      {emailError && (
+                        <div className="mt-5 rounded-[13px] border border-red-900/40 bg-red-950/[0.09] px-4 py-3 text-[8px] text-[#d95567]">
+                          {emailError}
+                        </div>
+                      )}
+
+                      <button
+                        type="submit"
+                        disabled={
+                          emailSaving
+                        }
+                        className="settings-button mt-6 inline-flex h-[48px] min-w-[180px] items-center justify-center gap-5 rounded-[13px] border border-[#c43b50] bg-gradient-to-r from-[#831126] to-[#c5273e] px-6 text-[7px] font-bold uppercase tracking-[0.16em] text-white shadow-[0_14px_38px_rgba(103,10,27,.20)] transition hover:-translate-y-[2px] hover:border-[#ee5669] disabled:translate-y-0 disabled:opacity-50"
+                      >
+                        <span className="relative z-[2]">
+                          {emailSaving
+                            ? 'Sending Code...'
+                            : 'Change Email'}
+                        </span>
+
+                        {!emailSaving && (
+                          <span className="relative z-[2]">
+                            <ArrowRightIcon />
+                          </span>
+                        )}
+                      </button>
+                    </form>
+                  </>
+                )}
+
+                {emailStage ===
+                  'otp' && (
+                  <div className="mt-7 animate-[settingsEntry_.55s_cubic-bezier(.16,1,.3,1)_both]">
+                    <EmailOtpVerification
+                      email={
+                        pendingEmail
+                      }
+                      onVerify={
+                        verifyEmailOtp
+                      }
+                      onResend={
+                        resendEmailOtp
+                      }
+                      onVerified={
+                        finishEmailVerification
+                      }
+                    />
+
+                    <div className="mt-5 flex justify-center">
+                      <button
+                        type="button"
+                        onClick={
+                          resetEmailChange
+                        }
+                        className="h-[38px] rounded-[10px] border border-white/[0.05] bg-black/20 px-4 text-[7px] font-semibold uppercase tracking-[0.14em] text-zinc-700 transition hover:border-[#5c222d]/70 hover:text-zinc-400"
+                      >
+                        Use Different Email
+                      </button>
                     </div>
                   </div>
-                </div>
+                )}
 
-                <form
-                  onSubmit={
-                    handleEmailChange
-                  }
-                  className="mt-7"
-                >
-                  <div className="grid gap-5 sm:grid-cols-2">
+                {emailStage ===
+                  'success' && (
+                  <div className="mt-7 animate-[settingsEntry_.55s_cubic-bezier(.16,1,.3,1)_both]">
+                    <div className="rounded-[18px] border border-emerald-900/30 bg-emerald-950/[0.055] p-5 sm:p-6">
+                      <div className="flex items-start gap-4">
+                        <span className="relative flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-[14px] border border-emerald-900/40 bg-emerald-950/[0.12] text-emerald-500">
+                          <span className="absolute inset-[-7px] animate-[provnEmailVerifiedPulse_1.45s_ease-out_infinite] rounded-[18px] border border-emerald-500/10" />
 
-                    <div>
-                      <label
-                        htmlFor="newEmail"
-                        className="text-[7px] font-semibold uppercase tracking-[0.17em] text-zinc-600"
-                      >
-                        New Email
-                      </label>
+                          <CheckIcon />
+                        </span>
 
-                      <input
-                        id="newEmail"
-                        type="email"
-                        autoComplete="email"
-                        value={
-                          newEmail
-                        }
-                        onChange={
-                          event => {
-                            setNewEmail(
-                              event.target.value
-                            )
+                        <div>
+                          <p className="text-[9px] font-semibold text-emerald-500">
+                            Email verified successfully.
+                          </p>
 
-                            setEmailError(null)
-                            setEmailMessage(null)
-                          }
-                        }
-                        placeholder="new@email.com"
-                        className="settings-field mt-3 h-[53px] w-full rounded-[14px] border border-white/[0.065] bg-black/25 px-4 text-[11px] text-zinc-200 outline-none placeholder:text-zinc-800"
-                      />
+                          <p className="mt-2 text-[8px] leading-5 text-zinc-600">
+                            Your ProVN sign-in email is now{' '}
+                            <span className="font-semibold text-zinc-400">
+                              {currentEmail}
+                            </span>
+                            .
+                          </p>
+                        </div>
+                      </div>
                     </div>
 
-                    <div>
-                      <label
-                        htmlFor="emailPassword"
-                        className="text-[7px] font-semibold uppercase tracking-[0.17em] text-zinc-600"
-                      >
-                        Current Password
-                      </label>
-
-                      <input
-                        id="emailPassword"
-                        type="password"
-                        autoComplete="current-password"
-                        value={
-                          emailPassword
-                        }
-                        onChange={
-                          event => {
-                            setEmailPassword(
-                              event.target.value
-                            )
-
-                            setEmailError(null)
-                            setEmailMessage(null)
-                          }
-                        }
-                        placeholder="••••••••"
-                        className="settings-field mt-3 h-[53px] w-full rounded-[14px] border border-white/[0.065] bg-black/25 px-4 text-[11px] text-zinc-200 outline-none placeholder:text-zinc-800"
-                      />
-                    </div>
+                    <button
+                      type="button"
+                      onClick={
+                        resetEmailChange
+                      }
+                      className="mt-6 inline-flex h-[43px] items-center rounded-[11px] border border-[#6e2632]/75 bg-[#11070a] px-5 text-[7px] font-semibold uppercase tracking-[0.14em] text-zinc-400 transition hover:border-[#b2394b] hover:text-white"
+                    >
+                      Change Another Email
+                    </button>
                   </div>
-
-                  {emailError && (
-                    <div className="mt-5 rounded-[13px] border border-red-900/40 bg-red-950/[0.09] px-4 py-3 text-[8px] text-[#d95567]">
-                      {emailError}
-                    </div>
-                  )}
-
-                  {emailMessage && (
-                    <div className="mt-5 rounded-[13px] border border-emerald-900/30 bg-emerald-950/[0.06] px-4 py-3 text-[8px] leading-4 text-emerald-500">
-                      {emailMessage}
-                    </div>
-                  )}
-
-                  <button
-                    type="submit"
-                    disabled={
-                      emailSaving
-                    }
-                    className="settings-button mt-6 inline-flex h-[48px] min-w-[180px] items-center justify-center gap-5 rounded-[13px] border border-[#c43b50] bg-gradient-to-r from-[#831126] to-[#c5273e] px-6 text-[7px] font-bold uppercase tracking-[0.16em] text-white shadow-[0_14px_38px_rgba(103,10,27,.20)] transition hover:-translate-y-[2px] hover:border-[#ee5669] disabled:translate-y-0 disabled:opacity-50"
-                  >
-                    <span className="relative z-[2]">
-                      {emailSaving
-                        ? 'Requesting...'
-                        : 'Change Email'}
-                    </span>
-
-                    {!emailSaving && (
-                      <span className="relative z-[2]">
-                        <ArrowRightIcon />
-                      </span>
-                    )}
-                  </button>
-                </form>
+                )}
               </PremiumPanel>
 
               {/* PASSWORD */}
@@ -2316,11 +3805,18 @@ export default function AccountSettingsPage() {
                       onChange={
                         event => {
                           setCurrentPassword(
-                            event.target.value
+                            event
+                              .target
+                              .value
                           )
 
-                          setPasswordError(null)
-                          setPasswordMessage(null)
+                          setPasswordError(
+                            null
+                          )
+
+                          setPasswordMessage(
+                            null
+                          )
                         }
                       }
                       placeholder="••••••••"
@@ -2329,7 +3825,6 @@ export default function AccountSettingsPage() {
                   </div>
 
                   <div className="mt-5 grid gap-5 sm:grid-cols-2">
-
                     <div>
                       <label
                         htmlFor="newPassword"
@@ -2348,11 +3843,18 @@ export default function AccountSettingsPage() {
                         onChange={
                           event => {
                             setNewPassword(
-                              event.target.value
+                              event
+                                .target
+                                .value
                             )
 
-                            setPasswordError(null)
-                            setPasswordMessage(null)
+                            setPasswordError(
+                              null
+                            )
+
+                            setPasswordMessage(
+                              null
+                            )
                           }
                         }
                         placeholder="••••••••"
@@ -2378,11 +3880,18 @@ export default function AccountSettingsPage() {
                         onChange={
                           event => {
                             setConfirmPassword(
-                              event.target.value
+                              event
+                                .target
+                                .value
                             )
 
-                            setPasswordError(null)
-                            setPasswordMessage(null)
+                            setPasswordError(
+                              null
+                            )
+
+                            setPasswordMessage(
+                              null
+                            )
                           }
                         }
                         placeholder="••••••••"
@@ -2392,7 +3901,6 @@ export default function AccountSettingsPage() {
                   </div>
 
                   <div className="mt-5 rounded-[14px] border border-white/[0.05] bg-black/20 p-4">
-
                     <p className="text-[7px] uppercase tracking-[0.15em] text-zinc-700">
                       Password Standard
                     </p>
@@ -2454,9 +3962,7 @@ export default function AccountSettingsPage() {
                 />
 
                 <div className="mt-8 grid gap-4 sm:grid-cols-2">
-
                   <div className="rounded-[18px] border border-white/[0.05] bg-black/20 p-5 transition hover:border-[#57202a]/65 hover:bg-[#0c0608]">
-
                     <p className="text-[8px] font-semibold text-zinc-300">
                       Other devices
                     </p>
@@ -2482,7 +3988,6 @@ export default function AccountSettingsPage() {
                   </div>
 
                   <div className="rounded-[18px] border border-white/[0.05] bg-black/20 p-5 transition hover:border-[#57202a]/65 hover:bg-[#0c0608]">
-
                     <p className="text-[8px] font-semibold text-zinc-300">
                       This device
                     </p>
@@ -2510,7 +4015,7 @@ export default function AccountSettingsPage() {
                 )}
               </PremiumPanel>
 
-              {/* DANGER */}
+              {/* DELETE */}
 
               <PremiumPanel
                 maxTilt={2.5}
@@ -2529,7 +4034,6 @@ export default function AccountSettingsPage() {
 
                 {!deleteOpen ? (
                   <div className="mt-8 flex flex-col gap-5 rounded-[18px] border border-[#5a1d27]/55 bg-[#100508]/60 p-5 sm:flex-row sm:items-center sm:justify-between">
-
                     <div>
                       <p className="text-[9px] font-semibold text-zinc-300">
                         Permanent deletion
@@ -2544,7 +4048,9 @@ export default function AccountSettingsPage() {
                       type="button"
                       onClick={
                         () =>
-                          setDeleteOpen(true)
+                          setDeleteOpen(
+                            true
+                          )
                       }
                       className="h-[43px] shrink-0 rounded-[12px] border border-red-900/50 bg-red-950/[0.13] px-5 text-[7px] font-bold uppercase tracking-[0.14em] text-red-500 transition hover:border-red-700/70 hover:bg-red-950/[0.20]"
                     >
@@ -2571,7 +4077,6 @@ export default function AccountSettingsPage() {
                     </p>
 
                     <div className="mt-5 grid gap-4 sm:grid-cols-2">
-
                       <input
                         type="text"
                         value={
@@ -2580,10 +4085,14 @@ export default function AccountSettingsPage() {
                         onChange={
                           event => {
                             setDeleteUsername(
-                              event.target.value
+                              event
+                                .target
+                                .value
                             )
 
-                            setDeleteError(null)
+                            setDeleteError(
+                              null
+                            )
                           }
                         }
                         placeholder={`Type ${profile.username}`}
@@ -2599,10 +4108,14 @@ export default function AccountSettingsPage() {
                         onChange={
                           event => {
                             setDeletePassword(
-                              event.target.value
+                              event
+                                .target
+                                .value
                             )
 
-                            setDeleteError(null)
+                            setDeleteError(
+                              null
+                            )
                           }
                         }
                         placeholder="Current password"
@@ -2617,7 +4130,6 @@ export default function AccountSettingsPage() {
                     )}
 
                     <div className="mt-5 flex flex-wrap gap-3">
-
                       <button
                         type="submit"
                         disabled={
@@ -2634,10 +4146,21 @@ export default function AccountSettingsPage() {
                         type="button"
                         onClick={
                           () => {
-                            setDeleteOpen(false)
-                            setDeleteUsername('')
-                            setDeletePassword('')
-                            setDeleteError(null)
+                            setDeleteOpen(
+                              false
+                            )
+
+                            setDeleteUsername(
+                              ''
+                            )
+
+                            setDeletePassword(
+                              ''
+                            )
+
+                            setDeleteError(
+                              null
+                            )
                           }
                         }
                         className="h-[43px] rounded-[11px] border border-white/[0.05] bg-black/20 px-5 text-[7px] font-semibold uppercase tracking-[0.15em] text-zinc-600 transition hover:text-zinc-300"
